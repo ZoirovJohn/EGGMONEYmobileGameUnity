@@ -3,8 +3,8 @@ using UnityEngine.SceneManagement;
 
 public class SceneLoader : MonoBehaviour
 {
-    public void LoadFarm()
-    {
-        SceneManager.LoadScene("Farm");
-    }
+  public void LoadFarm()
+  {
+    SceneManager.LoadScene("Farm");
+  }
 }
