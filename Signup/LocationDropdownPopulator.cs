@@ -4,22 +4,22 @@ using UnityEngine;
 
 public class LocationDropdownPopulator : MonoBehaviour
 {
-  [Header("Assign your TMP_Dropdown here")]
-  public TMP_Dropdown dropdown;
+    [Header("Assign your TMP_Dropdown here")]
+    public TMP_Dropdown dropdown;
 
-  void Start()
-  {
-    if (dropdown == null)
+    void Start()
     {
-      dropdown = GetComponent<TMP_Dropdown>();
-    }
-
-    // Clear any existing options
-    dropdown.ClearOptions();
-
-    // Create a list of options
-    List<string> countries = new List<string>
+        if (dropdown == null)
         {
+            dropdown = GetComponent<TMP_Dropdown>();
+        }
+
+        dropdown.ClearOptions();
+
+        // Add placeholder first
+        List<string> options = new List<string>
+        {
+            "Select location",   // placeholder
             "Korea",
             "China",
             "Japan",
@@ -32,13 +32,9 @@ public class LocationDropdownPopulator : MonoBehaviour
             "Thailand"
         };
 
-    // Add them to the dropdown
-    dropdown.AddOptions(countries);
+        dropdown.AddOptions(options);
 
-    // Optional: set placeholder (label) text
-    if (dropdown.captionText != null)
-    {
-      dropdown.captionText.text = "location";
+        // Force start on placeholder
+        dropdown.value = 0;
     }
-  }
 }
