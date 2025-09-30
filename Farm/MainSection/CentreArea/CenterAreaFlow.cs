@@ -9,6 +9,8 @@ public class CenterAreaFlow : MonoBehaviour
     public GameObject inventoryPanel;      // Inventory panel (start inactive)
     public Toggle dontShowAgainToggle;     // "Don't show again" (default OFF)
 
+    public GameObject panelFooter;         // NEW: Footer (default OFF in prefab)
+
     private const string PREFS_KEY = "HideInstructions";
 
     [Header("Dev (Editor Only)")]
@@ -31,7 +33,8 @@ public class CenterAreaFlow : MonoBehaviour
         // Start state
         if (loadingAnimHolder) loadingAnimHolder.SetActive(true);
         if (instructionsPanel) instructionsPanel.SetActive(false);
-        if (inventoryPanel) inventoryPanel.SetActive(false);
+        if (inventoryPanel)    inventoryPanel.SetActive(false);
+        if (panelFooter)       panelFooter.SetActive(false); // NEW: footer off by default
 
         Debug.Log($"[CenterAreaFlow] Start; HideInstructions={PlayerPrefs.GetInt(PREFS_KEY, 0)}");
 
@@ -61,6 +64,7 @@ public class CenterAreaFlow : MonoBehaviour
         {
             if (inventoryPanel) inventoryPanel.SetActive(false);
             if (instructionsPanel) instructionsPanel.SetActive(true);
+            if (panelFooter) panelFooter.SetActive(false);   // NEW: keep footer hidden on instructions
             Debug.Log("[CenterAreaFlow] Instructions shown");
         }
     }
@@ -81,6 +85,7 @@ public class CenterAreaFlow : MonoBehaviour
     private void OpenInventory()
     {
         if (inventoryPanel) inventoryPanel.SetActive(true);
+        if (panelFooter)    panelFooter.SetActive(true);   // NEW: show footer with inventory
         Debug.Log("[CenterAreaFlow] Inventory shown");
     }
 }

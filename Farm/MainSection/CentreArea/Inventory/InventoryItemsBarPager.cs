@@ -2,7 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class CentralAreaItemsBarPager : MonoBehaviour
+public class InventoryItemsBarPager : MonoBehaviour
 {
     [Header("Refs")]
     public ScrollRect scroll;            // ItemsScroll (ScrollRect)

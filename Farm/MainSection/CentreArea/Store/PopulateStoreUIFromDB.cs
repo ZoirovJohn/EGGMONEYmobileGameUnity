@@ -11,7 +11,7 @@ public class PopulateStoreUIFromDB : MonoBehaviour
     [SerializeField] string playerInfoNode = "PlayerInfo_Left";
 
     // exact names expected under PlayerInfo_Left
-    static readonly string[] FieldOrder = 
+    static readonly string[] FieldOrder =
         { "Name", "Price", "HowToGet", "GiftFunction", "LifeTime", "Performance" };
 
     void Start() => Apply();
@@ -44,21 +44,23 @@ public class PopulateStoreUIFromDB : MonoBehaviour
             var infoRoot = cells[i].Find(playerInfoNode);
             if (!infoRoot) continue;
 
-            // build plain "Label: value" strings (your bolding script will style labels)
-            string nameText        = $"Name: {item.name}";
-            string priceText       = $"Price: {(item.canBuy && item.priceFP > 0 ? $"{item.priceFP:N0} FP" : "None")}";
-            string howToGetText    = $"HowToGet: {item.howToGet}";
-            string giftText        = $"GiftFunction: {(item.giftPermitted ? "Permitted" : "Not permitted")}";
-            string lifeTimeText    = $"LifeTime: {item.lifetime}";
-            string performanceText = $"Performance: {(string.IsNullOrWhiteSpace(item.performance) ? "—" : item.performance)}";
+            // write with bold labels directly
+            string nameText        = $"<b>Name:</b> {item.name}";
+            string priceText       = $"<b>Price:</b> {(item.canBuy && item.priceFP > 0 ? $"{item.priceFP:N0} FP" : "None")}";
+            string howToGetText    = $"<b>How to get:</b> {item.howToGet}";
+            string giftBase        = item.giftPermitted ? "Permitted" : "Not permitted";
+            string giftExtras      = string.IsNullOrWhiteSpace(item.giftFunction) ? "" : $" {item.giftFunction}";
+            string giftText        = $"<b>Gift function:</b> {giftBase}{giftExtras}";
+            string lifeTimeText    = $"<b>Life time:</b> {item.lifetime}";
+            string performanceText = $"<b>Performance:</b> {(string.IsNullOrWhiteSpace(item.performance) ? "—" : item.performance)}";
 
             // try exact names first; if missing, fallback to index mapping
-            SetByNameOrIndex(infoRoot, "Name",        0, nameText);
-            SetByNameOrIndex(infoRoot, "Price",       1, priceText);
-            SetByNameOrIndex(infoRoot, "HowToGet",    2, howToGetText);
-            SetByNameOrIndex(infoRoot, "GiftFunction",3, giftText);
-            SetByNameOrIndex(infoRoot, "LifeTime",    4, lifeTimeText);
-            SetByNameOrIndex(infoRoot, "Performance", 5, performanceText);
+            SetByNameOrIndex(infoRoot, "Name",         0, nameText);
+            SetByNameOrIndex(infoRoot, "Price",        1, priceText);
+            SetByNameOrIndex(infoRoot, "HowToGet",     2, howToGetText);
+            SetByNameOrIndex(infoRoot, "GiftFunction", 3, giftText);
+            SetByNameOrIndex(infoRoot, "LifeTime",     4, lifeTimeText);
+            SetByNameOrIndex(infoRoot, "Performance",  5, performanceText);
         }
     }
 
