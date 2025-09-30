@@ -33,10 +33,12 @@ public class PurchasePopupUI : MonoBehaviour
 
     void Awake()
     {
-        if (btnMinus)  btnMinus.onClick.AddListener(() => SetQty(qty - 1));
-        if (btnPlus)   btnPlus .onClick.AddListener(() => SetQty(qty + 1));
-        if (btnBuy)    btnBuy  .onClick.AddListener(ConfirmBuy);
-        if (btnCancel) btnCancel.onClick.AddListener(Close);
+        if (btnMinus) btnMinus.onClick.AddListener(() => SetQty(qty - 1));
+        if (btnPlus)  btnPlus .onClick.AddListener(() => SetQty(qty + 1));
+
+        // Make Buy/Cancel do NOTHING on click
+        if (btnBuy)    { btnBuy.onClick.RemoveAllListeners(); }
+        if (btnCancel) { btnCancel.onClick.RemoveAllListeners(); }
 
         if (qtyInput)
         {
@@ -54,7 +56,8 @@ public class PurchasePopupUI : MonoBehaviour
         if (item == null)
         {
             Debug.LogWarning($"[PurchasePopupUI] productId '{productId}' not found in StoreDB.");
-            Close(); return;
+            // no Close() call — leave UI as-is
+            return;
         }
 
         unitPrice   = Mathf.Max(0, item.priceFP);
@@ -133,35 +136,11 @@ public class PurchasePopupUI : MonoBehaviour
         if (btnMinus) btnMinus.interactable = qty > minQty;
         if (btnPlus)  btnPlus .interactable = qty < maxQty;
 
-        // === Active state toggle per your requirement ===
-        if (btnBuy)    btnBuy.gameObject.SetActive(canBuyNow);   // hide when insufficient
-        if (btnCancel) btnCancel.gameObject.SetActive(!canBuyNow); // show when insufficient
+        // Toggle which button is visible (buttons themselves do nothing)
+        if (btnBuy)    btnBuy.gameObject.SetActive(canBuyNow);
+        if (btnCancel) btnCancel.gameObject.SetActive(!canBuyNow);
     }
 
-    void ConfirmBuy()
-    {
-        if (!purchasable) return;
-
-        int total = qty * unitPrice;
-
-        if (!wallet)
-        {
-            // test mode: pretend success
-            Close();
-            return;
-        }
-
-        if (wallet.TrySpend(total))
-        {
-            // TODO: Inventory.Add(productId, qty);
-            Close();
-        }
-        else
-        {
-            // wallet changed meanwhile → re-evaluate
-            RefreshUI();
-        }
-    }
-
-    public void Close() => gameObject.SetActive(false);
+    // Intentionally a NO-OP so even if wired in Inspector, nothing happens.
+    public void Close() { /* do nothing */ }
 }
