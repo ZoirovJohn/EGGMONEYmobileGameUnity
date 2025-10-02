@@ -53,7 +53,7 @@ public class StoreDB : MonoBehaviour
 
             // 2) SilverEgg (Sgg)
             new Item{
-                id="silver_egg", name="SilverEgg", priceFP=10000, canBuy=true,
+                id="silver_egg", name="Silver Egg", priceFP=10000, canBuy=true,
                 howToGet="Store",
                 giftPermitted=false,
                 lifetime="Unlimited",
@@ -65,13 +65,13 @@ public class StoreDB : MonoBehaviour
                 id="food", name="Food", priceFP=10, canBuy=true,
                 howToGet="Store / Daily check",
                 giftPermitted=true,
-                lifetime="During the chicken's lifetime",
+                lifetime="For one chicken for one day",
                 performance="Daily food amount a chicken can eat."
             },
 
             // 4) GoldEgg (Ggg)
             new Item{
-                id="gold_egg", name="GoldEgg", priceFP=30000, canBuy=true,
+                id="gold_egg", name="Gold Egg", priceFP=30000, canBuy=true,
                 howToGet="Store",
                 giftPermitted=false,
                 lifetime="Unlimited",
@@ -107,7 +107,7 @@ public class StoreDB : MonoBehaviour
 
             // 8) SuperBlueEgg (Event Blue egg / Bgg)
             new Item{
-                id="super_blue_egg", name="SuperBlueEgg", priceFP=6000, canBuy=true,
+                id="super_blue_egg", name="Super Blue Egg", priceFP=6000, canBuy=true,
                 howToGet="Store",
                 giftPermitted=false,
                 lifetime="Unlimited",
@@ -116,7 +116,7 @@ public class StoreDB : MonoBehaviour
 
             // 9) SuperRedEgg (Event Red egg / Rgg)
             new Item{
-                id="super_red_egg", name="SuperRedEgg", priceFP=20000, canBuy=true,
+                id="super_red_egg", name="Super Red Egg", priceFP=20000, canBuy=true,
                 howToGet="Store",
                 giftPermitted=false,
                 lifetime="Unlimited",

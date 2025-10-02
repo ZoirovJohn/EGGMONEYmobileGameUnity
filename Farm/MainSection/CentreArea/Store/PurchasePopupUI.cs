@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -22,7 +23,7 @@ public class PurchasePopupUI : MonoBehaviour
     [SerializeField] int minQty = 1;
     [SerializeField] int maxQty = 999;
 
-    [Header("Wallet (optional)")]
+    [Header("Wallet (required)")]
     [SerializeField] PlayerWallet wallet;
 
     // runtime
@@ -31,14 +32,17 @@ public class PurchasePopupUI : MonoBehaviour
     int qty = 1;
     bool purchasable = false;
 
+    // temp message coroutine handle
+    Coroutine tempMsgCo;
+
     void Awake()
     {
         if (btnMinus) btnMinus.onClick.AddListener(() => SetQty(qty - 1));
         if (btnPlus)  btnPlus .onClick.AddListener(() => SetQty(qty + 1));
 
-        // Make Buy/Cancel do NOTHING on click
-        if (btnBuy)    { btnBuy.onClick.RemoveAllListeners(); }
-        if (btnCancel) { btnCancel.onClick.RemoveAllListeners(); }
+        // Ensure no prefab-wired actions linger
+        if (btnBuy)    btnBuy.onClick.RemoveAllListeners();
+        if (btnCancel) btnCancel.onClick.RemoveAllListeners();
 
         if (qtyInput)
         {
@@ -49,28 +53,61 @@ public class PurchasePopupUI : MonoBehaviour
 
     void OnEnable()
     {
+        // Resolve refs
         if (!store)  store  = StoreDB.Instance;
         if (!wallet) wallet = FindAnyObjectByType<PlayerWallet>(FindObjectsInactive.Include);
 
+        // Reset button listeners every time the popup opens
+        if (btnBuy)    btnBuy.onClick.RemoveAllListeners();
+        if (btnCancel) btnCancel.onClick.RemoveAllListeners();
+
+        // Load item
         item = store ? store.Get(productId) : null;
         if (item == null)
         {
             Debug.LogWarning($"[PurchasePopupUI] productId '{productId}' not found in StoreDB.");
-            // no Close() call — leave UI as-is
+
+            if (btnBuy)    btnBuy.gameObject.SetActive(false);
+            if (btnCancel) btnCancel.gameObject.SetActive(true);
+            if (btnCancel) btnCancel.onClick.AddListener(Close);
+
+            if (messageText)
+            {
+                messageText.text  = "Item not found.";
+                messageText.color = new Color(0.85f, 0.2f, 0.2f);
+            }
             return;
         }
 
+        // Compute purchasable state
         unitPrice   = Mathf.Max(0, item.priceFP);
         purchasable = item.canBuy && unitPrice > 0;
 
+        // Price label
         if (unitPriceText)
             unitPriceText.text = $"Price : {(unitPrice > 0 ? $"{unitPrice:N0} FP" : "None")}";
 
-        // Default state when opening
+        // Default buttons visible state before affordability check
         if (btnBuy)    btnBuy.gameObject.SetActive(true);
         if (btnCancel) btnCancel.gameObject.SetActive(false);
 
-        SetQty(Mathf.Clamp(1, minQty, maxQty)); // affordability handled in RefreshUI()
+        // Set initial qty (affordability handled in RefreshUI)
+        SetQty(Mathf.Clamp(1, minQty, maxQty));
+
+        // Wire actions AFTER initial RefreshUI so state is correct
+        if (btnBuy)
+        {
+            btnBuy.onClick.AddListener(() =>
+            {
+                if (!btnBuy.interactable) return; // simple debounce
+                btnBuy.interactable = false;
+                TryBuy();
+                btnBuy.interactable = true;
+            });
+        }
+
+        if (btnCancel)
+            btnCancel.onClick.AddListener(Close);
     }
 
     void OnQtyTyped(string s)
@@ -90,7 +127,10 @@ public class PurchasePopupUI : MonoBehaviour
 
     void RefreshUI()
     {
-        int total = qty * unitPrice;
+        // overflow-safe total calc
+        long totalL = (long)qty * unitPrice;
+        int total = totalL > int.MaxValue ? int.MaxValue : (int)totalL;
+
         if (totalText) totalText.text = $"Total : {total:N0} FP";
 
         bool canBuyNow;
@@ -106,12 +146,12 @@ public class PurchasePopupUI : MonoBehaviour
         }
         else if (!wallet)
         {
-            // Test mode (no wallet) → allow buy
-            canBuyNow = true;
+            // No wallet -> can't buy
+            canBuyNow = false;
             if (messageText)
             {
-                messageText.text  = "Test mode (no wallet).";
-                messageText.color = new Color(0.4f, 0.4f, 0.4f);
+                messageText.text  = "No wallet found.";
+                messageText.color = new Color(0.85f, 0.2f, 0.2f);
             }
         }
         else
@@ -121,7 +161,7 @@ public class PurchasePopupUI : MonoBehaviour
             {
                 if (canBuyNow)
                 {
-                    messageText.text  = $"You have {wallet.FP:N0} FP. You can buy this.";
+                    messageText.text  = "You can buy this.";
                     messageText.color = new Color(0.16f, 0.6f, 0.2f);
                 }
                 else
@@ -136,9 +176,68 @@ public class PurchasePopupUI : MonoBehaviour
         if (btnMinus) btnMinus.interactable = qty > minQty;
         if (btnPlus)  btnPlus .interactable = qty < maxQty;
 
-        // Toggle which button is visible (buttons themselves do nothing)
+        // Toggle which button is visible
         if (btnBuy)    btnBuy.gameObject.SetActive(canBuyNow);
         if (btnCancel) btnCancel.gameObject.SetActive(!canBuyNow);
+    }
+
+    void TryBuy()
+    {
+        if (!wallet || item == null) return;
+
+        // overflow-safe total calc
+        long totalL = (long)qty * unitPrice;
+        int total = totalL > int.MaxValue ? int.MaxValue : (int)totalL;
+
+        if (wallet.TrySpend(total))
+        {
+            // Add to inventory
+            wallet.AddItem(productId, qty);
+
+            // Show success for ~3s, then restore previous message
+            if (tempMsgCo != null) { StopCoroutine(tempMsgCo); tempMsgCo = null; }
+            tempMsgCo = StartCoroutine(FlashMessage(
+                $"Purchased {qty}x {productId}!",
+                new Color(0.2f, 0.6f, 1f),
+                3f
+            ));
+
+            // keep popup open; previous message will be restored automatically
+        }
+        else
+        {
+            if (messageText)
+            {
+                messageText.text  = "Purchase failed. Not enough FP.";
+                messageText.color = new Color(0.85f, 0.2f, 0.2f);
+            }
+            RefreshUI();
+        }
+    }
+
+    IEnumerator FlashMessage(string text, Color color, float seconds)
+    {
+        if (!messageText) yield break;
+
+        // Save current state
+        string prevText = messageText.text;
+        Color  prevCol  = messageText.color;
+
+        // Show temporary message
+        messageText.text  = text;
+        messageText.color = color;
+
+        yield return new WaitForSecondsRealtime(seconds);
+
+        // Restore previous message
+        if (messageText)
+        {
+            messageText.text  = prevText;
+            messageText.color = prevCol;
+        }
+
+        // Re-evaluate UI in case wallet/qty changed during the toast
+        RefreshUI();
     }
 
     // Intentionally a NO-OP so even if wired in Inspector, nothing happens.
