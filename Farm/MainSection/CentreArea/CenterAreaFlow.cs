@@ -18,14 +18,14 @@ public class CenterAreaFlow : MonoBehaviour
 
     private void Awake()
     {
-#if UNITY_EDITOR
+    #if UNITY_EDITOR
         if (resetSkipOnPlay)
         {
             PlayerPrefs.DeleteKey(PREFS_KEY);
             PlayerPrefs.Save();
             Debug.Log("[CenterAreaFlow] Reset HideInstructions on Play (Editor)");
         }
-#endif
+     #endif
     }
 
     private void Start()

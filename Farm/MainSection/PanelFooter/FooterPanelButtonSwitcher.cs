@@ -3,10 +3,15 @@ using UnityEngine.UI;
 
 public class FooterPanelSwitcher : MonoBehaviour
 {
-    [Header("Panels")]
+    [Header("Panels (centre area targets)")]
     [SerializeField] GameObject inventoryPanel;
     [SerializeField] GameObject dutiesPanel;   // DailyDutyPanel
     [SerializeField] GameObject storePanel;
+
+    [Header("Layout roots (visibility control)")]
+    [SerializeField] GameObject farmTabsRoot;      // show when footer used
+    [SerializeField] GameObject panelButtonsRoot;  // hide when footer used
+    [SerializeField] Transform centreAreaRoot;     // parent of ALL centre panels
 
     [Header("Footer Buttons (optional auto-wire)")]
     [SerializeField] Button btnInventory;
@@ -28,17 +33,49 @@ public class FooterPanelSwitcher : MonoBehaviour
 
     void SwitchTo(Panel p)
     {
+        // Footer mode: show FarmTabs, hide Management tabs
+        if (panelButtonsRoot) panelButtonsRoot.SetActive(false);
+        if (farmTabsRoot)     farmTabsRoot.SetActive(true);
+
+        // Close ALL panels under CentreArea
+        if (centreAreaRoot)
+        {
+            for (int i = 0; i < centreAreaRoot.childCount; i++)
+                centreAreaRoot.GetChild(i).gameObject.SetActive(false);
+        }
+
+        // Open requested footer panel
         if (inventoryPanel) inventoryPanel.SetActive(p == Panel.Inventory);
         if (dutiesPanel)    dutiesPanel   .SetActive(p == Panel.Duties);
         if (storePanel)     storePanel    .SetActive(p == Panel.Store);
 
-        // (Optional) simple visual feedback: disable the active tab's button
+        // Simple visual feedback
         if (btnInventory) btnInventory.interactable = p != Panel.Inventory;
         if (btnDuties)    btnDuties   .interactable = p != Panel.Duties;
         if (btnStore)     btnStore    .interactable = p != Panel.Store;
     }
 
-    // Public methods for hooking up via the Button OnClick list (if you prefer manual wiring)
+    public void ClearFooterSelection(bool closePanels = false)
+    {
+        // Optionally close footer panels too (Mgmt already closes CentreArea, so you can pass false)
+        if (closePanels)
+        {
+            if (inventoryPanel) inventoryPanel.SetActive(false);
+            if (dutiesPanel)    dutiesPanel   .SetActive(false);
+            if (storePanel)     storePanel    .SetActive(false);
+        }
+
+        // Re-enable all footer buttons (so none looks “selected”)
+        if (btnInventory) btnInventory.interactable = true;
+        if (btnDuties)    btnDuties   .interactable = true;
+        if (btnStore)     btnStore    .interactable = true;
+
+        // Clear UI focus (removes highlighted state)
+        UnityEngine.EventSystems.EventSystem.current?.SetSelectedGameObject(null);
+    }
+
+
+    // Public methods for Button OnClick
     public void ShowInventory() => SwitchTo(Panel.Inventory);
     public void ShowDuties()    => SwitchTo(Panel.Duties);
     public void ShowStore()     => SwitchTo(Panel.Store);
