@@ -77,7 +77,7 @@ public class LoginValidator : MonoBehaviour
     if (errorEmail)
     {
       errorEmail.text = msg ?? "";
-      errorEmail.gameObject.SetActive(!string.IsNullOrEmpty(msg));
+      // ❌ Do not hide the object — keep layout fixed
     }
     if (emailBackground)
       emailBackground.color = string.IsNullOrEmpty(msg) ? normalTint : errorTint;
@@ -88,7 +88,7 @@ public class LoginValidator : MonoBehaviour
     if (errorPassword)
     {
       errorPassword.text = msg ?? "";
-      errorPassword.gameObject.SetActive(!string.IsNullOrEmpty(msg));
+      // ❌ Do not hide the object — keep layout fixed
     }
     if (passwordBackground)
       passwordBackground.color = string.IsNullOrEmpty(msg) ? normalTint : errorTint;

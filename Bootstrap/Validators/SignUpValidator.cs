@@ -147,8 +147,8 @@ public class SignUpValidator : MonoBehaviour
     if (switcher != null) switcher.ShowCharacter();
     // Or: SceneManager.LoadScene("CharacterSelect");
   }
-
   // --- helpers ---
+
   void SetErr(TMP_Text label, Image bg, string msg)
   {
     Show(label, msg);
@@ -158,9 +158,12 @@ public class SignUpValidator : MonoBehaviour
   void Show(TMP_Text label, string msg)
   {
     if (!label) return;
+    // Always keep the label visible; just change the text.
     label.text = msg ?? "";
-    label.gameObject.SetActive(!string.IsNullOrEmpty(msg));
+    if (!label.gameObject.activeSelf) label.gameObject.SetActive(true);
+    // ← no SetActive(false) when empty
   }
+
 
   bool IsValidEmail(string email)
   {
