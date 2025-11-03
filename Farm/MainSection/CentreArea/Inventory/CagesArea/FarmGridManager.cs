@@ -100,6 +100,11 @@ public class FarmGridManager : MonoBehaviour
             return;
         }
 
+        // Count cages with nests for verification
+        int cagesWithNests = 0;
+        int totalChampChicks = 0;
+        int totalNormalChicks = 0;
+
         // Build all 100 cages
         for (int i = 0; i < currentCages.Count; i++)
         {
@@ -113,9 +118,15 @@ public class FarmGridManager : MonoBehaviour
             Button btn = cage.GetComponent<Button>() ?? cage.AddComponent<Button>();
             int index = i;
             btn.onClick.AddListener(() => ShowBigCage(index));
+
+            // Count for debug
+            if (data.nestsOccupied > 0) cagesWithNests++;
+            totalChampChicks += data.champChicks;
+            totalNormalChicks += data.normalChicks;
         }
 
         Debug.Log($"✅ Built {currentCages.Count} cages for Farm {farmDatabase.currentFarmIndex + 1}");
+        Debug.Log($"   📊 Cages with nests: {cagesWithNests}, Champ: {totalChampChicks}, Normal: {totalNormalChicks}");
         
         // Force layout refresh
         LayoutRebuilder.ForceRebuildLayoutImmediate(grid.GetComponent<RectTransform>());
@@ -127,15 +138,15 @@ public class FarmGridManager : MonoBehaviour
 
         bool hasAnyChick = data.normalChicks > 0 || data.champChicks > 0;
 
-        // ORDER 1: Nest (base layer)
+        // ORDER 1: Nest (ONLY show if nestsOccupied > 0)
         Transform nest = cageRoot.Find("Nest");
-        if (nest != null)
+        if (nest != null && data.nestsOccupied > 0)
         {
             nest.gameObject.SetActive(true);
             nest.SetAsFirstSibling();
         }
 
-        // ORDER 2: ChampChick
+        // ORDER 2: ChampChick (priority chick)
         Transform champChick = cageRoot.Find("ChampChick");
         if (champChick != null && data.champChicks > 0)
         {
@@ -151,7 +162,7 @@ public class FarmGridManager : MonoBehaviour
             normalChick.SetAsLastSibling();
         }
 
-        // ORDER 4: Egg or Clock
+        // ORDER 4: Egg or Clock (only if there are chicks)
         if (hasAnyChick)
         {
             Transform egg = cageRoot.Find("Egg");
@@ -169,7 +180,7 @@ public class FarmGridManager : MonoBehaviour
             }
         }
 
-        // ORDER 5: LifeTime (top layer)
+        // ORDER 5: LifeTime (top layer - only if there are chicks)
         Transform lifeTime = cageRoot.Find("LifeTime");
         if (lifeTime != null && hasAnyChick)
         {
@@ -200,7 +211,7 @@ public class FarmGridManager : MonoBehaviour
 
         ApplyCageDisplay(inside, data);
         
-        Debug.Log($"📦 Opened cage {index + 1}: Normal={data.normalChicks}, Champ={data.champChicks}");
+        Debug.Log($"📦 Opened cage {index + 1}: Nests={data.nestsOccupied}, Normal={data.normalChicks}, Champ={data.champChicks}");
     }
 
     // Load specific farm cages

@@ -7,12 +7,11 @@ public class FarmDatabase : ScriptableObject
     public int currentFarmIndex = 0;
     
     [Header("Load Data From JSON")]
-    public TextAsset farmDataJSON;  // Assign your JSON file here in Inspector
+    public TextAsset farmDataJSON;
     
     [HideInInspector]
     public List<FarmData> farms = new List<FarmData>();
 
-    // Call this from Inspector or on Start to load from JSON
     [ContextMenu("Load Data from JSON")]
     public void LoadFromJSON()
     {
@@ -38,7 +37,6 @@ public class FarmDatabase : ScriptableObject
         }
     }
 
-    // Generate cages based on farm data
     private void GenerateCagesFromFarmData()
     {
         foreach (var farm in farms)
@@ -70,76 +68,76 @@ public class FarmDatabase : ScriptableObject
 
     private void DistributeFarmDataToCages(FarmData farm)
     {
-        // Step 1: Distribute nests randomly across cages
-        int remainingNests = farm.nestsOccupied;
+        Debug.Log($"🔧 Distributing data for {farm.farmName}:");
+        Debug.Log($"   Total Nests: {farm.nestsOccupied}, Champ: {farm.champChicks}, Normal: {farm.normalChicks}");
+
+        // Create a list to track which cages have nests
         List<int> cagesWithNests = new List<int>();
         
-        while (remainingNests > 0)
+        // Step 1: Distribute nests - ONLY nestsOccupied amount (not all 100)
+        for (int i = 0; i < farm.nestsOccupied && i < 100; i++)
         {
-            int randomCageIndex = Random.Range(0, farm.cages.Count);
-            CageData cage = farm.cages[randomCageIndex];
-            
-            if (cage.nestsOccupied < cage.nestCapacity)
-            {
-                cage.nestsOccupied++;
-                if (!cagesWithNests.Contains(randomCageIndex))
-                    cagesWithNests.Add(randomCageIndex);
-                remainingNests--;
-            }
+            farm.cages[i].nestsOccupied = 1; // Each cage gets 1 nest
+            cagesWithNests.Add(i);
         }
 
-        // Step 2: Distribute champion chicks (only in cages with nests)
-        int remainingChampChicks = farm.champChicks;
-        while (remainingChampChicks > 0 && cagesWithNests.Count > 0)
+        Debug.Log($"   ✓ Distributed {farm.nestsOccupied} nests to first {farm.nestsOccupied} cages");
+
+        // Step 2: Distribute CHAMP chicks first (priority)
+        int champDistributed = 0;
+        for (int i = 0; i < farm.champChicks && i < cagesWithNests.Count; i++)
         {
-            int randomIndex = Random.Range(0, cagesWithNests.Count);
-            int cageIndex = cagesWithNests[randomIndex];
-            CageData cage = farm.cages[cageIndex];
+            int cageIndex = cagesWithNests[i];
+            farm.cages[cageIndex].champChicks = 1;
             
-            if (cage.nestsOccupied > 0)
-            {
-                cage.champChicks++;
-                
-                // Randomly assign egg or clock (50/50 chance)
-                cage.hasEgg = Random.value > 0.5f;
-                
-                // Random remaining time between 30-300 seconds
-                cage.remainingTime = Random.Range(30f, 300f);
-                
-                remainingChampChicks--;
-            }
+            // Randomly assign egg or clock (50/50 chance)
+            farm.cages[cageIndex].hasEgg = Random.value > 0.5f;
+            
+            // Random remaining time between 30-300 seconds
+            farm.cages[cageIndex].remainingTime = Random.Range(30f, 300f);
+            
+            champDistributed++;
         }
 
-        // Step 3: Distribute normal chicks (only in cages with nests)
-        int remainingNormalChicks = farm.normalChicks;
-        while (remainingNormalChicks > 0 && cagesWithNests.Count > 0)
+        Debug.Log($"   ✓ Distributed {champDistributed} champ chicks");
+
+        // Step 3: Distribute NORMAL chicks (after champs)
+        int normalDistributed = 0;
+        int startIndex = farm.champChicks; // Start after champ chicks
+        
+        for (int i = 0; i < farm.normalChicks && (startIndex + i) < cagesWithNests.Count; i++)
         {
-            int randomIndex = Random.Range(0, cagesWithNests.Count);
-            int cageIndex = cagesWithNests[randomIndex];
-            CageData cage = farm.cages[cageIndex];
+            int cageIndex = cagesWithNests[startIndex + i];
+            farm.cages[cageIndex].normalChicks = 1;
             
-            if (cage.nestsOccupied > 0)
-            {
-                cage.normalChicks++;
-                
-                // Only set egg/clock if there's no champ chick already
-                if (cage.champChicks == 0)
-                {
-                    // Randomly assign egg or clock (50/50 chance)
-                    cage.hasEgg = Random.value > 0.5f;
-                    
-                    // Random remaining time between 30-300 seconds
-                    cage.remainingTime = Random.Range(30f, 300f);
-                }
-                
-                remainingNormalChicks--;
-            }
+            // Randomly assign egg or clock (50/50 chance)
+            farm.cages[cageIndex].hasEgg = Random.value > 0.5f;
+            
+            // Random remaining time between 30-300 seconds
+            farm.cages[cageIndex].remainingTime = Random.Range(30f, 300f);
+            
+            normalDistributed++;
         }
+
+        Debug.Log($"   ✓ Distributed {normalDistributed} normal chicks");
+        
+        // Verify distribution
+        int actualNests = 0;
+        int actualChamps = 0;
+        int actualNormals = 0;
+        
+        foreach (var cage in farm.cages)
+        {
+            if (cage.nestsOccupied > 0) actualNests++;
+            if (cage.champChicks > 0) actualChamps++;
+            if (cage.normalChicks > 0) actualNormals++;
+        }
+        
+        Debug.Log($"   ✅ Verification - Nests: {actualNests}, Champs: {actualChamps}, Normals: {actualNormals}");
     }
 
     #region BACKEND INTEGRATION
 
-    // Load from backend API (string JSON)
     public void LoadFromBackend(string jsonData)
     {
         try
@@ -158,7 +156,6 @@ public class FarmDatabase : ScriptableObject
         }
     }
 
-    // Update specific farm from backend
     public void UpdateFarmFromBackend(int farmIndex, int nests, int champChicks, int normalChicks)
     {
         if (farmIndex >= 0 && farmIndex < farms.Count)
@@ -191,7 +188,6 @@ public class FarmDatabase : ScriptableObject
         }
     }
 
-    // Convert to JSON
     public string ToJson()
     {
         FarmDatabaseWrapper wrapper = new FarmDatabaseWrapper { farms = farms };
@@ -255,8 +251,6 @@ public class FarmDatabase : ScriptableObject
 
     #endregion
 
-
-    // Auto-load on first use
     public void GenerateDefaultData()
     {
         if (farmDataJSON != null)

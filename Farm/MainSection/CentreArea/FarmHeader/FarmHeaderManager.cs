@@ -179,8 +179,13 @@ public class FarmHeaderManager : MonoBehaviour
         rt.anchoredPosition = new Vector2(xPos, 0);
         rt.sizeDelta = new Vector2(width, 0);
 
-        // Add onClick listener - IMPORTANT: Capture farmIndex in closure
+        // Find button - check both on root and in children
         Button btn = obj.GetComponent<Button>();
+        if (btn == null)
+        {
+            btn = obj.GetComponentInChildren<Button>();
+        }
+        
         if (btn != null)
         {
             int capturedIndex = farmIndex; // Capture the index!
@@ -190,7 +195,7 @@ public class FarmHeaderManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning($"⚠️ Farm slot {farmIndex + 1} has no Button component!");
+            Debug.LogWarning($"⚠️ Farm slot {farmIndex + 1} has no Button component (checked root and children)!");
         }
 
         spawned.Add(obj);
