@@ -7,27 +7,48 @@ public class FarmGridManager : MonoBehaviour
     public GridLayoutGroup grid;
     public RectTransform viewport;
     public GameObject cagePrefab;
-    public GameObject bigCage;          // assign root BigCage
-    public FarmDatabase farmDatabase;   // assign ScriptableObject
+    public GameObject bigCage;
+    public FarmDatabase farmDatabase;
 
     private List<CageData> currentCages;
 
     void Start()
     {
+        Debug.Log("🚀 FarmGridManager Start()");
+        
         if (farmDatabase == null)
         {
-            Debug.LogError("FarmDatabase not assigned!");
+            Debug.LogError("❌ FarmDatabase not assigned!");
             return;
         }
 
-        // Auto-load from JSON if not already loaded
-        if (farmDatabase.farms.Count == 0)
+        // Force load from JSON
+        Debug.Log("📂 Loading data from JSON...");
+        farmDatabase.LoadFromJSON();
+        
+        // Check if data loaded
+        if (farmDatabase.farms == null || farmDatabase.farms.Count == 0)
         {
-            farmDatabase.LoadFromJSON();
+            Debug.LogError("❌ No farms loaded! Check JSON file assignment.");
+            return;
         }
 
-        currentCages = farmDatabase.GetCurrentFarmCages()?.cages;
+        Debug.Log($"✅ Loaded {farmDatabase.farms.Count} farms");
 
+        // Set to Farm 1 (index 0) by default
+        farmDatabase.currentFarmIndex = 0;
+        
+        // Load Farm 1 cages
+        LoadFarmCages(0);
+        
+        if (currentCages == null || currentCages.Count == 0)
+        {
+            Debug.LogError("❌ No cages generated!");
+            return;
+        }
+
+        Debug.Log($"✅ Farm 1 has {currentCages.Count} cages");
+        
         SetupGrid();
         BuildCages();
     }
@@ -52,15 +73,34 @@ public class FarmGridManager : MonoBehaviour
         grid.padding.right = Mathf.RoundToInt(sidePadding);
 
         grid.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, screenWidth);
+        
+        Debug.Log($"📐 Grid setup: {columns} columns, cell size: {cellSize}");
     }
 
     void BuildCages()
     {
-        foreach (Transform child in grid.transform)
-            Destroy(child.gameObject);
+        Debug.Log($"🔨 Building cages... Current cage count: {currentCages?.Count ?? 0}");
+        
+        // Clear existing cages
+        int childCount = grid.transform.childCount;
+        for (int i = childCount - 1; i >= 0; i--)
+        {
+            DestroyImmediate(grid.transform.GetChild(i).gameObject);
+        }
 
-        if (currentCages == null) return;
+        if (currentCages == null || currentCages.Count == 0)
+        {
+            Debug.LogWarning("⚠️ No cages to display!");
+            return;
+        }
 
+        if (cagePrefab == null)
+        {
+            Debug.LogError("❌ CagePrefab not assigned!");
+            return;
+        }
+
+        // Build all 100 cages
         for (int i = 0; i < currentCages.Count; i++)
         {
             CageData data = currentCages[i];
@@ -68,32 +108,34 @@ public class FarmGridManager : MonoBehaviour
             GameObject cage = Instantiate(cagePrefab, grid.transform);
             cage.name = $"Cage_{i+1}";
             
-            // Apply ordered display logic
             ApplyCageDisplay(cage.transform, data);
 
             Button btn = cage.GetComponent<Button>() ?? cage.AddComponent<Button>();
             int index = i;
             btn.onClick.AddListener(() => ShowBigCage(index));
         }
+
+        Debug.Log($"✅ Built {currentCages.Count} cages for Farm {farmDatabase.currentFarmIndex + 1}");
+        
+        // Force layout refresh
+        LayoutRebuilder.ForceRebuildLayoutImmediate(grid.GetComponent<RectTransform>());
     }
 
     void ApplyCageDisplay(Transform cageRoot, CageData data)
     {
-        // Turn everything off first
         SetAllOff(cageRoot.gameObject);
 
         bool hasAnyChick = data.normalChicks > 0 || data.champChicks > 0;
 
-        // ORDER 1: Nest (ALWAYS show as base - the green grass)
+        // ORDER 1: Nest (base layer)
         Transform nest = cageRoot.Find("Nest");
         if (nest != null)
         {
-            // Show nest always (it's the grass base), but can check nestsOccupied if needed
             nest.gameObject.SetActive(true);
-            nest.SetAsFirstSibling(); // Bottom layer
+            nest.SetAsFirstSibling();
         }
 
-        // ORDER 2: ChampChick (priority chick - golden one)
+        // ORDER 2: ChampChick
         Transform champChick = cageRoot.Find("ChampChick");
         if (champChick != null && data.champChicks > 0)
         {
@@ -101,7 +143,7 @@ public class FarmGridManager : MonoBehaviour
             champChick.SetAsLastSibling();
         }
 
-        // ORDER 3: NormalChick (white chick)
+        // ORDER 3: NormalChick
         Transform normalChick = cageRoot.Find("WhiteChick");
         if (normalChick != null && data.normalChicks > 0)
         {
@@ -109,7 +151,7 @@ public class FarmGridManager : MonoBehaviour
             normalChick.SetAsLastSibling();
         }
 
-        // ORDER 4: Egg or Clock (only if there are chicks)
+        // ORDER 4: Egg or Clock
         if (hasAnyChick)
         {
             Transform egg = cageRoot.Find("Egg");
@@ -127,12 +169,12 @@ public class FarmGridManager : MonoBehaviour
             }
         }
 
-        // ORDER 5: LifeTime (top layer - progress bar, only if there are chicks)
+        // ORDER 5: LifeTime (top layer)
         Transform lifeTime = cageRoot.Find("LifeTime");
         if (lifeTime != null && hasAnyChick)
         {
             lifeTime.gameObject.SetActive(true);
-            lifeTime.SetAsLastSibling(); // Top layer
+            lifeTime.SetAsLastSibling();
         }
     }
 
@@ -140,7 +182,10 @@ public class FarmGridManager : MonoBehaviour
     {
         string[] names = { "LifeTime", "Nest", "Egg", "Clock", "WhiteChick", "ChampChick" };
         foreach (var n in names)
-            cage.transform.Find(n)?.gameObject.SetActive(false);
+        {
+            Transform t = cage.transform.Find(n);
+            if (t != null) t.gameObject.SetActive(false);
+        }
     }
 
     void ShowBigCage(int index)
@@ -153,22 +198,46 @@ public class FarmGridManager : MonoBehaviour
         Transform inside = bigCage.transform.Find("BigCageInside");
         if (inside == null) return;
 
-        // Apply the same ordered display logic to BigCage
         ApplyCageDisplay(inside, data);
+        
+        Debug.Log($"📦 Opened cage {index + 1}: Normal={data.normalChicks}, Champ={data.champChicks}");
     }
 
-    // Optional: call this to switch farm dynamically
+    // Load specific farm cages
+    private void LoadFarmCages(int farmIndex)
+    {
+        Debug.Log($"📥 Loading cages for Farm {farmIndex + 1}...");
+        
+        FarmData farm = farmDatabase.GetFarmByIndex(farmIndex);
+        if (farm != null && farm.cages != null && farm.cages.Count > 0)
+        {
+            currentCages = farm.cages;
+            Debug.Log($"✅ Loaded {currentCages.Count} cages from Farm {farmIndex + 1}");
+            Debug.Log($"   - Nests: {farm.nestsOccupied}, Normal: {farm.normalChicks}, Champ: {farm.champChicks}");
+        }
+        else
+        {
+            Debug.LogError($"❌ Failed to load Farm {farmIndex + 1} or farm has no cages!");
+            currentCages = new List<CageData>();
+        }
+    }
+
+    // PUBLIC: Called from FarmHeaderManager when farm clicked
     public void SwitchFarm(int farmIndex)
     {
-        farmDatabase.currentFarmIndex = farmIndex;
-        currentCages = farmDatabase.GetCurrentFarmCages()?.cages;
+        Debug.Log($"🔄 Switching to Farm {farmIndex + 1}...");
+        
+        farmDatabase.SwitchToFarm(farmIndex);
+        LoadFarmCages(farmIndex);
         BuildCages();
+        
+        Debug.Log($"✅ Successfully switched to Farm {farmIndex + 1}");
     }
 
-    // Call this to refresh cages after backend data loads
+    // PUBLIC: Refresh current farm (for backend updates)
     public void RefreshCages()
     {
-        currentCages = farmDatabase.GetCurrentFarmCages()?.cages;
+        LoadFarmCages(farmDatabase.currentFarmIndex);
         BuildCages();
     }
 }

@@ -22,13 +22,13 @@ public class FarmHeaderManager : MonoBehaviour
     public FarmGridManager farmGridManager;
 
     [Header("Responsive Viewport Settings")]
-    public int visibleItemsPhone = 4;      // iPhone - show 4 items
-    public int visibleItemsTablet = 5;     // iPad - show 5 items
-    public int visibleItemsNarrow = 3;     // Z Flip - show 3 items
+    public int visibleItemsPhone = 4;
+    public int visibleItemsTablet = 5;
+    public int visibleItemsNarrow = 3;
 
     [Header("Screen Width Breakpoints (pixels)")]
-    public float tabletMinWidth = 768f;    // iPad and larger
-    public float narrowMaxWidth = 400f;    // Z Flip and similar narrow phones
+    public float tabletMinWidth = 768f;
+    public float narrowMaxWidth = 400f;
 
     [Header("Scroll Settings")]
     public float scrollSpeed = 8f;
@@ -43,6 +43,8 @@ public class FarmHeaderManager : MonoBehaviour
 
     void Start()
     {
+        Debug.Log("🚀 FarmHeaderManager Start()");
+        
         leftButton.onClick.AddListener(OnLeftClick);
         rightButton.onClick.AddListener(OnRightClick);
 
@@ -50,6 +52,16 @@ public class FarmHeaderManager : MonoBehaviour
         scrollRect.vertical = false;
         scrollRect.movementType = ScrollRect.MovementType.Clamped;
         scrollRect.inertia = false;
+
+        // Check references
+        if (farmDatabase == null)
+        {
+            Debug.LogError("❌ FarmDatabase not assigned in FarmHeaderManager!");
+        }
+        if (farmGridManager == null)
+        {
+            Debug.LogError("❌ FarmGridManager not assigned in FarmHeaderManager!");
+        }
 
         Refresh();
     }
@@ -84,28 +96,26 @@ public class FarmHeaderManager : MonoBehaviour
     {
         float screenWidth = Screen.width;
 
-        // Tablet (iPad, etc.) - 768px or wider
         if (screenWidth >= tabletMinWidth)
         {
-            currentVisibleItems = visibleItemsTablet;  // 5 items
+            currentVisibleItems = visibleItemsTablet;
             Debug.Log($"Tablet mode: {screenWidth}px - showing {currentVisibleItems} items");
         }
-        // Narrow phones (Z Flip, etc.) - 400px or narrower
         else if (screenWidth <= narrowMaxWidth)
         {
-            currentVisibleItems = visibleItemsNarrow;  // 3 items
+            currentVisibleItems = visibleItemsNarrow;
             Debug.Log($"Narrow phone mode: {screenWidth}px - showing {currentVisibleItems} items");
         }
-        // Regular phones (iPhone, etc.)
         else
         {
-            currentVisibleItems = visibleItemsPhone;   // 4 items
+            currentVisibleItems = visibleItemsPhone;
             Debug.Log($"Phone mode: {screenWidth}px - showing {currentVisibleItems} items");
         }
     }
 
     void BuildItems()
     {
+        // Clear existing
         foreach (Transform t in content)
             Destroy(t.gameObject);
 
@@ -123,19 +133,34 @@ public class FarmHeaderManager : MonoBehaviour
         content.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, totalWidth);
         content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
 
+        int farmSlotIndex = 0; // Track actual farm index
+
         for (int i = 0; i < totalSlots; i++)
         {
-            GameObject prefab = i < farmCount ? farmSlotPrefab : lockSlotPrefab;
-            CreateSlot(prefab, itemWidth, height);
+            bool isFarmSlot = i < farmCount;
+            GameObject prefab = isFarmSlot ? farmSlotPrefab : lockSlotPrefab;
+            
+            // Create the slot and capture the farm index at creation time
+            if (isFarmSlot)
+            {
+                CreateFarmSlot(prefab, itemWidth, height, farmSlotIndex);
+                farmSlotIndex++;
+            }
+            else
+            {
+                CreateLockSlot(prefab, itemWidth, height);
+            }
 
             if (i < totalSlots - 1)
                 CreateDivider(dividerWidth, height);
         }
 
         LayoutRebuilder.ForceRebuildLayoutImmediate(content);
+        
+        Debug.Log($"✅ Created {farmCount} farm slots and {lockCount} lock slots");
     }
 
-    void CreateSlot(GameObject prefab, float width, float height)
+    void CreateFarmSlot(GameObject prefab, float width, float height, int farmIndex)
     {
         GameObject obj = Instantiate(prefab, content);
         RectTransform rt = obj.GetComponent<RectTransform>();
@@ -154,11 +179,41 @@ public class FarmHeaderManager : MonoBehaviour
         rt.anchoredPosition = new Vector2(xPos, 0);
         rt.sizeDelta = new Vector2(width, 0);
 
-        if (prefab == farmSlotPrefab)
+        // Add onClick listener - IMPORTANT: Capture farmIndex in closure
+        Button btn = obj.GetComponent<Button>();
+        if (btn != null)
         {
-            int index = spawned.Count / 2;
-            obj.GetComponent<Button>()?.onClick.AddListener(() => OnFarmClicked(index));
+            int capturedIndex = farmIndex; // Capture the index!
+            btn.onClick.RemoveAllListeners(); // Clear any existing listeners
+            btn.onClick.AddListener(() => OnFarmClicked(capturedIndex));
+            Debug.Log($"✅ Added onClick to Farm {capturedIndex + 1} button");
         }
+        else
+        {
+            Debug.LogWarning($"⚠️ Farm slot {farmIndex + 1} has no Button component!");
+        }
+
+        spawned.Add(obj);
+    }
+
+    void CreateLockSlot(GameObject prefab, float width, float height)
+    {
+        GameObject obj = Instantiate(prefab, content);
+        RectTransform rt = obj.GetComponent<RectTransform>();
+
+        rt.anchorMin = new Vector2(0, 0);
+        rt.anchorMax = new Vector2(0, 1);
+        rt.pivot = new Vector2(0, 0.5f);
+        
+        float xPos = 0;
+        if (spawned.Count > 0)
+        {
+            RectTransform lastRT = spawned[spawned.Count - 1].GetComponent<RectTransform>();
+            xPos = lastRT.anchoredPosition.x + lastRT.sizeDelta.x;
+        }
+        
+        rt.anchoredPosition = new Vector2(xPos, 0);
+        rt.sizeDelta = new Vector2(width, 0);
 
         spawned.Add(obj);
     }
@@ -229,9 +284,28 @@ public class FarmHeaderManager : MonoBehaviour
 
     void OnFarmClicked(int farmIndex)
     {
+        Debug.Log($"🖱️ Farm {farmIndex + 1} button clicked!");
+        
         selectedFarmIndex = farmIndex;
-        farmDatabase?.SwitchToFarm(farmIndex);
-        farmGridManager?.SwitchFarm(farmIndex);
-        Debug.Log($"Farm {farmIndex + 1} selected ✅");
+        
+        if (farmDatabase != null)
+        {
+            farmDatabase.SwitchToFarm(farmIndex);
+        }
+        else
+        {
+            Debug.LogError("❌ FarmDatabase is null!");
+        }
+        
+        if (farmGridManager != null)
+        {
+            farmGridManager.SwitchFarm(farmIndex);
+        }
+        else
+        {
+            Debug.LogError("❌ FarmGridManager is null!");
+        }
+        
+        Debug.Log($"✅ Farm {farmIndex + 1} selected and loaded!");
     }
 }
