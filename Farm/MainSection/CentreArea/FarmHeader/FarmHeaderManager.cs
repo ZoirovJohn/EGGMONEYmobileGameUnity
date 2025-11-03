@@ -38,6 +38,7 @@ public class FarmHeaderManager : MonoBehaviour
     private bool isScrolling = false;
     private int currentVisibleItems = 4;
     private List<GameObject> spawned = new List<GameObject>();
+    private List<GameObject> farmSlots = new List<GameObject>(); // Track only farm slots
     private int selectedFarmIndex = 0;
     private float slotPlusDividerWidth = 0f;
 
@@ -120,6 +121,7 @@ public class FarmHeaderManager : MonoBehaviour
             Destroy(t.gameObject);
 
         spawned.Clear();
+        farmSlots.Clear(); // Clear farm slots list
 
         int totalSlots = farmCount + lockCount;
         float viewportWidth = scrollRect.viewport.rect.width;
@@ -158,6 +160,9 @@ public class FarmHeaderManager : MonoBehaviour
         LayoutRebuilder.ForceRebuildLayoutImmediate(content);
         
         Debug.Log($"✅ Created {farmCount} farm slots and {lockCount} lock slots");
+        
+        // Set initial selection to Farm 1
+        UpdateFarmSelection(0);
     }
 
     void CreateFarmSlot(GameObject prefab, float width, float height, int farmIndex)
@@ -199,6 +204,7 @@ public class FarmHeaderManager : MonoBehaviour
         }
 
         spawned.Add(obj);
+        farmSlots.Add(obj); // Track this as a farm slot
     }
 
     void CreateLockSlot(GameObject prefab, float width, float height)
@@ -293,6 +299,9 @@ public class FarmHeaderManager : MonoBehaviour
         
         selectedFarmIndex = farmIndex;
         
+        // Update visual selection
+        UpdateFarmSelection(farmIndex);
+        
         if (farmDatabase != null)
         {
             farmDatabase.SwitchToFarm(farmIndex);
@@ -312,5 +321,59 @@ public class FarmHeaderManager : MonoBehaviour
         }
         
         Debug.Log($"✅ Farm {farmIndex + 1} selected and loaded!");
+    }
+
+    void UpdateFarmSelection(int farmIndex)
+    {
+        if (farmIndex < 0 || farmIndex >= farmSlots.Count) return;
+
+        // Reset all farm slots to normal state
+        for (int i = 0; i < farmSlots.Count; i++)
+        {
+            GameObject slot = farmSlots[i];
+            
+            // Find the button inside the slot (child object)
+            Button btn = slot.GetComponentInChildren<Button>();
+            if (btn == null) continue;
+            
+            GameObject buttonObj = btn.gameObject;
+            
+            // Get Image from button
+            Image img = buttonObj.GetComponent<Image>();
+            
+            // Get CanvasGroup from button (or add one if needed)
+            CanvasGroup canvasGroup = buttonObj.GetComponent<CanvasGroup>();
+            if (canvasGroup == null)
+            {
+                canvasGroup = buttonObj.AddComponent<CanvasGroup>();
+            }
+            
+            if (i == farmIndex)
+            {
+                // Selected state - brighten/highlight
+                if (img != null)
+                {
+                    img.color = new Color(1f, 1f, 1f, 1f); // Full brightness
+                }
+                canvasGroup.alpha = 1f; // Full opacity
+                
+                // Scale up slightly for selected state
+                buttonObj.transform.localScale = Vector3.one * 1.05f;
+            }
+            else
+            {
+                // Unselected state - dim slightly
+                if (img != null)
+                {
+                    img.color = new Color(0.7f, 0.7f, 0.7f, 1f); // Slightly dimmed
+                }
+                canvasGroup.alpha = 0.7f; // Slightly transparent
+                
+                // Normal scale
+                buttonObj.transform.localScale = Vector3.one;
+            }
+        }
+        
+        Debug.Log($"🎨 Updated visual selection to Farm {farmIndex + 1}");
     }
 }
