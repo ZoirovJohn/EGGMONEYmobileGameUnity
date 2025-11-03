@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-public class HeaderPager : MonoBehaviour
+public class CentreAreaPager : MonoBehaviour
 {
     [Header("Scroll / Content")]
     public ScrollRect scrollRect;
@@ -16,7 +16,7 @@ public class HeaderPager : MonoBehaviour
     public Color inactiveColor = Color.gray;
 
     [Header("Pages")]
-    public int pageCount = 3;           // will still use this array for positions
+    public int pageCount = 4;           // will still use this array for positions
     private int currentPage = 0;
     private float[] pagePositions;
 
@@ -40,7 +40,7 @@ public class HeaderPager : MonoBehaviour
         // Ensure we have enough dots; if not, create them
         EnsureDots();
 
-        // Precompute normalized positions (assumes equal-width pages laid out horizontally)
+        // Precompute normalized positions
         pagePositions = new float[pageCount];
         if (pageCount == 1) pagePositions[0] = 0f;
         else
@@ -84,63 +84,6 @@ public class HeaderPager : MonoBehaviour
             {
                 currentPage = nearestPage;
                 UpdateDots(currentPage);
-            }
-        }
-    }
-
-    // ---------------- Public API for your buttons ----------------
-    // Hook these from your "Next" / "Mini" / etc. buttons.
-
-    /// <summary>Go to the next page (clamped).</summary>
-    public void NextPage()
-    {
-        GoToPage(currentPage + 1);
-    }
-
-    /// <summary>Go to the previous page (clamped).</summary>
-    public void PrevPage()
-    {
-        GoToPage(currentPage - 1);
-    }
-
-    /// <summary>Go to a page by zero-based index (0..pageCount-1).</summary>
-    public void GoToPage(int target)
-    {
-        if (pageCount <= 0) return;
-        target = Mathf.Clamp(target, 0, pageCount - 1);
-        currentPage = target;
-        if (pagePositions == null || pagePositions.Length == 0) return;
-        scrollRect.horizontalNormalizedPosition = pagePositions[currentPage];
-        UpdateDots(currentPage);
-    }
-
-    /// <summary>
-    /// Go to the page that corresponds to this panel (child of content).
-    /// Useful if your Button sits on Panel2 and you drag Panel3 here to jump there.
-    /// </summary>
-    public void GoToPanel(RectTransform panel)
-    {
-        if (!content || !panel) return;
-
-        int idx = panel.GetSiblingIndex();
-        GoToPage(idx);
-    }
-
-
-
-    /// <summary>
-    /// Go to the page whose GameObject name matches (direct child of content).
-    /// Handy if you want to target by name via UnityEvent.
-    /// </summary>
-    public void GoToPanelByName(string childName)
-    {
-        if (!content || string.IsNullOrEmpty(childName)) return;
-        for (int i = 0; i < content.childCount; i++)
-        {
-            if (content.GetChild(i).name == childName)
-            {
-                GoToPage(i);
-                return;
             }
         }
     }
@@ -200,6 +143,7 @@ public class HeaderPager : MonoBehaviour
             var img = dotContainer.GetChild(i).GetComponent<Image>();
             if (img != null) dots[k++] = img;
         }
+        // Trim nulls if some children lacked Image
         System.Array.Resize(ref dots, k);
     }
 
@@ -211,7 +155,17 @@ public class HeaderPager : MonoBehaviour
         {
             if (!dots[i]) continue;
             dots[i].color = (i == index ? activeColor : inactiveColor);
+            // if your dot sprite supports fill, show filled vs empty
             dots[i].fillAmount = (i == index ? 1f : 0f);
         }
+    }
+
+    public void GoToPage(int target)
+    {
+        if (pageCount <= 0) return;
+        target = Mathf.Clamp(target, 0, pageCount - 1);
+        currentPage = target;
+        scrollRect.horizontalNormalizedPosition = pagePositions[currentPage];
+        UpdateDots(currentPage);
     }
 }

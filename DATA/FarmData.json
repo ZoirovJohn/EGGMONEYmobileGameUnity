@@ -1,0 +1,25 @@
+{
+  "farms": [
+    {
+      "farmName": "Farm 1",
+      "farmIndex": 0,
+      "nestsOccupied": 20,
+      "normalChicks": 10,
+      "champChicks": 5
+    },
+    {
+      "farmName": "Farm 2",
+      "farmIndex": 1,
+      "nestsOccupied": 15,
+      "normalChicks": 8,
+      "champChicks": 3
+    },
+    {
+      "farmName": "Farm 3",
+      "farmIndex": 2,
+      "nestsOccupied": 8,
+      "normalChicks": 4,
+      "champChicks": 1
+    }
+  ]
+}
