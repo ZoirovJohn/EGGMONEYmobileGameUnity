@@ -332,45 +332,27 @@ public class FarmHeaderManager : MonoBehaviour
         {
             GameObject slot = farmSlots[i];
             
-            // Find the button inside the slot (child object)
-            Button btn = slot.GetComponentInChildren<Button>();
-            if (btn == null) continue;
+            // Get the Image component on the farm prefab root (the yellow background)
+            Image backgroundImg = slot.GetComponent<Image>();
             
-            GameObject buttonObj = btn.gameObject;
-            
-            // Get Image from button
-            Image img = buttonObj.GetComponent<Image>();
-            
-            // Get CanvasGroup from button (or add one if needed)
-            CanvasGroup canvasGroup = buttonObj.GetComponent<CanvasGroup>();
-            if (canvasGroup == null)
+            if (backgroundImg != null)
             {
-                canvasGroup = buttonObj.AddComponent<CanvasGroup>();
-            }
-            
-            if (i == farmIndex)
-            {
-                // Selected state - brighten/highlight
-                if (img != null)
+                if (i == farmIndex)
                 {
-                    img.color = new Color(1f, 1f, 1f, 1f); // Full brightness
+                    // Selected - show yellow background (alpha = 255)
+                    Color c = backgroundImg.color;
+                    backgroundImg.color = new Color(c.r, c.g, c.b, 1f); // Alpha = 1 (255)
                 }
-                canvasGroup.alpha = 1f; // Full opacity
-                
-                // Scale up slightly for selected state
-                buttonObj.transform.localScale = Vector3.one * 1.05f;
+                else
+                {
+                    // Unselected - hide yellow background (alpha = 0)
+                    Color c = backgroundImg.color;
+                    backgroundImg.color = new Color(c.r, c.g, c.b, 0f); // Alpha = 0
+                }
             }
             else
             {
-                // Unselected state - dim slightly
-                if (img != null)
-                {
-                    img.color = new Color(0.7f, 0.7f, 0.7f, 1f); // Slightly dimmed
-                }
-                canvasGroup.alpha = 0.7f; // Slightly transparent
-                
-                // Normal scale
-                buttonObj.transform.localScale = Vector3.one;
+                Debug.LogWarning($"⚠️ Farm slot {i + 1} has no Image component on root!");
             }
         }
         
