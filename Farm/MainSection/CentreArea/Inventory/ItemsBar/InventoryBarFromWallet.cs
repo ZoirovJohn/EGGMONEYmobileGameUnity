@@ -1,13 +1,19 @@
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
 
 public class InventoryBarFromWallet : MonoBehaviour
 {
     [Header("Where the ItemCells live")]
-    [SerializeField] Transform content;       // InventoryitemsBarItemScroll/Viewport/Content
+    [SerializeField] Transform content;    // Viewport/Content container for item cells
 
     [Header("Source")]
-    [SerializeField] PlayerWallet wallet;     // auto-find if null
+    [SerializeField] PlayerWallet wallet;
+
+    [Header("Scrolling Layout")]
+    [SerializeField] ScrollRect scrollRect;
+    [SerializeField] GridLayoutGroup grid;
+    [SerializeField] RectTransform viewport;
 
     InventoryCellId[] cells;
 
@@ -20,12 +26,13 @@ public class InventoryBarFromWallet : MonoBehaviour
     void OnEnable()
     {
         CacheCells();
+        ApplySizing();
         RefreshAll();
 
         if (wallet != null)
         {
-            wallet.OnItemChanged    += OnItemChanged;   // (id, newCount)
-            wallet.OnProfileChanged += RefreshAll;      // fallback for bulk changes
+            wallet.OnItemChanged    += OnItemChanged;
+            wallet.OnProfileChanged += RefreshAll;
         }
     }
 
@@ -40,9 +47,72 @@ public class InventoryBarFromWallet : MonoBehaviour
 
     void CacheCells() => cells = content.GetComponentsInChildren<InventoryCellId>(true);
 
+    //---------------------------------------------------------------------
+    // ✅ AUTO-SIZING TO ALWAYS FIT WHOLE CELLS INSIDE VIEWPORT HEIGHT
+    //---------------------------------------------------------------------
+    void ApplySizing()
+    {
+        if (!grid || !viewport || cells == null || cells.Length == 0)
+            return;
+
+        float viewportW = viewport.rect.width;
+        float viewportH = viewport.rect.height;
+
+        float spacing = grid.spacing.x;
+        float padL = grid.padding.left;
+        float padR = grid.padding.right;
+        float padT = grid.padding.top;
+        float padB = grid.padding.bottom;
+
+        float availW = viewportW - padL - padR;
+        float availH = viewportH - padT - padB;
+
+        int count = cells.Length;
+
+        // Step 1: Calculate how many cells should fit
+        // availW / availH = ratio (e.g., 400/110 = 3.6)
+        // Round UP to get whole cells (3.6 → 4)
+        int visibleCells = Mathf.CeilToInt(availW / availH);
+        
+        // Ensure at least 1 cell
+        if (visibleCells < 1) visibleCells = 1;
+        
+        // Step 2: Calculate cell size to fit exactly this many cells
+        // cellSize = availW / visibleCells (e.g., 400/4 = 100)
+        float cellSize = (availW - (spacing * (visibleCells - 1))) / visibleCells;
+        
+        // Step 3: Cell should be at most 5px smaller than viewport height
+        // So cell height = min(cellSize, availH - 5)
+        float maxCellSize = availH - 5f;
+        if (cellSize > maxCellSize) cellSize = maxCellSize;
+
+        Debug.Log($"📐 Inventory: Viewport {viewportW:F1}x{viewportH:F1}, {visibleCells} cells fit, Cell: {cellSize:F1}x{cellSize:F1}");
+
+        // ✅ APPLY cell size (square)
+        grid.cellSize = new Vector2(cellSize, cellSize);
+
+        // ✅ SCROLLABLE CONTENT WIDTH (all items)
+        float totalWidth =
+            padL +
+            (cellSize * count) +
+            (spacing * (count - 1)) +
+            padR;
+
+        RectTransform contentRT = content as RectTransform;
+        Vector2 size = contentRT.sizeDelta;
+        size.x = totalWidth;
+        contentRT.sizeDelta = size;
+
+        LayoutRebuilder.ForceRebuildLayoutImmediate(contentRT);
+    }
+
+    void OnRectTransformDimensionsChange() => ApplySizing();
+
+    //---------------------------------------------------------------------
+    // ✅ DATA DISPLAY
+    //---------------------------------------------------------------------
     void OnItemChanged(string id, int newCount)
     {
-        if (cells == null) return;
         string norm = Norm(id);
         foreach (var c in cells)
         {
@@ -71,38 +141,39 @@ public class InventoryBarFromWallet : MonoBehaviour
         }
     }
 
-    // --- visuals when count == 0 ---
     void ApplyZeroVisual(InventoryCellId c, bool isZero)
     {
         if (c.icon)
         {
-            var col = c.icon.color;                 // preserve existing tint
-            col.a = isZero ? (150f / 255f) : 1f;    // 150/255 alpha when zero
+            Color col = c.icon.color;
+            col.a = isZero ? 0.58f : 1f;
             c.icon.color = col;
         }
     }
 
-
-    // --- helpers ---
+    //---------------------------------------------------------------------
+    // ✅ HELPERS
+    //---------------------------------------------------------------------
     static string Norm(string s)
     {
         if (string.IsNullOrEmpty(s)) return "";
-        s = s.ToLowerInvariant();
-        s = s.Replace(" ", "").Replace("_", "").Replace("-", "");
-        return s;
+        return s.ToLowerInvariant().Replace(" ", "").Replace("_", "").Replace("-", "");
     }
 
     static TMP_Text EnsureCountRef(InventoryCellId c)
     {
         if (c.countText) return c.countText;
-        var t = c.transform.Find("Count");
+
+        Transform t = c.transform.Find("Count");
         if (!t) t = FindByNameRecursive(c.transform, "Count");
+
         if (t)
         {
             var tmp = t.GetComponent<TMP_Text>();
             if (!tmp) tmp = t.GetComponentInChildren<TMP_Text>(true);
             c.countText = tmp;
         }
+
         return c.countText;
     }
 
