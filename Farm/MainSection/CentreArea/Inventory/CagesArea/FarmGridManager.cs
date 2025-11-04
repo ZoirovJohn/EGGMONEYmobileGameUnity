@@ -11,6 +11,9 @@ public class FarmGridManager : MonoBehaviour
     public GameObject bigCage;
     public FarmDatabase farmDatabase;
 
+    [Header("UI Managers")]
+    public InventoryItemsBarChanger inventoryBarChanger;
+
     private List<CageData> currentCages;
 
     void Start()
@@ -311,6 +314,17 @@ public class FarmGridManager : MonoBehaviour
         if (inside == null) return;
 
         ApplyCageDisplay(inside, data);
+        
+        // ✅ USE InventoryItemsBarChanger to open cage bar and close others
+        if (inventoryBarChanger != null)
+        {
+            inventoryBarChanger.InventoryCageBarMethod();
+            Debug.Log($"🎨 UI Updated: Cage items bar opened via InventoryBarChanger");
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ InventoryBarChanger not assigned!");
+        }
         
         Debug.Log($"📦 Opened cage {index + 1}: Nests={data.nestsOccupied}, Normal={data.normalChicks}, Champ={data.champChicks}");
     }

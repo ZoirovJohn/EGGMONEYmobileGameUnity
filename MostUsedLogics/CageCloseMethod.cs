@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class BigCageController : MonoBehaviour
+public class CageCloseClass : MonoBehaviour
 {
     public GameObject bigCage;  // root BigCage
     public Button closeBtn;     // CloseBtn inside BigCage
