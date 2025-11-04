@@ -18,12 +18,11 @@ public class CageData
 [System.Serializable]
 public class FarmData
 {
+    public string farmId;        // Add this line
     public string farmName;
     public int farmIndex;
     public int nestsOccupied;
     public int normalChicks;
     public int champChicks;
-    
-    [HideInInspector]
     public List<CageData> cages = new List<CageData>();
 }

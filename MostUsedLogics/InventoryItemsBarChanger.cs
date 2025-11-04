@@ -7,14 +7,19 @@ public class InventoryItemsBarChanger : MonoBehaviour
     [SerializeField] private GameObject inventoryFarmBar;
     [SerializeField] private GameObject defaultBanner;
 
+    private string currentFarmId = ""; // Store the current farm ID
+
     private void Start()
     {
         // Initialize - show default banner on start
         DefaultBannerMethod();
     }
 
-    public void InventoryFarmBarMethod()
+    public void InventoryFarmBarMethod(string farmId)
     {
+        // Store the farm ID
+        currentFarmId = farmId;
+        
         // Close all others
         CloseAllBars();
         
@@ -22,6 +27,16 @@ public class InventoryItemsBarChanger : MonoBehaviour
         if (inventoryFarmBar != null)
         {
             inventoryFarmBar.SetActive(true);
+            
+            // TODO: Pass farmId to the farm bar component if needed
+            // For example:
+            // InventoryFarmBar farmBarComponent = inventoryFarmBar.GetComponent<InventoryFarmBar>();
+            // if (farmBarComponent != null)
+            // {
+            //     farmBarComponent.SetFarmId(farmId);
+            // }
+            
+            Debug.Log($"✅ Opened InventoryFarmBar for farmId: {farmId}");
         }
         else
         {
@@ -77,5 +92,11 @@ public class InventoryItemsBarChanger : MonoBehaviour
     public void CloseAll()
     {
         CloseAllBars();
+    }
+
+    // Get current farm ID
+    public string GetCurrentFarmId()
+    {
+        return currentFarmId;
     }
 }

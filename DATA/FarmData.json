@@ -1,6 +1,7 @@
 {
   "farms": [
     {
+      "farmId": "farm_001",
       "farmName": "Farm 1",
       "farmIndex": 0,
       "nestsOccupied": 20,
@@ -8,6 +9,7 @@
       "champChicks": 5
     },
     {
+      "farmId": "farm_002",
       "farmName": "Farm 2",
       "farmIndex": 1,
       "nestsOccupied": 15,
@@ -15,6 +17,7 @@
       "champChicks": 3
     },
     {
+      "farmId": "farm_003",
       "farmName": "Farm 3",
       "farmIndex": 2,
       "nestsOccupied": 8,

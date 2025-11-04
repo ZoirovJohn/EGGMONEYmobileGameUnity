@@ -21,6 +21,9 @@ public class FarmHeaderManager : MonoBehaviour
     public FarmDatabase farmDatabase;
     public FarmGridManager farmGridManager;
 
+    [Header("Inventory Bar")]
+    public InventoryItemsBarChanger inventoryBarChanger;
+
     [Header("Responsive Viewport Settings")]
     public int visibleItemsPhone = 4;
     public int visibleItemsTablet = 5;
@@ -185,23 +188,19 @@ public class FarmHeaderManager : MonoBehaviour
         rt.anchoredPosition = new Vector2(xPos, 0);
         rt.sizeDelta = new Vector2(width, 0);
 
-        // Find button - check both on root and in children
-        Button btn = obj.GetComponent<Button>();
-        if (btn == null)
-        {
-            btn = obj.GetComponentInChildren<Button>();
-        }
+        // Find button in children (not on root)
+        Button btn = obj.GetComponentInChildren<Button>();
         
         if (btn != null)
         {
             int capturedIndex = farmIndex; // Capture the index!
             btn.onClick.RemoveAllListeners(); // Clear any existing listeners
             btn.onClick.AddListener(() => OnFarmClicked(capturedIndex));
-            Debug.Log($"✅ Added onClick to Farm {capturedIndex + 1} button");
+            Debug.Log($"✅ Added onClick to Farm {capturedIndex + 1} button (found in children)");
         }
         else
         {
-            Debug.LogWarning($"⚠️ Farm slot {farmIndex + 1} has no Button component (checked root and children)!");
+            Debug.LogWarning($"⚠️ Farm slot {farmIndex + 1} has no Button component in children!");
         }
 
         spawned.Add(obj);
@@ -299,6 +298,24 @@ public class FarmHeaderManager : MonoBehaviour
         Debug.Log($"🖱️ Farm {farmIndex + 1} button clicked!");
         
         selectedFarmIndex = farmIndex;
+        
+        // Get the farm data to access farmId
+        FarmData clickedFarm = farmDatabase.GetFarmByIndex(farmIndex);
+        
+        if (clickedFarm != null)
+        {
+            Debug.Log($"📍 Farm ID: {clickedFarm.farmId}");
+            
+            // Open inventory farm bar with the farmId
+            if (inventoryBarChanger != null)
+            {
+                inventoryBarChanger.InventoryFarmBarMethod(clickedFarm.farmId);
+            }
+            else
+            {
+                Debug.LogWarning("⚠️ InventoryBarChanger is not assigned in FarmHeaderManager!");
+            }
+        }
         
         // Update visual selection
         UpdateFarmSelection(farmIndex);
