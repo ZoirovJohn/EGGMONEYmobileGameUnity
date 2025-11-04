@@ -4,6 +4,9 @@
       "farmId": "farm_001",
       "farmName": "Farm 1",
       "farmIndex": 0,
+      "farmKeyType": "normal",
+      "robotType": "none",
+      "batteryType": "none",
       "nestsOccupied": 20,
       "normalChicks": 10,
       "champChicks": 5
@@ -12,6 +15,9 @@
       "farmId": "farm_002",
       "farmName": "Farm 2",
       "farmIndex": 1,
+      "farmKeyType": "normal",
+      "robotType": "none",
+      "batteryType": "none",
       "nestsOccupied": 15,
       "normalChicks": 8,
       "champChicks": 3
@@ -20,6 +26,9 @@
       "farmId": "farm_003",
       "farmName": "Farm 3",
       "farmIndex": 2,
+      "farmKeyType": "normal",
+      "robotType": "none",
+      "batteryType": "none",
       "nestsOccupied": 8,
       "normalChicks": 4,
       "champChicks": 1
