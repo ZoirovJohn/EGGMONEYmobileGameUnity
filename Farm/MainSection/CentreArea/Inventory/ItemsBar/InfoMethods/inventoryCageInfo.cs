@@ -7,10 +7,7 @@ public class inventoryCageInfo : MonoBehaviour
     [Header("References")]
     [SerializeField] InventoryCellId cellId;
     [SerializeField] PlayerWallet wallet;
-    
-    [Header("Panels")]
-    [SerializeField] GameObject errorGoToStorePanel;
-    [SerializeField] GameObject setItemToFarmPanel;
+    [SerializeField] InfoErrorChanger infoErrorChanger;
     
     [Header("Error Message")]
     [SerializeField] TMP_Text errorMessageText;
@@ -28,23 +25,20 @@ public class inventoryCageInfo : MonoBehaviour
             if (!wallet)
                 wallet = FindAnyObjectByType<PlayerWallet>();
             
-            if (!errorGoToStorePanel)
-            {
-                errorGoToStorePanel = GameObject.Find("ErrorGoToStore");
-                if (!errorGoToStorePanel) errorGoToStorePanel = GameObject.Find("errorGoStore");
-                if (!errorGoToStorePanel) errorGoToStorePanel = GameObject.Find("ErrorGoStore");
-            }
+            if (!infoErrorChanger)
+                infoErrorChanger = FindAnyObjectByType<InfoErrorChanger>();
             
-            if (!setItemToFarmPanel)
+            if (!errorMessageText)
             {
-                setItemToFarmPanel = GameObject.Find("SetItemToFarm");
-                if (!setItemToFarmPanel) setItemToFarmPanel = GameObject.Find("SetItemToFarmPanel");
-            }
-            
-            if (!errorMessageText && errorGoToStorePanel)
-            {
-                // Try to find text field in error panel
-                errorMessageText = errorGoToStorePanel.GetComponentInChildren<TMP_Text>(true);
+                // Try to find error message text in the scene
+                GameObject errorPanel = GameObject.Find("ErrorGoToStore");
+                if (!errorPanel) errorPanel = GameObject.Find("errorGoStore");
+                if (!errorPanel) errorPanel = GameObject.Find("ErrorGoStore");
+                
+                if (errorPanel)
+                {
+                    errorMessageText = errorPanel.GetComponentInChildren<TMP_Text>(true);
+                }
             }
         }
         
@@ -81,17 +75,28 @@ public class inventoryCageInfo : MonoBehaviour
                 errorMessageText.text = "You don't have enough of the item.\nPurchase it from the store.";
             }
             
-            if (errorGoToStorePanel)
+            // Use InfoErrorChanger to show ErrorGoStore panel
+            if (infoErrorChanger != null)
             {
-                errorGoToStorePanel.SetActive(true);
+                infoErrorChanger.OpenErrorGoStore();
+                Debug.Log("🚨 Opened ErrorGoStore via InfoErrorChanger");
+            }
+            else
+            {
+                Debug.LogWarning("⚠️ InfoErrorChanger is not assigned!");
             }
         }
         else
         {
             // Item count > 0, show SetItemToFarm panel
-            if (setItemToFarmPanel)
+            if (infoErrorChanger != null)
             {
-                setItemToFarmPanel.SetActive(true);
+                infoErrorChanger.OpenInfoSetItemToCage();
+                Debug.Log("✅ Opened InfoSetItemToFarm via InfoErrorChanger");
+            }
+            else
+            {
+                Debug.LogWarning("⚠️ InfoErrorChanger is not assigned!");
             }
         }
     }

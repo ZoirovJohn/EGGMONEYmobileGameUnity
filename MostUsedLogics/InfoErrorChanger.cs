@@ -1,95 +1,62 @@
 using UnityEngine;
+using TMPro;
 
 public class InfoErrorChanger : MonoBehaviour
 {
-    [Header("Info/Error Panel References")]
+    [Header("Panels")]
     [SerializeField] private GameObject errorGoStore;
     [SerializeField] private GameObject infoSetItemToFarm;
     [SerializeField] private GameObject errorDefault;
     [SerializeField] private GameObject infoOpenFarm;
+    [SerializeField] private GameObject infoSetItemToCage; // ✅ NEW
+
+    [Header("Texts inside Panels")]
+    [SerializeField] private TMP_Text errorGoStoreText;
+    [SerializeField] private TMP_Text infoSetItemToFarmText;
+    [SerializeField] private TMP_Text errorDefaultText;
+    [SerializeField] private TMP_Text infoOpenFarmText;
+    [SerializeField] private TMP_Text infoSetItemToCageText; // ✅ NEW
 
     private void Start()
     {
-        // Initialize - close all panels on start
         CloseAllInfoErrorMethod();
     }
 
-    public void OpenErrorGoStore()
+    // ✅ Unified show function
+    private void ShowPanel(GameObject panel, TMP_Text textUI, string message)
     {
-        // Close all others
         CloseAllInfoErrorMethod();
-        
-        // Open ErrorGoStore
-        if (errorGoStore != null)
-        {
-            errorGoStore.SetActive(true);
-        }
-        else
-        {
-            Debug.LogWarning("ErrorGoStore is not assigned!");
-        }
+
+        if (panel != null)
+            panel.SetActive(true);
+
+        if (textUI != null && !string.IsNullOrEmpty(message))
+            textUI.text = message;
     }
 
-    public void OpenInfoSetItemToFarm()
-    {
-        // Close all others
-        CloseAllInfoErrorMethod();
-        
-        // Open InfoSetItemToFarm
-        if (infoSetItemToFarm != null)
-        {
-            infoSetItemToFarm.SetActive(true);
-        }
-        else
-        {
-            Debug.LogWarning("InfoSetItemToFarm is not assigned!");
-        }
-    }
+    // ✅ Public Open Methods
+    public void OpenErrorGoStore(string message = null)
+        => ShowPanel(errorGoStore, errorGoStoreText, message);
 
-    public void OpenErrorDefault()
-    {
-        // Close all others
-        CloseAllInfoErrorMethod();
-        
-        // Open ErrorDefault
-        if (errorDefault != null)
-        {
-            errorDefault.SetActive(true);
-        }
-        else
-        {
-            Debug.LogWarning("ErrorDefault is not assigned!");
-        }
-    }
+    public void OpenInfoSetItemToFarm(string message = null)
+        => ShowPanel(infoSetItemToFarm, infoSetItemToFarmText, message);
 
-    public void OpenInfoOpenFarm()
-    {
-        // Close all others
-        CloseAllInfoErrorMethod();
-        
-        // Open InfoOpenFarm
-        if (infoOpenFarm != null)
-        {
-            infoOpenFarm.SetActive(true);
-        }
-        else
-        {
-            Debug.LogWarning("InfoOpenFarm is not assigned!");
-        }
-    }
+    public void OpenErrorDefault(string message = null)
+        => ShowPanel(errorDefault, errorDefaultText, message);
 
+    public void OpenInfoOpenFarm(string message = null)
+        => ShowPanel(infoOpenFarm, infoOpenFarmText, message);
+
+    public void OpenInfoSetItemToCage(string message = null) // ✅ NEW
+        => ShowPanel(infoSetItemToCage, infoSetItemToCageText, message);
+
+    // ✅ Close All
     public void CloseAllInfoErrorMethod()
     {
-        if (errorGoStore != null)
-            errorGoStore.SetActive(false);
-            
-        if (infoSetItemToFarm != null)
-            infoSetItemToFarm.SetActive(false);
-            
-        if (errorDefault != null)
-            errorDefault.SetActive(false);
-            
-        if (infoOpenFarm != null)
-            infoOpenFarm.SetActive(false);
+        if (errorGoStore != null) errorGoStore.SetActive(false);
+        if (infoSetItemToFarm != null) infoSetItemToFarm.SetActive(false);
+        if (errorDefault != null) errorDefault.SetActive(false);
+        if (infoOpenFarm != null) infoOpenFarm.SetActive(false);
+        if (infoSetItemToCage != null) infoSetItemToCage.SetActive(false); // ✅ NEW
     }
 }
