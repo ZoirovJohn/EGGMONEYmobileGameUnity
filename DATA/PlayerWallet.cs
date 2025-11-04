@@ -45,6 +45,7 @@ public class PlayerWallet : MonoBehaviour
     [SerializeField, Min(0)] int superBattery = 0;
     [SerializeField, Min(0)] int superBlueEgg = 0;
     [SerializeField, Min(0)] int superRedEgg = 0;
+    [SerializeField, Min(0)] int superFarmKey = 0; // <--- NEW: Premium/Super Farm Key
 
     // =========================
     // Public getters / aliases
@@ -76,6 +77,7 @@ public class PlayerWallet : MonoBehaviour
     public int SuperBattery => superBattery;
     public int SuperBlueEgg => superBlueEgg;
     public int SuperRedEgg => superRedEgg;
+    public int SuperFarmKey => superFarmKey; // <--- NEW Getter
 
     // =========================
     // Events
@@ -188,6 +190,7 @@ public class PlayerWallet : MonoBehaviour
     public void SetChampChick(int v)  { v = Mathf.Max(0, v); if (champChick == v) return; champChick = v; OnItemChanged?.Invoke("champ_chick", v); OnProfileChanged?.Invoke(); }
     public void SetSilverEgg(int v)   { v = Mathf.Max(0, v); if (silverEgg == v) return; silverEgg = v; OnItemChanged?.Invoke("silver_egg", v); OnProfileChanged?.Invoke(); }
     public void SetGoldEgg(int v)     { v = Mathf.Max(0, v); if (goldEgg == v) return; goldEgg = v; OnItemChanged?.Invoke("gold_egg", v); OnProfileChanged?.Invoke(); }
+    public void SetSuperFarmKey(int v){ v = Mathf.Max(0, v); if (superFarmKey == v) return; superFarmKey = v; OnItemChanged?.Invoke("super_farm_key", v); OnProfileChanged?.Invoke(); } // <--- NEW Setter
 
     // =========================
     // Inventory (string id friendly)
@@ -211,6 +214,7 @@ public class PlayerWallet : MonoBehaviour
             case Item.SuperRedEgg:    return superRedEgg;
             case Item.WhiteChick:     return whiteChick;
             case Item.ChampChick:     return champChick;
+            case Item.SuperFarmKey:   return superFarmKey; // <--- NEW
             default: return 0;
         }
     }
@@ -241,7 +245,8 @@ public class PlayerWallet : MonoBehaviour
         Unknown,
         Nest, SilverEgg, Food, GoldEgg, Booster, Battery, KeyFarm, Robot,
         SuperFood, SuperBooster, SuperBattery, SuperBlueEgg, SuperRedEgg,
-        WhiteChick, ChampChick
+        WhiteChick, ChampChick,
+        SuperFarmKey // <--- NEW
     }
 
     static string Norm(string s)
@@ -273,6 +278,7 @@ public class PlayerWallet : MonoBehaviour
         // new:
         if (n == "whitechick" || n == "white_chick") return Item.WhiteChick;
         if (n == "champchick" || n == "champ_chick" || n == "championchick") return Item.ChampChick;
+        if (n == "superfarmkey" || n == "premiumfarmkey") return Item.SuperFarmKey; // <--- NEW
 
         return Item.Unknown;
     }
@@ -297,6 +303,7 @@ public class PlayerWallet : MonoBehaviour
             case Item.SuperRedEgg:    superRedEgg = value;   RaiseItem("super_red_egg", value); break;
             case Item.WhiteChick:     whiteChick = value;    RaiseItem("white_chick", value); break;
             case Item.ChampChick:     champChick = value;    RaiseItem("champ_chick", value); break;
+            case Item.SuperFarmKey:   superFarmKey = value;  RaiseItem("super_farm_key", value); break; // <--- NEW
             default: return;
         }
         OnProfileChanged?.Invoke(); // inventory/profile visible change
@@ -330,6 +337,7 @@ public class PlayerWallet : MonoBehaviour
         superBattery = Mathf.Max(0, superBattery);
         superBlueEgg = Mathf.Max(0, superBlueEgg);
         superRedEgg = Mathf.Max(0, superRedEgg);
+        superFarmKey = Mathf.Max(0, superFarmKey); // <--- NEW
     }
 #endif
 }
