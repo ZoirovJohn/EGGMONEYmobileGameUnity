@@ -163,6 +163,7 @@ public class FarmHeaderManager : MonoBehaviour
         
         // Set initial selection to Farm 1
         UpdateFarmSelection(0);
+        farmGridManager.SwitchFarm(0);
     }
 
     void CreateFarmSlot(GameObject prefab, float width, float height, int farmIndex)
