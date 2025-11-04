@@ -50,7 +50,7 @@ public class InventoryBarFromWallet : MonoBehaviour
     //---------------------------------------------------------------------
     // ✅ AUTO-SIZING TO ALWAYS FIT WHOLE CELLS INSIDE VIEWPORT HEIGHT
     //---------------------------------------------------------------------
-    void ApplySizing()
+     void ApplySizing()
     {
         if (!grid || !viewport || cells == null || cells.Length == 0)
             return;
@@ -69,20 +69,18 @@ public class InventoryBarFromWallet : MonoBehaviour
 
         int count = cells.Length;
 
-        // Step 1: Calculate how many cells should fit
-        // availW / availH = ratio (e.g., 400/110 = 3.6)
-        // Round UP to get whole cells (3.6 → 4)
-        int visibleCells = Mathf.CeilToInt(availW / availH);
+        // Step 1: Calculate how many cells should fit based on viewport ratio
+        // Use ROUND to nearest whole number for best fit
+        // 3.9 → 4, 3.6 → 4, 3.4 → 3, 3.1 → 3
+        int visibleCells = Mathf.RoundToInt(availW / availH);
         
         // Ensure at least 1 cell
         if (visibleCells < 1) visibleCells = 1;
         
         // Step 2: Calculate cell size to fit exactly this many cells
-        // cellSize = availW / visibleCells (e.g., 400/4 = 100)
         float cellSize = (availW - (spacing * (visibleCells - 1))) / visibleCells;
         
         // Step 3: Cell should be at most 5px smaller than viewport height
-        // So cell height = min(cellSize, availH - 5)
         float maxCellSize = availH - 5f;
         if (cellSize > maxCellSize) cellSize = maxCellSize;
 
@@ -90,6 +88,9 @@ public class InventoryBarFromWallet : MonoBehaviour
 
         // ✅ APPLY cell size (square)
         grid.cellSize = new Vector2(cellSize, cellSize);
+        
+        // ✅ ALIGN content to middle-left
+        grid.childAlignment = TextAnchor.MiddleLeft;
 
         // ✅ SCROLLABLE CONTENT WIDTH (all items)
         float totalWidth =
