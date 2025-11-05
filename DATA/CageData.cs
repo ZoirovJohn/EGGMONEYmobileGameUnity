@@ -44,7 +44,11 @@ public class FarmData
         // Check farm key
         if (productId == "premiumfarmkey" || productId == "key_farm")
         {
-            return farmKeyType == "normal";
+            // ⭐ Can only apply key if farm is NOT opened yet
+            // "normal" = opened with normal key
+            // "premium" = opened with premium key
+            // So if it has EITHER, cannot apply another key
+            return false; // ← Farm already has a key, cannot apply another!
         }
         
         // Check robot
@@ -88,5 +92,13 @@ public class FarmData
         {
             Debug.LogWarning($"⚠️ Unknown item type: {productId}");
         }
+    }
+
+    public void ResetAppliedItems()
+    {
+        farmKeyType = "normal";
+        robotType = "none";
+        batteryType = "none";
+        Debug.Log($"🔄 Reset applied items for {farmName}");
     }
 }

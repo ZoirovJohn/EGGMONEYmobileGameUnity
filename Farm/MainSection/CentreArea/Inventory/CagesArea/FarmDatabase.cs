@@ -41,6 +41,13 @@ public class FarmDatabase : ScriptableObject
                     }
                 }
                 
+                // ⭐ RESET ALL APPLIED ITEMS ON LOAD ⭐
+                foreach (var farm in farms)
+                {
+                    farm.ResetAppliedItems();
+                }
+                Debug.Log($"✅ Reset applied items for all {farms.Count} farms");
+                
                 GenerateCagesFromFarmData();
                 Debug.Log($"✓ Loaded {farms.Count} farms from JSON file");
             }

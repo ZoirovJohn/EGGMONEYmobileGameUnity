@@ -161,7 +161,7 @@ public class InventoryFarmItemApplier : MonoBehaviour
         // 3. ✅ Show success message (keep pendingProductId for now)
         if (infoErrorChanger != null)
         {
-            infoErrorChanger.OpenInfoSetItemToFarm("Item successfully added to the farm!");
+            infoErrorChanger.OpenInfoSetItemToFarm("Item successfully added to the farm! You want to add more?");
         }
         
         // 4. ✅ DON'T clear pendingProductId yet - keep it until user closes the panel
