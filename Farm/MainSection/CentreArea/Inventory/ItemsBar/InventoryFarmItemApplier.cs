@@ -158,27 +158,13 @@ public class InventoryFarmItemApplier : MonoBehaviour
         targetFarm.ApplyItem(pendingProductId);
         Debug.Log($"✅ Successfully applied {pendingProductId} to {targetFarm.farmName}!");
 
-        // 3. Refresh farm display to show the new item
-        RefreshFarmDisplay(targetFarm.farmIndex);
-
-        // 4. Clear pending item
-        pendingProductId = "";
-
-        // 5. Close the panel
+        // 3. ✅ Show success message (keep pendingProductId for now)
         if (infoErrorChanger != null)
         {
-            infoErrorChanger.CloseAllInfoErrorMethod();
+            infoErrorChanger.OpenInfoSetItemToFarm("Item successfully added to the farm!");
         }
-    }
-    
-    private void RefreshFarmDisplay(int farmIndex)
-    {
-        // Find FarmGridManager to refresh the display
-        FarmGridManager farmGridManager = FindAnyObjectByType<FarmGridManager>();
-        if (farmGridManager != null)
-        {
-            farmGridManager.RefreshFarmDisplay(farmIndex);
-            Debug.Log($"🔄 Refreshed display for farm {farmIndex}");
-        }
+        
+        // 4. ✅ DON'T clear pendingProductId yet - keep it until user closes the panel
+        // pendingProductId will be cleared when user clicks No or closes the panel
     }
 }

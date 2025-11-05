@@ -13,6 +13,7 @@ public class FarmGridManager : MonoBehaviour
 
     [Header("UI Managers")]
     public InventoryItemsBarChanger inventoryBarChanger;
+    public InfoErrorChanger infoErrorChanger;
 
     private List<CageData> currentCages;
 
@@ -349,9 +350,22 @@ public class FarmGridManager : MonoBehaviour
     }
 
     // PUBLIC: Called from FarmHeaderManager when farm clicked
+    // PUBLIC: Called from FarmHeaderManager when farm clicked
+    // PUBLIC: Called from FarmHeaderManager when farm clicked
     public void SwitchFarm(int farmIndex)
     {
         Debug.Log($"🔄 Switching to Farm {farmIndex + 1}...");
+        
+        // ✅ Close any open info/error panels when switching farms
+        if (infoErrorChanger != null)
+        {
+            infoErrorChanger.CloseAllInfoErrorMethod();
+            Debug.Log("🔄 Closed all info/error panels on farm switch");
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ InfoErrorChanger not assigned - cannot close panels!");
+        }
         
         farmDatabase.SwitchToFarm(farmIndex);
         LoadFarmCages(farmIndex);

@@ -12,10 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fd62b0741ae848d881e5fa7bdb1fd9a, type: 3}
   m_Name: FarmDatabase
   m_EditorClassIdentifier: Assembly-CSharp::FarmDatabase
-  currentFarmIndex: 0
+  currentFarmIndex: 2
   farmDataJSON: {fileID: 4900000, guid: 1b3e75357311e4f58abdd012cf49d356, type: 3}
   farms:
-  - farmName: Farm 1
+  - farmId: farm_001
+    farmName: Farm 1
     farmIndex: 0
     nestsOccupied: 20
     normalChicks: 10
@@ -28,7 +29,7 @@ MonoBehaviour:
       normalChicks: 0
       champChicks: 1
       hasEgg: 0
-      remainingTime: 235.89536
+      remainingTime: 210.92293
       upgradeLevel: 0
     - id: 2
       farmIndex: 0
@@ -37,7 +38,7 @@ MonoBehaviour:
       normalChicks: 0
       champChicks: 1
       hasEgg: 1
-      remainingTime: 209.6629
+      remainingTime: 248.07472
       upgradeLevel: 0
     - id: 3
       farmIndex: 0
@@ -45,8 +46,8 @@ MonoBehaviour:
       nestsOccupied: 1
       normalChicks: 0
       champChicks: 1
-      hasEgg: 1
-      remainingTime: 224.5377
+      hasEgg: 0
+      remainingTime: 200.16585
       upgradeLevel: 0
     - id: 4
       farmIndex: 0
@@ -55,7 +56,7 @@ MonoBehaviour:
       normalChicks: 0
       champChicks: 1
       hasEgg: 0
-      remainingTime: 226.52177
+      remainingTime: 143.18546
       upgradeLevel: 0
     - id: 5
       farmIndex: 0
@@ -63,8 +64,8 @@ MonoBehaviour:
       nestsOccupied: 1
       normalChicks: 0
       champChicks: 1
-      hasEgg: 1
-      remainingTime: 270.42142
+      hasEgg: 0
+      remainingTime: 226.44495
       upgradeLevel: 0
     - id: 6
       farmIndex: 0
@@ -73,7 +74,7 @@ MonoBehaviour:
       normalChicks: 1
       champChicks: 0
       hasEgg: 1
-      remainingTime: 274.2864
+      remainingTime: 61.939636
       upgradeLevel: 0
     - id: 7
       farmIndex: 0
@@ -81,8 +82,8 @@ MonoBehaviour:
       nestsOccupied: 1
       normalChicks: 1
       champChicks: 0
-      hasEgg: 0
-      remainingTime: 63.624115
+      hasEgg: 1
+      remainingTime: 135.14449
       upgradeLevel: 0
     - id: 8
       farmIndex: 0
@@ -91,7 +92,7 @@ MonoBehaviour:
       normalChicks: 1
       champChicks: 0
       hasEgg: 0
-      remainingTime: 296.64224
+      remainingTime: 194.10344
       upgradeLevel: 0
     - id: 9
       farmIndex: 0
@@ -99,8 +100,8 @@ MonoBehaviour:
       nestsOccupied: 1
       normalChicks: 1
       champChicks: 0
-      hasEgg: 1
-      remainingTime: 163.77213
+      hasEgg: 0
+      remainingTime: 78.792816
       upgradeLevel: 0
     - id: 10
       farmIndex: 0
@@ -108,8 +109,8 @@ MonoBehaviour:
       nestsOccupied: 1
       normalChicks: 1
       champChicks: 0
-      hasEgg: 1
-      remainingTime: 133.5541
+      hasEgg: 0
+      remainingTime: 73.94952
       upgradeLevel: 0
     - id: 11
       farmIndex: 0
@@ -117,8 +118,8 @@ MonoBehaviour:
       nestsOccupied: 1
       normalChicks: 1
       champChicks: 0
-      hasEgg: 0
-      remainingTime: 276.27652
+      hasEgg: 1
+      remainingTime: 47.091713
       upgradeLevel: 0
     - id: 12
       farmIndex: 0
@@ -127,7 +128,7 @@ MonoBehaviour:
       normalChicks: 1
       champChicks: 0
       hasEgg: 0
-      remainingTime: 209.54317
+      remainingTime: 292.75577
       upgradeLevel: 0
     - id: 13
       farmIndex: 0
@@ -135,8 +136,8 @@ MonoBehaviour:
       nestsOccupied: 1
       normalChicks: 1
       champChicks: 0
-      hasEgg: 1
-      remainingTime: 288.4171
+      hasEgg: 0
+      remainingTime: 266.66125
       upgradeLevel: 0
     - id: 14
       farmIndex: 0
@@ -145,7 +146,7 @@ MonoBehaviour:
       normalChicks: 1
       champChicks: 0
       hasEgg: 0
-      remainingTime: 288.20303
+      remainingTime: 279.13306
       upgradeLevel: 0
     - id: 15
       farmIndex: 0
@@ -153,8 +154,8 @@ MonoBehaviour:
       nestsOccupied: 1
       normalChicks: 1
       champChicks: 0
-      hasEgg: 1
-      remainingTime: 166.37622
+      hasEgg: 0
+      remainingTime: 35.047424
       upgradeLevel: 0
     - id: 16
       farmIndex: 0
@@ -921,7 +922,11 @@ MonoBehaviour:
       hasEgg: 0
       remainingTime: 0
       upgradeLevel: 0
-  - farmName: Farm 2
+    farmKeyType: normal
+    robotType: none
+    batteryType: none
+  - farmId: farm_002
+    farmName: Farm 2
     farmIndex: 1
     nestsOccupied: 15
     normalChicks: 8
@@ -934,7 +939,7 @@ MonoBehaviour:
       normalChicks: 0
       champChicks: 1
       hasEgg: 0
-      remainingTime: 107.997
+      remainingTime: 170.78368
       upgradeLevel: 0
     - id: 2
       farmIndex: 1
@@ -943,7 +948,7 @@ MonoBehaviour:
       normalChicks: 0
       champChicks: 1
       hasEgg: 0
-      remainingTime: 58.2894
+      remainingTime: 176.48277
       upgradeLevel: 0
     - id: 3
       farmIndex: 1
@@ -952,7 +957,7 @@ MonoBehaviour:
       normalChicks: 0
       champChicks: 1
       hasEgg: 1
-      remainingTime: 150.24861
+      remainingTime: 288.22733
       upgradeLevel: 0
     - id: 4
       farmIndex: 1
@@ -961,7 +966,7 @@ MonoBehaviour:
       normalChicks: 1
       champChicks: 0
       hasEgg: 0
-      remainingTime: 59.595528
+      remainingTime: 114.694885
       upgradeLevel: 0
     - id: 5
       farmIndex: 1
@@ -969,8 +974,8 @@ MonoBehaviour:
       nestsOccupied: 1
       normalChicks: 1
       champChicks: 0
-      hasEgg: 0
-      remainingTime: 185.10674
+      hasEgg: 1
+      remainingTime: 233.57689
       upgradeLevel: 0
     - id: 6
       farmIndex: 1
@@ -979,7 +984,7 @@ MonoBehaviour:
       normalChicks: 1
       champChicks: 0
       hasEgg: 0
-      remainingTime: 63.539566
+      remainingTime: 139.03062
       upgradeLevel: 0
     - id: 7
       farmIndex: 1
@@ -987,8 +992,8 @@ MonoBehaviour:
       nestsOccupied: 1
       normalChicks: 1
       champChicks: 0
-      hasEgg: 1
-      remainingTime: 277.71637
+      hasEgg: 0
+      remainingTime: 127.51062
       upgradeLevel: 0
     - id: 8
       farmIndex: 1
@@ -996,8 +1001,8 @@ MonoBehaviour:
       nestsOccupied: 1
       normalChicks: 1
       champChicks: 0
-      hasEgg: 1
-      remainingTime: 112.35808
+      hasEgg: 0
+      remainingTime: 42.93804
       upgradeLevel: 0
     - id: 9
       farmIndex: 1
@@ -1005,8 +1010,8 @@ MonoBehaviour:
       nestsOccupied: 1
       normalChicks: 1
       champChicks: 0
-      hasEgg: 0
-      remainingTime: 148.98662
+      hasEgg: 1
+      remainingTime: 95.658966
       upgradeLevel: 0
     - id: 10
       farmIndex: 1
@@ -1015,7 +1020,7 @@ MonoBehaviour:
       normalChicks: 1
       champChicks: 0
       hasEgg: 0
-      remainingTime: 222.98863
+      remainingTime: 112.091995
       upgradeLevel: 0
     - id: 11
       farmIndex: 1
@@ -1024,7 +1029,7 @@ MonoBehaviour:
       normalChicks: 1
       champChicks: 0
       hasEgg: 0
-      remainingTime: 71.56933
+      remainingTime: 118.11513
       upgradeLevel: 0
     - id: 12
       farmIndex: 1
@@ -1827,7 +1832,11 @@ MonoBehaviour:
       hasEgg: 0
       remainingTime: 0
       upgradeLevel: 0
-  - farmName: Farm 3
+    farmKeyType: premiumfarmkey
+    robotType: none
+    batteryType: none
+  - farmId: farm_003
+    farmName: Farm 3
     farmIndex: 2
     nestsOccupied: 8
     normalChicks: 4
@@ -1840,7 +1849,7 @@ MonoBehaviour:
       normalChicks: 0
       champChicks: 1
       hasEgg: 1
-      remainingTime: 44.205837
+      remainingTime: 115.70355
       upgradeLevel: 0
     - id: 2
       farmIndex: 2
@@ -1848,8 +1857,8 @@ MonoBehaviour:
       nestsOccupied: 1
       normalChicks: 1
       champChicks: 0
-      hasEgg: 0
-      remainingTime: 160.45622
+      hasEgg: 1
+      remainingTime: 235.56879
       upgradeLevel: 0
     - id: 3
       farmIndex: 2
@@ -1857,8 +1866,8 @@ MonoBehaviour:
       nestsOccupied: 1
       normalChicks: 1
       champChicks: 0
-      hasEgg: 0
-      remainingTime: 47.754753
+      hasEgg: 1
+      remainingTime: 94.81603
       upgradeLevel: 0
     - id: 4
       farmIndex: 2
@@ -1867,7 +1876,7 @@ MonoBehaviour:
       normalChicks: 1
       champChicks: 0
       hasEgg: 1
-      remainingTime: 80.18585
+      remainingTime: 147.89366
       upgradeLevel: 0
     - id: 5
       farmIndex: 2
@@ -1876,7 +1885,7 @@ MonoBehaviour:
       normalChicks: 1
       champChicks: 0
       hasEgg: 1
-      remainingTime: 233.71814
+      remainingTime: 248.287
       upgradeLevel: 0
     - id: 6
       farmIndex: 2
@@ -2733,3 +2742,6 @@ MonoBehaviour:
       hasEgg: 0
       remainingTime: 0
       upgradeLevel: 0
+    farmKeyType: premiumfarmkey
+    robotType: none
+    batteryType: none
