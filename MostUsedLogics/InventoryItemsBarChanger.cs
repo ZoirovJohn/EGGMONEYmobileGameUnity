@@ -19,6 +19,7 @@ public class InventoryItemsBarChanger : MonoBehaviour
     {
         // Store the farm ID
         currentFarmId = farmId;
+        Debug.Log($"📦 InventoryItemsBarChanger: Stored farmId = {farmId}");
         
         // Close all others
         CloseAllBars();
@@ -27,15 +28,6 @@ public class InventoryItemsBarChanger : MonoBehaviour
         if (inventoryFarmBar != null)
         {
             inventoryFarmBar.SetActive(true);
-            
-            // TODO: Pass farmId to the farm bar component if needed
-            // For example:
-            // InventoryFarmBar farmBarComponent = inventoryFarmBar.GetComponent<InventoryFarmBar>();
-            // if (farmBarComponent != null)
-            // {
-            //     farmBarComponent.SetFarmId(farmId);
-            // }
-            
             Debug.Log($"✅ Opened InventoryFarmBar for farmId: {farmId}");
         }
         else
@@ -94,9 +86,10 @@ public class InventoryItemsBarChanger : MonoBehaviour
         CloseAllBars();
     }
 
-    // Get current farm ID
+    // Get current farm ID - CRITICAL METHOD FOR ITEM APPLICATION
     public string GetCurrentFarmId()
     {
+        Debug.Log($"📍 InventoryItemsBarChanger: GetCurrentFarmId() returning: {currentFarmId}");
         return currentFarmId;
     }
 }

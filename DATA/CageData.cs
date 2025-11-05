@@ -18,12 +18,13 @@ public class CageData
 [System.Serializable]
 public class FarmData
 {
-    public string farmId;
-    public string farmName;
-    public int farmIndex;
-    public int nestsOccupied;
-    public int normalChicks;
-    public int champChicks;
+    // ⭐ CRITICAL: Make sure farmId is PUBLIC and has [SerializeField] or is just public
+    public string farmId = "";        // e.g. "farm_001", "farm_002"
+    public string farmName = "";      // e.g. "Farm 1", "Farm 2"
+    public int farmIndex = 0;         // 0, 1, 2, etc.
+    public int nestsOccupied = 0;
+    public int normalChicks = 0;
+    public int champChicks = 0;
     public List<CageData> cages = new List<CageData>();
     
     // Farm items (default values)

@@ -70,11 +70,12 @@ public class InventoryFarmItemApplier : MonoBehaviour
             return;
         }
         
-        // Get current farm ID
+        // Get current farm ID from inventory bar changer
         string currentFarmId = "";
         if (inventoryBarChanger != null)
         {
             currentFarmId = inventoryBarChanger.GetCurrentFarmId();
+            Debug.Log($"📍 Current Farm ID from InventoryBarChanger: {currentFarmId}");
         }
         
         if (string.IsNullOrEmpty(currentFarmId))
@@ -92,11 +93,28 @@ public class InventoryFarmItemApplier : MonoBehaviour
         if (farmDatabase != null && farmDatabase.farms != null)
         {
             targetFarm = farmDatabase.farms.Find(f => f.farmId == currentFarmId);
+            
+            if (targetFarm == null)
+            {
+                Debug.LogError($"❌ Could not find farm with ID: {currentFarmId}");
+                Debug.Log($"📋 Available farms in database:");
+                foreach (var farm in farmDatabase.farms)
+                {
+                    Debug.Log($"   - {farm.farmId} ({farm.farmName})");
+                }
+            }
+            else
+            {
+                Debug.Log($"✅ Found farm: {targetFarm.farmName} ({targetFarm.farmId})");
+            }
+        }
+        else
+        {
+            Debug.LogError("❌ FarmDatabase or farms list is null!");
         }
         
         if (targetFarm == null)
         {
-            Debug.LogError($"❌ Could not find farm with ID: {currentFarmId}");
             if (infoErrorChanger != null)
             {
                 infoErrorChanger.OpenErrorDefault("Farm not found.");
@@ -110,12 +128,12 @@ public class InventoryFarmItemApplier : MonoBehaviour
             Debug.LogWarning($"⚠️ {pendingProductId} already applied to {targetFarm.farmName}");
             if (infoErrorChanger != null)
             {
-                infoErrorChanger.OpenErrorDefault("The selected item is already applied to that farm.");
+                infoErrorChanger.OpenErrorDefault("This item is already applied to that farm.");
             }
             return;
         }
         
-        /// Check if player has the item
+        // Check if player has the item
         if (wallet == null || wallet.GetItemCount(pendingProductId) <= 0)
         {
             Debug.LogWarning($"⚠️ Player doesn't have {pendingProductId}");
@@ -138,16 +156,29 @@ public class InventoryFarmItemApplier : MonoBehaviour
 
         // 2. Apply item to farm
         targetFarm.ApplyItem(pendingProductId);
+        Debug.Log($"✅ Successfully applied {pendingProductId} to {targetFarm.farmName}!");
 
-        // 3. Clear pending item
+        // 3. Refresh farm display to show the new item
+        RefreshFarmDisplay(targetFarm.farmIndex);
+
+        // 4. Clear pending item
         pendingProductId = "";
 
-        // 4. Close the panel
+        // 5. Close the panel
         if (infoErrorChanger != null)
         {
             infoErrorChanger.CloseAllInfoErrorMethod();
         }
-
-        Debug.Log($"✅ Successfully applied {pendingProductId} to {targetFarm.farmName}!");
+    }
+    
+    private void RefreshFarmDisplay(int farmIndex)
+    {
+        // Find FarmGridManager to refresh the display
+        FarmGridManager farmGridManager = FindAnyObjectByType<FarmGridManager>();
+        if (farmGridManager != null)
+        {
+            farmGridManager.RefreshFarmDisplay(farmIndex);
+            Debug.Log($"🔄 Refreshed display for farm {farmIndex}");
+        }
     }
 }

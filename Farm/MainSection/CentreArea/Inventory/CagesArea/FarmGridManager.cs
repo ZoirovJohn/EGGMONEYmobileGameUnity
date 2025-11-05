@@ -375,4 +375,121 @@ public class FarmGridManager : MonoBehaviour
         SetupGrid();
         BuildCages();
     }
+
+    // Add these methods to your existing FarmGridManager.cs
+    // Place them at the end of the class, before the closing brace
+
+    #region FARM ITEM APPLICATION SUPPORT
+
+    /// <summary>
+    /// Get farm data by farmId (not index)
+    /// Used by InventoryFarmItemApplier to find the target farm
+    /// </summary>
+    public FarmData GetFarmDataById(string farmId)
+    {
+        if (farmDatabase == null || farmDatabase.farms == null)
+        {
+            Debug.LogError("❌ FarmDatabase or farms list is null!");
+            return null;
+        }
+
+        FarmData farm = farmDatabase.farms.Find(f => f.farmId == farmId);
+        
+        if (farm == null)
+        {
+            Debug.LogError($"❌ Farm not found with ID: {farmId}");
+            Debug.Log("📋 Available farms:");
+            foreach (var f in farmDatabase.farms)
+            {
+                Debug.Log($"   - {f.farmId} ({f.farmName})");
+            }
+        }
+        
+        return farm;
+    }
+
+    /// <summary>
+    /// Apply an item to a specific farm by farmId
+    /// Returns true if successful
+    /// </summary>
+    public bool ApplyItemToFarm(string farmId, string itemId)
+    {
+        FarmData farm = GetFarmDataById(farmId);
+        
+        if (farm == null)
+        {
+            Debug.LogError($"❌ Cannot apply item - farm not found: {farmId}");
+            return false;
+        }
+        
+        // Check if item can be applied
+        if (!farm.CanApplyItem(itemId))
+        {
+            Debug.LogWarning($"⚠️ Cannot apply {itemId} to {farm.farmName} - already applied or incompatible");
+            return false;
+        }
+        
+        // Apply the item
+        farm.ApplyItem(itemId);
+        
+        Debug.Log($"✅ Successfully applied {itemId} to {farm.farmName}");
+        
+        // If this is the currently displayed farm, refresh the display
+        if (farmDatabase.currentFarmIndex == farm.farmIndex)
+        {
+            Debug.Log($"🔄 Refreshing display for current farm");
+            RefreshCurrentFarmDisplay();
+        }
+        
+        return true;
+    }
+
+    /// <summary>
+    /// Refresh the display for the currently selected farm
+    /// Called after applying items to update the UI
+    /// </summary>
+    public void RefreshCurrentFarmDisplay()
+    {
+        int currentIndex = farmDatabase.currentFarmIndex;
+        
+        Debug.Log($"🔄 Refreshing display for Farm {currentIndex + 1}");
+        
+        // Reload cages from database
+        LoadFarmCages(currentIndex);
+        
+        // Rebuild the grid display
+        BuildCages();
+        
+        // Notify FarmHeaderManager to update farm slot visuals
+        FarmHeaderManager headerManager = FindAnyObjectByType<FarmHeaderManager>();
+        if (headerManager != null)
+        {
+            headerManager.Refresh();
+            Debug.Log("🔄 FarmHeaderManager refreshed");
+        }
+    }
+
+    /// <summary>
+    /// Refresh display for a specific farm by index
+    /// </summary>
+    public void RefreshFarmDisplay(int farmIndex)
+    {
+        if (farmIndex < 0 || farmIndex >= farmDatabase.farms.Count)
+        {
+            Debug.LogError($"❌ Invalid farm index: {farmIndex}");
+            return;
+        }
+        
+        // If it's the current farm, refresh it
+        if (farmDatabase.currentFarmIndex == farmIndex)
+        {
+            RefreshCurrentFarmDisplay();
+        }
+        else
+        {
+            Debug.Log($"ℹ️ Farm {farmIndex + 1} updated but not currently displayed");
+        }
+    }
+
+    #endregion
 }

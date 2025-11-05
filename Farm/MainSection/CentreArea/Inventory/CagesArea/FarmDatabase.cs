@@ -13,6 +13,9 @@ public class FarmDatabase : ScriptableObject
     public List<FarmData> farms = new List<FarmData>();
 
     [ContextMenu("Load Data from JSON")]
+    // Add this to your FarmDatabase.cs LoadFromJSON() method
+
+    [ContextMenu("Load Data from JSON")]
     public void LoadFromJSON()
     {
         if (farmDataJSON == null)
@@ -27,6 +30,17 @@ public class FarmDatabase : ScriptableObject
             if (wrapper != null && wrapper.farms != null)
             {
                 farms = wrapper.farms;
+                
+                // ⭐ AUTO-GENERATE FARM IDs IF MISSING ⭐
+                for (int i = 0; i < farms.Count; i++)
+                {
+                    if (string.IsNullOrEmpty(farms[i].farmId))
+                    {
+                        farms[i].farmId = $"farm_{(i + 1):D3}"; // farm_001, farm_002, etc.
+                        Debug.Log($"🔧 Auto-generated farmId: {farms[i].farmId} for {farms[i].farmName}");
+                    }
+                }
+                
                 GenerateCagesFromFarmData();
                 Debug.Log($"✓ Loaded {farms.Count} farms from JSON file");
             }

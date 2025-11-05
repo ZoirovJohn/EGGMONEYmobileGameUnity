@@ -169,6 +169,54 @@ public class FarmHeaderManager : MonoBehaviour
         farmGridManager.SwitchFarm(0);
     }
 
+    /// <summary>
+    /// Update visual indicators for a specific farm slot
+    /// Call this after applying items to refresh the farm slot appearance
+    /// </summary>
+    public void UpdateFarmSlotVisual(int farmIndex)
+    {
+        if (farmIndex < 0 || farmIndex >= farmSlots.Count)
+        {
+            Debug.LogWarning($"⚠️ Invalid farm index: {farmIndex}");
+            return;
+        }
+        
+        GameObject farmSlot = farmSlots[farmIndex];
+        FarmData farm = farmDatabase.GetFarmByIndex(farmIndex);
+        
+        if (farm == null)
+        {
+            Debug.LogError($"❌ Could not find farm data for index {farmIndex}");
+            return;
+        }
+        
+        // Update the visual component if it exists
+        FarmSlotVisual visual = farmSlot.GetComponent<FarmSlotVisual>();
+        if (visual != null)
+        {
+            visual.UpdateVisual(farm);
+            Debug.Log($"🎨 Updated visual for {farm.farmName}");
+        }
+        else
+        {
+            Debug.Log($"ℹ️ No FarmSlotVisual component on farm slot {farmIndex + 1}");
+        }
+    }
+
+    /// <summary>
+    /// Update visuals for all farm slots
+    /// Call this to refresh all farm appearances
+    /// </summary>
+    public void UpdateAllFarmSlotVisuals()
+    {
+        for (int i = 0; i < farmSlots.Count; i++)
+        {
+            UpdateFarmSlotVisual(i);
+        }
+        
+        Debug.Log($"🎨 Updated visuals for all {farmSlots.Count} farm slots");
+    }
+
     void CreateFarmSlot(GameObject prefab, float width, float height, int farmIndex)
     {
         GameObject obj = Instantiate(prefab, content);
@@ -306,7 +354,13 @@ public class FarmHeaderManager : MonoBehaviour
         {
             Debug.Log($"📍 Farm ID: {clickedFarm.farmId}");
             
-            // Open inventory farm bar with the farmId
+            // Check if farmId is empty
+            if (string.IsNullOrEmpty(clickedFarm.farmId))
+            {
+                Debug.LogError("❌ FARM ID IS EMPTY! Check your JSON file and reload FarmDatabase!");
+            }
+            
+            // Open inventory farm bar with the farmId (ALWAYS)
             if (inventoryBarChanger != null)
             {
                 inventoryBarChanger.InventoryFarmBarMethod(clickedFarm.farmId);
@@ -315,6 +369,10 @@ public class FarmHeaderManager : MonoBehaviour
             {
                 Debug.LogWarning("⚠️ InventoryBarChanger is not assigned in FarmHeaderManager!");
             }
+        }
+        else
+        {
+            Debug.LogError($"❌ Farm data is NULL for index {farmIndex}!");
         }
         
         // Update visual selection
