@@ -16,24 +16,49 @@ public class ManagementMenuController : MonoBehaviour
     [SerializeField] int defaultTabIndex = 0;
     [SerializeField] bool autoOpenDefaultTabOnShow = true;
 
+    [Header("Management Buttons")]
+    [SerializeField] GameObject managementBtnOffClick; // shows when management closed
+    [SerializeField] GameObject managementBtnOnClick;  // shows when management open
+
+    [Header("Farm Panel")]
+    [SerializeField] GameObject farmPanel; // assign in Inspector
+
     public void ToggleManagement()  => SetManagementVisible(!(panelButtonsRoot && panelButtonsRoot.activeSelf));
     public void OpenManagement()    => SetManagementVisible(true);
     public void CloseManagement()   => SetManagementVisible(false);
 
     void SetManagementVisible(bool visible)
     {
+        // Toggle main menu roots
         if (panelButtonsRoot) panelButtonsRoot.SetActive(visible);
         if (farmTabsRoot)     farmTabsRoot.SetActive(!visible);
 
-        // Hide everything in CentreArea BUT keep the mgmt tabs if we're opening management
+        // Toggle management ON/OFF buttons
+        if (managementBtnOffClick) managementBtnOffClick.SetActive(!visible);
+        if (managementBtnOnClick)  managementBtnOnClick.SetActive(visible);
+
+        // Hide all center panels except the menu itself
         HideAllCentrePanels(visible ? panelButtonsRoot : null);
 
-        if (visible && autoOpenDefaultTabOnShow)
+        if (visible)
         {
-            if (managementTabSwitcher && TrySelectOn(managementTabSwitcher, Mathf.Max(0, defaultTabIndex))) return;
-            if (defaultManagementPanel) defaultManagementPanel.SetActive(true);
+            // Auto open default tab
+            if (autoOpenDefaultTabOnShow)
+            {
+                if (managementTabSwitcher && TrySelectOn(managementTabSwitcher, Mathf.Max(0, defaultTabIndex)))
+                    return;
+
+                if (defaultManagementPanel) defaultManagementPanel.SetActive(true);
+            }
+        }
+        else
+        {
+            // ✅ When closing Management → ENABLE Farm Panel again
+            if (farmPanel) farmPanel.SetActive(true);
         }
     }
+
+
 
     void HideAllCentrePanels(GameObject except = null)
     {

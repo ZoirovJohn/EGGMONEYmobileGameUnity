@@ -6,10 +6,8 @@ public class CenterAreaFlow : MonoBehaviour
     [Header("Refs")]
     public GameObject loadingAnimHolder;   // LoadingAnimHolder
     public GameObject instructionsPanel;   // Instructions overlay (start inactive)
-    public GameObject inventoryPanel;      // Inventory panel (start inactive)
+    public GameObject farmPanel;           // Farm panel (start inactive)
     public Toggle dontShowAgainToggle;     // "Don't show again" (default OFF)
-
-    public GameObject panelFooter;         // NEW: Footer (default OFF in prefab)
 
     private const string PREFS_KEY = "HideInstructions";
 
@@ -25,7 +23,7 @@ public class CenterAreaFlow : MonoBehaviour
             PlayerPrefs.Save();
             Debug.Log("[CenterAreaFlow] Reset HideInstructions on Play (Editor)");
         }
-     #endif
+    #endif
     }
 
     private void Start()
@@ -33,15 +31,14 @@ public class CenterAreaFlow : MonoBehaviour
         // Start state
         if (loadingAnimHolder) loadingAnimHolder.SetActive(true);
         if (instructionsPanel) instructionsPanel.SetActive(false);
-        if (inventoryPanel)    inventoryPanel.SetActive(false);
-        if (panelFooter)       panelFooter.SetActive(false); // NEW: footer off by default
+        if (farmPanel)         farmPanel.SetActive(false);
 
         Debug.Log($"[CenterAreaFlow] Start; HideInstructions={PlayerPrefs.GetInt(PREFS_KEY, 0)}");
 
         // After 5s, decide what to show
         Invoke(nameof(ShowInstructionsIfNeeded), 5f);
 
-        // When user turns the toggle ON, persist + close + open inventory
+        // When user turns the toggle ON, persist + close + open farm
         if (dontShowAgainToggle)
         {
             dontShowAgainToggle.isOn = false; // default OFF
@@ -58,13 +55,12 @@ public class CenterAreaFlow : MonoBehaviour
 
         if (skip)
         {
-            OpenInventory(); // already opted out → skip overlay
+            OpenFarm(); // already opted out → skip overlay
         }
         else
         {
-            if (inventoryPanel) inventoryPanel.SetActive(false);
+            if (farmPanel) farmPanel.SetActive(false);
             if (instructionsPanel) instructionsPanel.SetActive(true);
-            if (panelFooter) panelFooter.SetActive(false);   // NEW: keep footer hidden on instructions
             Debug.Log("[CenterAreaFlow] Instructions shown");
         }
     }
@@ -76,16 +72,15 @@ public class CenterAreaFlow : MonoBehaviour
 
         PlayerPrefs.SetInt(PREFS_KEY, 1);
         PlayerPrefs.Save();
-        Debug.Log("[CenterAreaFlow] Skip enabled → saving & opening Inventory");
+        Debug.Log("[CenterAreaFlow] Skip enabled → saving & opening Farm");
 
         instructionsPanel.SetActive(false);
-        OpenInventory();
+        OpenFarm();
     }
 
-    private void OpenInventory()
+    private void OpenFarm()
     {
-        if (inventoryPanel) inventoryPanel.SetActive(true);
-        if (panelFooter)    panelFooter.SetActive(true);   // NEW: show footer with inventory
-        Debug.Log("[CenterAreaFlow] Inventory shown");
+        if (farmPanel) farmPanel.SetActive(true);
+        Debug.Log("[CenterAreaFlow] Farm shown");
     }
 }

@@ -46,6 +46,8 @@ public class PlayerWallet : MonoBehaviour
     [SerializeField, Min(0)] int superBlueEgg = 0;
     [SerializeField, Min(0)] int superRedEgg = 0;
     [SerializeField, Min(0)] int superFarmKey = 0; // <--- NEW: Premium/Super Farm Key
+    [SerializeField, Min(0)] int superNest = 0; // NEW super nest
+
 
     // =========================
     // Public getters / aliases
@@ -78,6 +80,8 @@ public class PlayerWallet : MonoBehaviour
     public int SuperBlueEgg => superBlueEgg;
     public int SuperRedEgg => superRedEgg;
     public int SuperFarmKey => superFarmKey; // <--- NEW Getter
+    public int SuperNest => superNest; // NEW getter
+
 
     // =========================
     // Events
@@ -215,6 +219,7 @@ public class PlayerWallet : MonoBehaviour
             case Item.WhiteChick:     return whiteChick;
             case Item.ChampChick:     return champChick;
             case Item.SuperFarmKey:   return superFarmKey; // <--- NEW
+            case Item.SuperNest:   return superNest; // <--- NEW
             default: return 0;
         }
     }
@@ -246,7 +251,7 @@ public class PlayerWallet : MonoBehaviour
         Nest, SilverEgg, Food, GoldEgg, Booster, Battery, KeyFarm, Robot,
         SuperFood, SuperBooster, SuperBattery, SuperBlueEgg, SuperRedEgg,
         WhiteChick, ChampChick,
-        SuperFarmKey // <--- NEW
+        SuperFarmKey, SuperNest // <--- NEW
     }
 
     static string Norm(string s)
@@ -270,6 +275,7 @@ public class PlayerWallet : MonoBehaviour
         if (n == "keyfarm" || n == "farmopenkey" || n == "premiumfarmopenkey") return Item.KeyFarm;
         if (n == "robot" || n == "farmmanagementrobot") return Item.Robot;
         if (n == "superfood") return Item.SuperFood;
+        if (n == "supernest") return Item.SuperNest; // NEW super nest
         if (n == "superbooster") return Item.SuperBooster;
         if (n == "superbattery") return Item.SuperBattery;
         if (n == "superblueegg" || n == "bgg" || n == "eventblueegg") return Item.SuperBlueEgg;
@@ -297,6 +303,7 @@ public class PlayerWallet : MonoBehaviour
             case Item.KeyFarm:        keyFarm = value;       RaiseItem("key_farm", value); break;
             case Item.Robot:          robot = value;         RaiseItem("robot", value); break;
             case Item.SuperFood:      superFood = value;     RaiseItem("super_food", value); break;
+            case Item.SuperNest:      superNest = value;     RaiseItem("super_nest", value); break;
             case Item.SuperBooster:   superBooster = value;  RaiseItem("super_booster", value); break;
             case Item.SuperBattery:   superBattery = value;  RaiseItem("super_battery", value); break;
             case Item.SuperBlueEgg:   superBlueEgg = value;  RaiseItem("super_blue_egg", value); break;
@@ -333,6 +340,7 @@ public class PlayerWallet : MonoBehaviour
         keyFarm = Mathf.Max(0, keyFarm);
         robot = Mathf.Max(0, robot);
         superFood = Mathf.Max(0, superFood);
+        superNest = Mathf.Max(0, superNest);
         superBooster = Mathf.Max(0, superBooster);
         superBattery = Mathf.Max(0, superBattery);
         superBlueEgg = Mathf.Max(0, superBlueEgg);
