@@ -28,8 +28,8 @@ MonoBehaviour:
       nestsOccupied: 1
       normalChicks: 0
       champChicks: 1
-      hasEgg: 1
-      remainingTime: 125.22006
+      hasEgg: 0
+      remainingTime: 101.047066
       upgradeLevel: 0
     - id: 2
       farmIndex: 0
@@ -38,7 +38,7 @@ MonoBehaviour:
       normalChicks: 0
       champChicks: 1
       hasEgg: 1
-      remainingTime: 230.0438
+      remainingTime: 217.99474
       upgradeLevel: 0
     - id: 3
       farmIndex: 0
@@ -47,7 +47,7 @@ MonoBehaviour:
       normalChicks: 0
       champChicks: 1
       hasEgg: 1
-      remainingTime: 194.49805
+      remainingTime: 133.26167
       upgradeLevel: 0
     - id: 4
       farmIndex: 0
@@ -56,7 +56,7 @@ MonoBehaviour:
       normalChicks: 0
       champChicks: 1
       hasEgg: 0
-      remainingTime: 198.3912
+      remainingTime: 272.16098
       upgradeLevel: 0
     - id: 5
       farmIndex: 0
@@ -64,8 +64,8 @@ MonoBehaviour:
       nestsOccupied: 1
       normalChicks: 0
       champChicks: 1
-      hasEgg: 1
-      remainingTime: 54.62036
+      hasEgg: 0
+      remainingTime: 104.48131
       upgradeLevel: 0
     - id: 6
       farmIndex: 0
@@ -73,8 +73,8 @@ MonoBehaviour:
       nestsOccupied: 1
       normalChicks: 1
       champChicks: 0
-      hasEgg: 1
-      remainingTime: 101.45899
+      hasEgg: 0
+      remainingTime: 288.30576
       upgradeLevel: 0
     - id: 7
       farmIndex: 0
@@ -82,8 +82,8 @@ MonoBehaviour:
       nestsOccupied: 1
       normalChicks: 1
       champChicks: 0
-      hasEgg: 1
-      remainingTime: 127.94176
+      hasEgg: 0
+      remainingTime: 159.19006
       upgradeLevel: 0
     - id: 8
       farmIndex: 0
@@ -92,7 +92,7 @@ MonoBehaviour:
       normalChicks: 1
       champChicks: 0
       hasEgg: 1
-      remainingTime: 298.57278
+      remainingTime: 264.68845
       upgradeLevel: 0
     - id: 9
       farmIndex: 0
@@ -101,7 +101,7 @@ MonoBehaviour:
       normalChicks: 1
       champChicks: 0
       hasEgg: 1
-      remainingTime: 298.37628
+      remainingTime: 182.0909
       upgradeLevel: 0
     - id: 10
       farmIndex: 0
@@ -110,7 +110,7 @@ MonoBehaviour:
       normalChicks: 1
       champChicks: 0
       hasEgg: 1
-      remainingTime: 81.732506
+      remainingTime: 186.60443
       upgradeLevel: 0
     - id: 11
       farmIndex: 0
@@ -118,8 +118,8 @@ MonoBehaviour:
       nestsOccupied: 1
       normalChicks: 1
       champChicks: 0
-      hasEgg: 0
-      remainingTime: 189.46768
+      hasEgg: 1
+      remainingTime: 80.172195
       upgradeLevel: 0
     - id: 12
       farmIndex: 0
@@ -127,8 +127,8 @@ MonoBehaviour:
       nestsOccupied: 1
       normalChicks: 1
       champChicks: 0
-      hasEgg: 1
-      remainingTime: 298.88364
+      hasEgg: 0
+      remainingTime: 59.750633
       upgradeLevel: 0
     - id: 13
       farmIndex: 0
@@ -137,7 +137,7 @@ MonoBehaviour:
       normalChicks: 1
       champChicks: 0
       hasEgg: 0
-      remainingTime: 59.704155
+      remainingTime: 217.35442
       upgradeLevel: 0
     - id: 14
       farmIndex: 0
@@ -145,8 +145,8 @@ MonoBehaviour:
       nestsOccupied: 1
       normalChicks: 1
       champChicks: 0
-      hasEgg: 0
-      remainingTime: 36.358315
+      hasEgg: 1
+      remainingTime: 149.11398
       upgradeLevel: 0
     - id: 15
       farmIndex: 0
@@ -154,8 +154,8 @@ MonoBehaviour:
       nestsOccupied: 1
       normalChicks: 1
       champChicks: 0
-      hasEgg: 0
-      remainingTime: 120.824745
+      hasEgg: 1
+      remainingTime: 106.948784
       upgradeLevel: 0
     - id: 16
       farmIndex: 0
@@ -939,7 +939,7 @@ MonoBehaviour:
       normalChicks: 0
       champChicks: 1
       hasEgg: 0
-      remainingTime: 59.21528
+      remainingTime: 112.411514
       upgradeLevel: 0
     - id: 2
       farmIndex: 1
@@ -948,7 +948,7 @@ MonoBehaviour:
       normalChicks: 0
       champChicks: 1
       hasEgg: 1
-      remainingTime: 233.04155
+      remainingTime: 38.31384
       upgradeLevel: 0
     - id: 3
       farmIndex: 1
@@ -957,7 +957,7 @@ MonoBehaviour:
       normalChicks: 0
       champChicks: 1
       hasEgg: 1
-      remainingTime: 171.87222
+      remainingTime: 123.846954
       upgradeLevel: 0
     - id: 4
       farmIndex: 1
@@ -966,7 +966,7 @@ MonoBehaviour:
       normalChicks: 1
       champChicks: 0
       hasEgg: 1
-      remainingTime: 84.25773
+      remainingTime: 282.2439
       upgradeLevel: 0
     - id: 5
       farmIndex: 1
@@ -974,8 +974,8 @@ MonoBehaviour:
       nestsOccupied: 1
       normalChicks: 1
       champChicks: 0
-      hasEgg: 1
-      remainingTime: 223.51434
+      hasEgg: 0
+      remainingTime: 58.298443
       upgradeLevel: 0
     - id: 6
       farmIndex: 1
@@ -984,7 +984,7 @@ MonoBehaviour:
       normalChicks: 1
       champChicks: 0
       hasEgg: 0
-      remainingTime: 172.20737
+      remainingTime: 262.11627
       upgradeLevel: 0
     - id: 7
       farmIndex: 1
@@ -993,7 +993,7 @@ MonoBehaviour:
       normalChicks: 1
       champChicks: 0
       hasEgg: 1
-      remainingTime: 157.04306
+      remainingTime: 251.89801
       upgradeLevel: 0
     - id: 8
       farmIndex: 1
@@ -1001,8 +1001,8 @@ MonoBehaviour:
       nestsOccupied: 1
       normalChicks: 1
       champChicks: 0
-      hasEgg: 0
-      remainingTime: 230.02927
+      hasEgg: 1
+      remainingTime: 274.53427
       upgradeLevel: 0
     - id: 9
       farmIndex: 1
@@ -1011,7 +1011,7 @@ MonoBehaviour:
       normalChicks: 1
       champChicks: 0
       hasEgg: 0
-      remainingTime: 277.85205
+      remainingTime: 56.174904
       upgradeLevel: 0
     - id: 10
       farmIndex: 1
@@ -1019,8 +1019,8 @@ MonoBehaviour:
       nestsOccupied: 1
       normalChicks: 1
       champChicks: 0
-      hasEgg: 0
-      remainingTime: 214.5399
+      hasEgg: 1
+      remainingTime: 144.91248
       upgradeLevel: 0
     - id: 11
       farmIndex: 1
@@ -1028,8 +1028,8 @@ MonoBehaviour:
       nestsOccupied: 1
       normalChicks: 1
       champChicks: 0
-      hasEgg: 0
-      remainingTime: 72.53476
+      hasEgg: 1
+      remainingTime: 31.385242
       upgradeLevel: 0
     - id: 12
       farmIndex: 1
@@ -1849,7 +1849,7 @@ MonoBehaviour:
       normalChicks: 0
       champChicks: 1
       hasEgg: 0
-      remainingTime: 75.15603
+      remainingTime: 108.9382
       upgradeLevel: 0
     - id: 2
       farmIndex: 2
@@ -1858,7 +1858,7 @@ MonoBehaviour:
       normalChicks: 1
       champChicks: 0
       hasEgg: 0
-      remainingTime: 32.8683
+      remainingTime: 264.91183
       upgradeLevel: 0
     - id: 3
       farmIndex: 2
@@ -1867,7 +1867,7 @@ MonoBehaviour:
       normalChicks: 1
       champChicks: 0
       hasEgg: 1
-      remainingTime: 189.77194
+      remainingTime: 231.65224
       upgradeLevel: 0
     - id: 4
       farmIndex: 2
@@ -1875,8 +1875,8 @@ MonoBehaviour:
       nestsOccupied: 1
       normalChicks: 1
       champChicks: 0
-      hasEgg: 0
-      remainingTime: 142.03868
+      hasEgg: 1
+      remainingTime: 241.21718
       upgradeLevel: 0
     - id: 5
       farmIndex: 2
@@ -1884,8 +1884,8 @@ MonoBehaviour:
       nestsOccupied: 1
       normalChicks: 1
       champChicks: 0
-      hasEgg: 1
-      remainingTime: 161.68747
+      hasEgg: 0
+      remainingTime: 259.42984
       upgradeLevel: 0
     - id: 6
       farmIndex: 2
@@ -2735,6 +2735,916 @@ MonoBehaviour:
       upgradeLevel: 0
     - id: 100
       farmIndex: 2
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    farmKeyType: normal
+    robotType: none
+    batteryType: none
+  - farmId: farm_004
+    farmName: Farm 4
+    farmIndex: 3
+    nestsOccupied: 0
+    normalChicks: 0
+    champChicks: 0
+    cages:
+    - id: 1
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 2
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 3
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 4
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 5
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 6
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 7
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 8
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 9
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 10
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 11
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 12
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 13
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 14
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 15
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 16
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 17
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 18
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 19
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 20
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 21
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 22
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 23
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 24
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 25
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 26
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 27
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 28
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 29
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 30
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 31
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 32
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 33
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 34
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 35
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 36
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 37
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 38
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 39
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 40
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 41
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 42
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 43
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 44
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 45
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 46
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 47
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 48
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 49
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 50
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 51
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 52
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 53
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 54
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 55
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 56
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 57
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 58
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 59
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 60
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 61
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 62
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 63
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 64
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 65
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 66
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 67
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 68
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 69
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 70
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 71
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 72
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 73
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 74
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 75
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 76
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 77
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 78
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 79
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 80
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 81
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 82
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 83
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 84
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 85
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 86
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 87
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 88
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 89
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 90
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 91
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 92
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 93
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 94
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 95
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 96
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 97
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 98
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 99
+      farmIndex: 3
+      nestCapacity: 16
+      nestsOccupied: 0
+      normalChicks: 0
+      champChicks: 0
+      hasEgg: 0
+      remainingTime: 0
+      upgradeLevel: 0
+    - id: 100
+      farmIndex: 3
       nestCapacity: 16
       nestsOccupied: 0
       normalChicks: 0
