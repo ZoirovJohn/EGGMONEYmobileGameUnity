@@ -5,6 +5,7 @@ public class InventoryItemsBarChanger : MonoBehaviour
     [Header("Inventory Bar References")]
     [SerializeField] private GameObject inventoryCageBar;
     [SerializeField] private GameObject inventoryFarmBar;
+    [SerializeField] private GameObject inventoryLockBar; // ✅ NEW
     [SerializeField] private GameObject defaultBanner;
 
     private string currentFarmId = ""; // Store the current farm ID
@@ -52,6 +53,23 @@ public class InventoryItemsBarChanger : MonoBehaviour
         }
     }
 
+    public void InventoryLockBarMethod() // ✅ NEW
+    {
+        // Close all others
+        CloseAllBars();
+        
+        // Open lock bar
+        if (inventoryLockBar != null)
+        {
+            inventoryLockBar.SetActive(true);
+            Debug.Log("✅ Opened InventoryLockBar");
+        }
+        else
+        {
+            Debug.LogWarning("InventoryLockBar is not assigned!");
+        }
+    }
+
     public void DefaultBannerMethod()
     {
         // Close all others
@@ -75,6 +93,9 @@ public class InventoryItemsBarChanger : MonoBehaviour
             
         if (inventoryFarmBar != null)
             inventoryFarmBar.SetActive(false);
+            
+        if (inventoryLockBar != null) // ✅ NEW
+            inventoryLockBar.SetActive(false);
             
         if (defaultBanner != null)
             defaultBanner.SetActive(false);

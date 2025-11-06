@@ -13,9 +13,14 @@ public class FarmHeaderManager : MonoBehaviour
     public Button leftButton;
     public Button rightButton;
 
-    [Header("Counts")]
+    [Header("Counts - Will be loaded from Database")]
+    [Tooltip("These values will be overwritten by database on Start")]
     public int farmCount = 3;
     public int lockCount = 5;
+    
+    [Header("Max Farms Setting")]
+    [Tooltip("Total number of farms available in the game (unlocked + locked)")]
+    public int maxTotalFarms = 8;
 
     [Header("Database")]
     public FarmDatabase farmDatabase;
@@ -67,7 +72,30 @@ public class FarmHeaderManager : MonoBehaviour
             Debug.LogError("❌ FarmGridManager not assigned in FarmHeaderManager!");
         }
 
+        // Load farm counts from database
+        LoadFarmCountsFromDatabase();
+        
         Refresh();
+    }
+
+    /// <summary>
+    /// Load farm counts from FarmDatabase instead of using hardcoded values
+    /// </summary>
+    void LoadFarmCountsFromDatabase()
+    {
+        if (farmDatabase == null || farmDatabase.farms == null)
+        {
+            Debug.LogWarning("⚠️ FarmDatabase not available, using default counts");
+            return;
+        }
+        
+        // Get actual unlocked farm count from database
+        farmCount = farmDatabase.farms.Count;
+        
+        // Calculate locked farms
+        lockCount = Mathf.Max(0, maxTotalFarms - farmCount);
+        
+        Debug.Log($"📊 Loaded from database: {farmCount} farms unlocked, {lockCount} locks remaining (Total: {maxTotalFarms})");
     }
 
     void Update()
@@ -90,6 +118,9 @@ public class FarmHeaderManager : MonoBehaviour
 
     public void Refresh()
     {
+        // Reload counts from database before refreshing
+        LoadFarmCountsFromDatabase();
+        
         DetermineVisibleItems();
         BuildItems();
         ComputeStep();
@@ -166,7 +197,11 @@ public class FarmHeaderManager : MonoBehaviour
         
         // Set initial selection to Farm 1
         UpdateFarmSelection(0);
-        farmGridManager.SwitchFarm(0);
+        
+        if (farmGridManager != null)
+        {
+            farmGridManager.SwitchFarm(0);
+        }
     }
 
     /// <summary>
@@ -255,6 +290,7 @@ public class FarmHeaderManager : MonoBehaviour
         farmSlots.Add(obj); // Track this as a farm slot
     }
 
+
     void CreateLockSlot(GameObject prefab, float width, float height)
     {
         GameObject obj = Instantiate(prefab, content);
@@ -273,6 +309,28 @@ public class FarmHeaderManager : MonoBehaviour
         
         rt.anchoredPosition = new Vector2(xPos, 0);
         rt.sizeDelta = new Vector2(width, 0);
+
+        // ✅ Add LockSlotClick component if it doesn't exist
+        LockSlotClick lockClick = obj.GetComponent<LockSlotClick>();
+        if (lockClick == null)
+        {
+            lockClick = obj.AddComponent<LockSlotClick>();
+            Debug.Log("✅ Added LockSlotClick component to lock slot");
+        }
+        
+        // ✅ Assign InventoryItemsBarChanger reference
+        if (inventoryBarChanger != null)
+        {
+            // Use reflection to set the private field, or make it public in LockSlotClick
+            var field = typeof(LockSlotClick).GetField("inventoryBarChanger", 
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            
+            if (field != null)
+            {
+                field.SetValue(lockClick, inventoryBarChanger);
+                Debug.Log("✅ Assigned InventoryItemsBarChanger to lock slot");
+            }
+        }
 
         spawned.Add(obj);
     }
