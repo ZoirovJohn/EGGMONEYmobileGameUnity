@@ -10,7 +10,6 @@ public class FarmGridManager : MonoBehaviour
     public GameObject cagePrefab;
     public GameObject bigCage;
     public FarmDatabase farmDatabase;
-
     [Header("UI Managers")]
     public InventoryItemsBarChanger inventoryBarChanger;
     public InfoErrorChanger infoErrorChanger;
@@ -306,6 +305,7 @@ public class FarmGridManager : MonoBehaviour
 
     void ShowBigCage(int index)
     {
+        infoErrorChanger.CloseAllInfoErrorMethod();
         if (bigCage == null || currentCages == null) return;
 
         CageData data = currentCages[index];
