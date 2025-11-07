@@ -4,6 +4,9 @@ using System.Reflection;
 
 public class ManagementMenuController : MonoBehaviour
 {
+    [Header("References")]
+    [SerializeField] InvitationPanelOpener invitationPanelOpener; // assign in Inspector
+
     [Header("Roots")]
     [SerializeField] GameObject farmTabsRoot;      // strip to HIDE when opening management
     [SerializeField] GameObject panelButtonsRoot;  // container with 6 management buttons (to SHOW)
@@ -42,6 +45,7 @@ public class ManagementMenuController : MonoBehaviour
 
         if (visible)
         {
+            invitationPanelOpener?.CloseInvitation();
             // Auto open default tab
             if (autoOpenDefaultTabOnShow)
             {
@@ -81,5 +85,6 @@ public class ManagementMenuController : MonoBehaviour
         if (mi == null) return false;
         mi.Invoke(comp, new object[] { index });
         return true;
-        }
+    }
+
 }

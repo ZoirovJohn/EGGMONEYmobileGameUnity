@@ -3,35 +3,37 @@ using UnityEngine.EventSystems;
 
 public class InvitationPanelOpener : MonoBehaviour
 {
-    [Header("Layout roots")]
-    [SerializeField] GameObject farmTabsRoot;       // show when opening invitation
-    [SerializeField] GameObject managementTabsRoot; // hide when opening invitation (your ManagementTabs container)
-    [SerializeField] Transform centreAreaRoot;      // parent of ALL center panels
+    [Header("References")]
+    [SerializeField] ManagementMenuController managementController;
+    [SerializeField] GameObject invitationPanel;  // QR Panel only
 
-    [Header("Target panel")]
-    [SerializeField] GameObject invitationPanel;    // the QR panel to show
-
-    [Header("Optional")]
-    [SerializeField] FooterPanelSwitcher footerSwitcher; // to clear footer selected state
+    [Header("Button visuals")]
+    [SerializeField] GameObject invitationBtnOffClick; // visible when closed
+    [SerializeField] GameObject invitationBtnOnClick;  // visible when opened
 
     public void OpenInvitation()
     {
-        // header strips
-        if (managementTabsRoot) managementTabsRoot.SetActive(false);
-        if (farmTabsRoot)       farmTabsRoot.SetActive(true);
+        // ✅ Close management UI first (this hides all center panels too)
+        if (managementController)
+            managementController.CloseManagement();
 
-        // close all center panels
-        if (centreAreaRoot)
-            for (int i = 0; i < centreAreaRoot.childCount; i++)
-                centreAreaRoot.GetChild(i).gameObject.SetActive(false);
-
-        // open the invitation panel
+        // ✅ Show Invitation panel only
         if (invitationPanel) invitationPanel.SetActive(true);
 
-        // make footer look neutral (optional)
-        footerSwitcher?.ClearFooterSelection(false);
+        // ✅ Button state
+        if (invitationBtnOffClick) invitationBtnOffClick.SetActive(false);
+        if (invitationBtnOnClick)  invitationBtnOnClick.SetActive(true);
 
-        // clear UI focus highlight
+        // ✅ Remove UI Focus highlight
         EventSystem.current?.SetSelectedGameObject(null);
     }
+
+    public void CloseInvitation()
+    {
+        if (invitationPanel) invitationPanel.SetActive(false);
+
+        if (invitationBtnOffClick) invitationBtnOffClick.SetActive(true);
+        if (invitationBtnOnClick)  invitationBtnOnClick.SetActive(false);
+    }
+
 }
