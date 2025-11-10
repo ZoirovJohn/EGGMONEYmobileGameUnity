@@ -11,6 +11,7 @@ public class CardController : MonoBehaviour
     private List<Sprite> spritePairs;
     private Card firstSelected;
     private Card secondSelected;
+    private bool isChecking = false; // NEW: Prevent input during check
 
     private void Start()
     {
@@ -45,7 +46,8 @@ public class CardController : MonoBehaviour
 
     public void SetSelected(Card card)
     {
-        if (card.isSelected) return;
+        // NEW: Block input if checking or card already selected
+        if (isChecking || card.isSelected) return;
 
         card.Show();
 
@@ -62,6 +64,7 @@ public class CardController : MonoBehaviour
 
     private IEnumerator CheckMatch()
     {
+        isChecking = true; // NEW: Lock input
         yield return new WaitForSeconds(0.5f);
 
         if (firstSelected.GetIconSprite() == secondSelected.GetIconSprite())
@@ -79,6 +82,7 @@ public class CardController : MonoBehaviour
 
         firstSelected = null;
         secondSelected = null;
+        isChecking = false; // NEW: Unlock input
     }
 
     private void ShuffleSprites(List<Sprite> list)
