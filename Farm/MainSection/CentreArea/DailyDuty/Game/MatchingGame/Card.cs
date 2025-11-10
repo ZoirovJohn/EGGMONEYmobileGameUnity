@@ -4,25 +4,29 @@ using System.Collections;
 
 public class Card : MonoBehaviour
 {
-    [SerializeField] private Image iconImage;
-    [SerializeField] private CanvasGroup canvasGroup; // add a CanvasGroup component
+    [Header("References")]
+    public Image cardImage;  // the card itself (swapped)
+    public Image iconImage;  // center icon
 
-    public Sprite hiddenIconSprite;
+    [Header("Sprites")]
+    public Sprite hiddenSprite;   // your black/back image
+    public Sprite cardBgSprite;   // front card background
+
+    [HideInInspector] public CardController controller;
+    [HideInInspector] public bool isSelected = false;
 
     private Sprite iconSprite;
-
-    [HideInInspector] public bool isSelected;
-    [HideInInspector] public CardController controller;
-
     private bool isFlipping = false;
     private bool isMatched = false;
     private float flipDuration = 0.3f;
 
-    private void Awake()
+    public void SetIconSprite(Sprite sp)
     {
-        if (canvasGroup == null)
-            canvasGroup = GetComponent<CanvasGroup>();
+        iconSprite = sp;
+        iconImage.sprite = sp;
     }
+
+    public Sprite GetIconSprite() => iconSprite;
 
     public void OnCardClick()
     {
@@ -30,66 +34,37 @@ public class Card : MonoBehaviour
             controller.SetSelected(this);
     }
 
-    public void SetIconSprite(Sprite sp)
-    {
-        iconSprite = sp;
-    }
-
-    public Sprite GetIconSprite()
-    {
-        return iconSprite;
-    }
-
     public void Show()
     {
         if (isFlipping || isMatched) return;
-        StartCoroutine(FlipCard(iconSprite));
+        StartCoroutine(FlipCard(true));
         isSelected = true;
     }
 
     public void Hide()
     {
         if (isFlipping || isMatched) return;
-        StartCoroutine(FlipCard(hiddenIconSprite));
+        StartCoroutine(FlipCard(false));
         isSelected = false;
     }
 
     public void SetMatched()
     {
         isMatched = true;
-        isSelected = true;
-        StartCoroutine(FadeOut());
+        StartCoroutine(FadeOutCard());
     }
 
-    private IEnumerator FadeOut()
-    {
-        float duration = 0.2f;
-        float t = 0f;
-        float startAlpha = canvasGroup.alpha;
-
-        while (t < duration)
-        {
-            t += Time.deltaTime;
-            canvasGroup.alpha = Mathf.Lerp(startAlpha, 0f, t / duration);
-            yield return null;
-        }
-
-        canvasGroup.alpha = 0f;
-        canvasGroup.blocksRaycasts = false; // disable clicks
-    }
-
-    private IEnumerator FlipCard(Sprite targetSprite)
+    private IEnumerator FlipCard(bool revealed)
     {
         isFlipping = true;
 
         Quaternion startRot = transform.rotation;
-        Quaternion midRot = Quaternion.Euler(0f, 90f, 0f);
-        Quaternion endRot = Quaternion.Euler(0f, 0f, 0f);
-
+        Quaternion midRot = Quaternion.Euler(0, 90, 0);
+        Quaternion endRot = Quaternion.Euler(0, 0, 0);
         float halfDuration = flipDuration / 2f;
         float t = 0f;
 
-        // First half rotation
+        // Rotate to 90°
         while (t < halfDuration)
         {
             t += Time.deltaTime;
@@ -99,9 +74,10 @@ public class Card : MonoBehaviour
         transform.rotation = midRot;
 
         // Swap sprite
-        iconImage.sprite = targetSprite;
+        cardImage.sprite = revealed ? cardBgSprite : hiddenSprite;
+        iconImage.enabled = revealed;
 
-        // Second half rotation
+        // Rotate back
         t = 0f;
         while (t < halfDuration)
         {
@@ -112,5 +88,22 @@ public class Card : MonoBehaviour
         transform.rotation = endRot;
 
         isFlipping = false;
+    }
+
+    private IEnumerator FadeOutCard()
+    {
+        CanvasGroup cg = GetComponent<CanvasGroup>();
+        if (cg == null) cg = gameObject.AddComponent<CanvasGroup>();
+
+        float t = 0f;
+        float duration = 0.2f;
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            cg.alpha = Mathf.Lerp(1f, 0f, t / duration);
+            yield return null;
+        }
+        cg.alpha = 0f;
+        cg.blocksRaycasts = false; // prevent clicks
     }
 }
