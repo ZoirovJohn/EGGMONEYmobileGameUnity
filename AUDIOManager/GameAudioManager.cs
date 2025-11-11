@@ -11,6 +11,16 @@ public class GameAudioManager : MonoBehaviour
     [Header("Global Sounds")]
     public AudioClip buttonClickClip; // Main button click sound
 
+    private void Start()
+    {
+        if (musicSource != null && musicSource.clip != null)
+        {
+            musicSource.loop = true;
+            musicSource.Play();
+        }
+    }
+
+
     private void Awake()
     {
         // Singleton pattern
