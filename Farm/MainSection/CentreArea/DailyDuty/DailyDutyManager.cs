@@ -3,59 +3,59 @@ using UnityEngine.UI;
 
 public class DailyDutyManager : MonoBehaviour
 {
-    [Header("Main Panel")]
-    public GameObject mainPanel; // The main menu panel
-
-    [Header("Game Panel")]
-    public GameObject gamePanel; // Container for all game sub-panels
-
-    [Header("Specific Game Panels (children of Game Panel)")]
-    public GameObject cleaningPanel;
-    public GameObject feedingPanel;
-    public GameObject collectingPanel;
+    [Header("Main Panels")]
+    public GameObject mainPanel;
+    public GameObject gamesPanel;
 
     [Header("Buttons (on Main Panel)")]
-    public Button cleaningButton;
-    public Button feedingButton;
-    public Button collectingButton;
+    public Button simonButton;
+    public Button collectButton;
+    public Button matchingButton;
+
+    [Header("Mini Game Manager Reference")]
+    public MiniGamePanelManager miniGameManager;
 
     private void Start()
     {
         // Assign main panel button listeners
-        cleaningButton.onClick.AddListener(() => OpenSpecificGame(cleaningPanel));
-        feedingButton.onClick.AddListener(() => OpenSpecificGame(feedingPanel));
-        collectingButton.onClick.AddListener(() => OpenSpecificGame(collectingPanel));
+        simonButton.onClick.AddListener(OpenSimon);
+        collectButton.onClick.AddListener(OpenCollect);
+        matchingButton.onClick.AddListener(OpenMatching);
 
         // Start with only the main panel visible
-        ShowMainPanel();
+        OpenMainPanel();
     }
 
-    private void OpenSpecificGame(GameObject specificGamePanel)
+    // =========================
+    // Open Methods
+    // =========================
+    public void OpenSimon()
     {
-        // Hide main panel
         mainPanel.SetActive(false);
-
-        // Show game panel container
-        gamePanel.SetActive(true);
-
-        // Hide all specific game panels first
-        cleaningPanel.SetActive(false);
-        feedingPanel.SetActive(false);
-        collectingPanel.SetActive(false);
-
-        // Show only the selected specific game panel
-        specificGamePanel.SetActive(true);
+        gamesPanel.SetActive(true);
+        miniGameManager.OpenSimon();
     }
 
-    public void ShowMainPanel()
+    public void OpenCollect()
     {
-        // Hide game panel container and all specific games
-        gamePanel.SetActive(false);
-        cleaningPanel.SetActive(false);
-        feedingPanel.SetActive(false);
-        collectingPanel.SetActive(false);
+        mainPanel.SetActive(false);
+        gamesPanel.SetActive(true);
+        miniGameManager.OpenCollect();
+    }
 
-        // Show main panel
+    public void OpenMatching()
+    {
+        mainPanel.SetActive(false);
+        gamesPanel.SetActive(true);
+        miniGameManager.OpenMatching();
+    }
+
+    // =========================
+    // Open Main Panel
+    // =========================
+    public void OpenMainPanel()
+    {
+        gamesPanel.SetActive(false);
         mainPanel.SetActive(true);
     }
 }
