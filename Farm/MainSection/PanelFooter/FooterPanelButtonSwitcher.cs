@@ -13,10 +13,15 @@ public class FooterPanelSwitcher : MonoBehaviour
     [SerializeField] GameObject panelButtonsRoot;
     [SerializeField] Transform centreAreaRoot;
 
-    [Header("Footer Buttons (optional auto-wire)")]
+    [Header("Footer Buttons")]
     [SerializeField] Button btnInventory;
     [SerializeField] Button btnDuties;
     [SerializeField] Button btnStore;
+
+    [Header("Button Background Images")]
+    [SerializeField] GameObject bgInventory;
+    [SerializeField] GameObject bgDuties;
+    [SerializeField] GameObject bgStore;
 
     public enum Panel { None, Inventory, Duties, Store }
     
@@ -55,10 +60,13 @@ public class FooterPanelSwitcher : MonoBehaviour
         if (dutiesPanel) dutiesPanel.SetActive(p == Panel.Duties);
         if (storePanel) storePanel.SetActive(p == Panel.Store);
 
-        // Simple visual feedback
-        if (btnInventory) btnInventory.interactable = p != Panel.Inventory;
-        if (btnDuties) btnDuties.interactable = p != Panel.Duties;
-        if (btnStore) btnStore.interactable = p != Panel.Store;
+        // Update background highlights
+        if (bgInventory) bgInventory.SetActive(p == Panel.Inventory);
+        if (bgDuties) bgDuties.SetActive(p == Panel.Duties);
+        if (bgStore) bgStore.SetActive(p == Panel.Store);
+
+        // Clear UI focus (removes highlighted state)
+        UnityEngine.EventSystems.EventSystem.current?.SetSelectedGameObject(null);
     }
 
     public void ClearFooterSelection(bool closePanels = false)
@@ -71,10 +79,10 @@ public class FooterPanelSwitcher : MonoBehaviour
             if (storePanel) storePanel.SetActive(false);
         }
 
-        // Re-enable all footer buttons (so none looks "selected")
-        if (btnInventory) btnInventory.interactable = true;
-        if (btnDuties) btnDuties.interactable = true;
-        if (btnStore) btnStore.interactable = true;
+        // Hide all background highlights
+        if (bgInventory) bgInventory.SetActive(false);
+        if (bgDuties) bgDuties.SetActive(false);
+        if (bgStore) bgStore.SetActive(false);
 
         // Clear UI focus (removes highlighted state)
         UnityEngine.EventSystems.EventSystem.current?.SetSelectedGameObject(null);
