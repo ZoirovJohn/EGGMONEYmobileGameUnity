@@ -29,6 +29,10 @@ public class FarmHeaderManager : MonoBehaviour
     [Header("Inventory Bar")]
     public InventoryItemsBarChanger inventoryBarChanger;
 
+    [Header("Centre Area")]
+    public Transform centreAreaRoot; // Reference to close all panels
+    public GameObject farmPanel; // The farm panel to keep open
+
     [Header("Responsive Viewport Settings")]
     public int visibleItemsPhone = 4;
     public int visibleItemsTablet = 5;
@@ -399,9 +403,43 @@ public class FarmHeaderManager : MonoBehaviour
         rightButton.interactable = canScroll && targetNormalizedPos < 0.99f;
     }
 
+    /// <summary>
+    /// Close all panels inside CentreArea except farmPanel
+    /// </summary>
+    void CloseAllCentreAreaPanels()
+    {
+        if (centreAreaRoot == null)
+        {
+            Debug.LogWarning("⚠️ CentreAreaRoot not assigned!");
+            return;
+        }
+
+        for (int i = 0; i < centreAreaRoot.childCount; i++)
+        {
+            GameObject child = centreAreaRoot.GetChild(i).gameObject;
+            
+            // Skip the farm panel - keep it open
+            if (child == farmPanel)
+                continue;
+            
+            child.SetActive(false);
+        }
+        
+        // Ensure farm panel is active
+        if (farmPanel != null)
+        {
+            farmPanel.SetActive(true);
+        }
+        
+        Debug.Log("🚪 Closed all CentreArea panels except farm panel");
+    }
+
     void OnFarmClicked(int farmIndex)
     {
         Debug.Log($"🖱️ Farm {farmIndex + 1} button clicked!");
+        
+        // ✅ FIRST: Close all panels in CentreArea
+        CloseAllCentreAreaPanels();
         
         selectedFarmIndex = farmIndex;
         
