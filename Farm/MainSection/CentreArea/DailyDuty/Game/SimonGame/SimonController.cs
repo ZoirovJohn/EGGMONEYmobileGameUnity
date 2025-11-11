@@ -39,7 +39,6 @@ public class SimonController : MonoBehaviour
     private List<int> playerInput = new List<int>();
     private bool isPlayerTurn = false;
     private bool isPlayingSequence = false;
-    private Coroutine[] buttonFlashCoroutines = new Coroutine[4];
 
     private int gamesCompleted = 0;
     private int totalGamesNeeded = 5;
@@ -110,35 +109,29 @@ public class SimonController : MonoBehaviour
 
         foreach (int index in sequenceCopy)
         {
-            yield return FlashButton(index);
+            // Simulate button click - this will trigger the sprite change AND sound
+            Button btn = GetButton(index);
+            if (btn != null)
+            {
+                // Turn ON
+                SetButtonSprite(index, true);
+                btn.onClick.Invoke(); // This calls the button click, triggering sound!
+                
+                yield return new WaitForSeconds(flashTime);
+                
+                // Turn OFF
+                SetButtonSprite(index, false);
+            }
+            
             yield return new WaitForSeconds(delayBetweenFlashes);
         }
     }
 
-    private IEnumerator FlashButton(int index)
-    {
-        if (buttonFlashCoroutines[index] != null)
-            StopCoroutine(buttonFlashCoroutines[index]);
-
-        // Turn ON
-        SetButtonSprite(index, true);
-        
-        // Play sound through MiniGameAudioManager
-        if (MiniGameAudioManager.Instance != null)
-        {
-            MiniGameAudioManager.Instance.PlayButtonSound((ButtonColor)index);
-        }
-
-        yield return new WaitForSeconds(flashTime);
-
-        // Turn OFF
-        SetButtonSprite(index, false);
-        
-        buttonFlashCoroutines[index] = null;
-    }
-
     private void OnButtonPressed(int index)
     {
+        // During sequence playback, don't add to player input
+        if (isPlayingSequence) return;
+        
         if (!isPlayerTurn) return;
 
         playerInput.Add(index);
@@ -149,12 +142,6 @@ public class SimonController : MonoBehaviour
     {
         // Turn ON
         SetButtonSprite(index, true);
-        
-        // Play sound through MiniGameAudioManager
-        if (MiniGameAudioManager.Instance != null)
-        {
-            MiniGameAudioManager.Instance.PlayButtonSound((ButtonColor)index);
-        }
 
         yield return new WaitForSeconds(flashTime);
 
