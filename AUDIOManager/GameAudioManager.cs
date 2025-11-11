@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public class GameAudioManager : MonoBehaviour
 {
@@ -11,23 +12,16 @@ public class GameAudioManager : MonoBehaviour
     [Header("Global Sounds")]
     public AudioClip buttonClickClip; // Main button click sound
 
-    private void Start()
-    {
-        if (musicSource != null && musicSource.clip != null)
-        {
-            musicSource.loop = true;
-            musicSource.Play();
-        }
-    }
-
+    [Header("BGM Playlist")]
+    public AudioClip[] bgmClips;      // Assign your 4 music clips in inspector
+    private int currentTrackIndex = 0;
 
     private void Awake()
     {
-        // Singleton pattern
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject); // Keep across scenes
+            DontDestroyOnLoad(gameObject);
         }
         else
         {
@@ -35,36 +29,40 @@ public class GameAudioManager : MonoBehaviour
         }
     }
 
+    private void Start()
+    {
+        if (bgmClips.Length > 0)
+        {
+            PlayNextTrack();
+        }
+    }
+
+    private void Update()
+    {
+        // Check if current track finished
+        if (musicSource != null && !musicSource.isPlaying && bgmClips.Length > 0)
+        {
+            PlayNextTrack();
+        }
+    }
+
+    private void PlayNextTrack()
+    {
+        musicSource.clip = bgmClips[currentTrackIndex];
+        musicSource.loop = false; // we handle looping manually across tracks
+        musicSource.Play();
+
+        // Advance index for next track
+        currentTrackIndex = (currentTrackIndex + 1) % bgmClips.Length;
+    }
+
     // Play any SFX clip
     public void PlaySFX(AudioClip clip)
     {
         if (clip != null && sfxSource != null)
-        {
             sfxSource.PlayOneShot(clip);
-        }
     }
 
-    // Play background music
-    public void PlayMusic(AudioClip clip)
-    {
-        if (musicSource != null && clip != null)
-        {
-            musicSource.clip = clip;
-            musicSource.loop = true;
-            musicSource.Play();
-        }
-    }
-
-    // Stop background music
-    public void StopMusic()
-    {
-        if (musicSource != null)
-        {
-            musicSource.Stop();
-        }
-    }
-
-    // Play global button click sound
     public void PlayButtonClick()
     {
         PlaySFX(buttonClickClip);
