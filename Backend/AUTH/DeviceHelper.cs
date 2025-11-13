@@ -10,7 +10,6 @@ public static class DeviceHelper
         if (PlayerPrefs.HasKey(DeviceIdKey))
             return PlayerPrefs.GetString(DeviceIdKey);
 
-        // Generate a new GUID
         string newId = Guid.NewGuid().ToString();
         PlayerPrefs.SetString(DeviceIdKey, newId);
         PlayerPrefs.Save();

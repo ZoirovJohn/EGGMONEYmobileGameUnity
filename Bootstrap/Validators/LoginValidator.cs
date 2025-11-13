@@ -1,102 +1,94 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
-using System.Net.Mail;
+using System;
 using UnityEngine.SceneManagement;
 
 public class LoginValidator : MonoBehaviour
 {
-  [Header("Inputs")]
-  public TMP_InputField inputEmail;
-  public TMP_InputField inputPassword;
+    [Header("Inputs")]
+    public TMP_InputField inputUsername;
+    public TMP_InputField inputPassword;
 
-  [Header("Error labels (Text TMP)")]
-  public TMP_Text errorEmail;
-  public TMP_Text errorPassword;
+    [Header("Error labels (Text TMP)")]
+    public TMP_Text errorUsername;
+    public TMP_Text errorPassword;
 
-  [Header("Optional: backgrounds to tint on error")]
-  public Image emailBackground;    // the Image on Input_Email (optional)
-  public Image passwordBackground; // the Image on Input_Password (optional)
-  public Color errorTint = new Color(0.92f, 0.23f, 0.27f); // red-ish
-  public Color normalTint = Color.white;
+    [Header("Optional: backgrounds to tint on error")]
+    public Image usernameBackground;
+    public Image passwordBackground;
+    public Color errorTint = new Color(0.92f, 0.23f, 0.27f);
+    public Color normalTint = Color.white;
 
-  void Start()
-  {
-    // Hide errors at start
-    SetEmailError(null);
-    SetPasswordError(null);
+    [Header("References")]
+    public AuthManager authManager; // assign in Inspector
+    public TMP_Text generalError;   // optional message label
 
-    // Clear errors as user types
-    if (inputEmail) inputEmail.onValueChanged.AddListener(_ => SetEmailError(null));
-    if (inputPassword) inputPassword.onValueChanged.AddListener(_ => SetPasswordError(null));
-  }
-
-  public void OnLoginPressed()
-  {
-    bool ok = true;
-
-    // Email checks
-    string email = (inputEmail ? inputEmail.text : "").Trim();
-    if (string.IsNullOrEmpty(email))
+    void Start()
     {
-      SetEmailError("E-mail is required.");
-      ok = false;
-    }
-    else if (!IsValidEmail(email))
-    {
-      SetEmailError("Please enter a valid e-mail address.");
-      ok = false;
-    }
-    else
-    {
-      SetEmailError(null);
+        // Clear errors at start
+        SetUsernameError(null);
+        SetPasswordError(null);
+        if (generalError) generalError.text = "";
+
+        // Clear on typing
+        if (inputUsername) inputUsername.onValueChanged.AddListener(_ => SetUsernameError(null));
+        if (inputPassword) inputPassword.onValueChanged.AddListener(_ => SetPasswordError(null));
     }
 
-    // Password checks
-    string pw = inputPassword ? inputPassword.text : "";
-    if (string.IsNullOrEmpty(pw))
+    public void OnLoginPressed()
     {
-      SetPasswordError("Password is required.");
-      ok = false;
+        bool ok = true;
+
+        // Username checks
+        string username = (inputUsername ? inputUsername.text : "").Trim();
+        if (string.IsNullOrEmpty(username))
+        {
+            SetUsernameError("Username is required.");
+            ok = false;
+        }
+
+        // Password checks
+        string pw = inputPassword ? inputPassword.text : "";
+        if (string.IsNullOrEmpty(pw))
+        {
+            SetPasswordError("Password is required.");
+            ok = false;
+        }
+
+        if (!ok) return;
+
+        // ✅ Call backend login
+        LoginData loginData = new LoginData(username, pw);
+
+        authManager.Login(
+            loginData,
+            onSuccess: (response) =>
+            {
+                Debug.Log("Login success: " + response);
+                if (generalError) generalError.text = "";
+                SceneManager.LoadScene("Farm"); // or your next scene
+            },
+            onError: (err) =>
+            {
+                Debug.LogError("Login failed: " + err);
+                if (generalError) generalError.text = "Login failed. Please check your credentials.";
+            }
+        );
     }
-    else
+
+    // --- helpers ---
+    void SetUsernameError(string msg)
     {
-      SetPasswordError(null);
+        if (errorUsername) errorUsername.text = msg ?? "";
+        if (usernameBackground)
+            usernameBackground.color = string.IsNullOrEmpty(msg) ? normalTint : errorTint;
     }
 
-    if (!ok) return; // stop if validation failed
-
-    // ✅ Success → load Farm scene
-    SceneManager.LoadScene("Farm");
-  }
-
-
-  // --- helpers ---
-  void SetEmailError(string msg)
-  {
-    if (errorEmail)
+    void SetPasswordError(string msg)
     {
-      errorEmail.text = msg ?? "";
-      // ❌ Do not hide the object — keep layout fixed
+        if (errorPassword) errorPassword.text = msg ?? "";
+        if (passwordBackground)
+            passwordBackground.color = string.IsNullOrEmpty(msg) ? normalTint : errorTint;
     }
-    if (emailBackground)
-      emailBackground.color = string.IsNullOrEmpty(msg) ? normalTint : errorTint;
-  }
-
-  void SetPasswordError(string msg)
-  {
-    if (errorPassword)
-    {
-      errorPassword.text = msg ?? "";
-      // ❌ Do not hide the object — keep layout fixed
-    }
-    if (passwordBackground)
-      passwordBackground.color = string.IsNullOrEmpty(msg) ? normalTint : errorTint;
-  }
-
-  bool IsValidEmail(string email)
-  {
-    try { var addr = new MailAddress(email); return addr.Address == email; }
-    catch { return false; }
-  }
 }

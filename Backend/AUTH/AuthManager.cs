@@ -57,6 +57,10 @@ public class AuthManager : MonoBehaviour
         request.downloadHandler = new DownloadHandlerBuffer();
         request.SetRequestHeader("Content-Type", "application/json");
 
+        // ✅ Send persistent device ID
+        string deviceId = DeviceHelper.GetDeviceId();
+        request.SetRequestHeader("x-device-id", deviceId);
+
         yield return request.SendWebRequest();
 
         if (request.result == UnityWebRequest.Result.Success)
@@ -64,4 +68,5 @@ public class AuthManager : MonoBehaviour
         else
             onError?.Invoke(request.error);
     }
+
 }
