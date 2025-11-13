@@ -85,14 +85,28 @@ public class SignUpValidator : MonoBehaviour
             data,
             onSuccess: (response) =>
             {
-                Debug.Log("Signup success: " + response);
+                SignupResponse userData = JsonUtility.FromJson<SignupResponse>(response);
+
+                PlayerWallet wallet = Object.FindFirstObjectByType<PlayerWallet>();
+                if (wallet != null)
+                {
+                    wallet.SetName(userData.nickName);
+                    wallet.SetLocation(userData.nation);
+                    if (int.TryParse(userData.userFP, out int fp))
+                        wallet.SetFP(fp);
+                    else
+                        wallet.SetFP(0);
+                }
+
+                // Save locally
+                PlayerPrefs.SetString("userId", userData.id);
+                PlayerPrefs.SetString("email", userData.email);
+                PlayerPrefs.SetString("nickname", userData.nickName);
+                PlayerPrefs.Save();
+
                 if (switcher != null) switcher.ShowCharacter();
             },
-            onError: (err) =>
-            {
-                Debug.LogError("Signup failed: " + err);
-                // Optionally, show general error on screen
-            }
+            onError: (err) => { Debug.LogError("Signup failed: " + err); }
         );
     }
 

@@ -40,7 +40,6 @@ public class LoginValidator : MonoBehaviour
     {
         bool ok = true;
 
-        // Username checks
         string username = (inputUsername ? inputUsername.text : "").Trim();
         if (string.IsNullOrEmpty(username))
         {
@@ -48,7 +47,6 @@ public class LoginValidator : MonoBehaviour
             ok = false;
         }
 
-        // Password checks
         string pw = inputPassword ? inputPassword.text : "";
         if (string.IsNullOrEmpty(pw))
         {
@@ -58,21 +56,40 @@ public class LoginValidator : MonoBehaviour
 
         if (!ok) return;
 
-        // ✅ Call backend login
         LoginData loginData = new LoginData(username, pw);
 
         authManager.Login(
             loginData,
             onSuccess: (response) =>
             {
-                Debug.Log("Login success: " + response);
-                if (generalError) generalError.text = "";
-                SceneManager.LoadScene("Farm"); // or your next scene
+                Debug.Log("Login response: " + response);
+
+                // Check for pending device verification
+                if (response.Contains("pendingDeviceVerification"))
+                {
+                    if (generalError)
+                        generalError.text = "Please verify your device via email before logging in.";
+                    return; // stop login flow
+                }
+
+                // Parse for access token
+                LoginResponse loginResp = JsonUtility.FromJson<LoginResponse>(response);
+
+                if (!string.IsNullOrEmpty(loginResp.accessToken))
+                {
+                    AuthStorage.SaveAccessToken(loginResp.accessToken);
+                    SceneManager.LoadScene("Farm");
+                }
+                else
+                {
+                    if (generalError)
+                        generalError.text = "Login failed: No access token returned.";
+                }
             },
             onError: (err) =>
             {
-                Debug.LogError("Login failed: " + err);
                 if (generalError) generalError.text = "Login failed. Please check your credentials.";
+                Debug.LogError("generalError: " + generalError.text); // ✅ move inside lambda
             }
         );
     }
@@ -90,5 +107,13 @@ public class LoginValidator : MonoBehaviour
         if (errorPassword) errorPassword.text = msg ?? "";
         if (passwordBackground)
             passwordBackground.color = string.IsNullOrEmpty(msg) ? normalTint : errorTint;
+    }
+
+    [Serializable]
+    private class LoginResponse
+    {
+        public string accessToken;
+        public string refreshToken;
+        public string sessionId;
     }
 }
