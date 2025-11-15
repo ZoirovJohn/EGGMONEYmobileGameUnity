@@ -5,6 +5,7 @@ public class PlayerDataLoader : MonoBehaviour
 {
     [Header("References")]
     public AuthManager authManager;
+    public BasketManager basketManager;
     public PlayerWallet playerWallet;
 
     private void Start()
@@ -36,13 +37,14 @@ public class PlayerDataLoader : MonoBehaviour
                 {
                     playerWallet.SetName(userData.nickName);
                     playerWallet.SetLocation(userData.nation);
+                    playerWallet.SetVideo(userData.video);
                     
                     if (int.TryParse(userData.userFP, out int fp))
                         playerWallet.SetFP(fp);
                     else
                         playerWallet.SetFP(0);
 
-                    Debug.Log($"PlayerWallet updated: {userData.nickName}, {userData.nation}, {userData.userFP} FP");
+                    Debug.Log($"PlayerWallet updated: {userData.nickName}, {userData.nation}, {userData.userFP} FP, {userData.video} videos");
                 }
                 else
                 {
@@ -54,13 +56,37 @@ public class PlayerDataLoader : MonoBehaviour
                 PlayerPrefs.SetString("email", userData.email);
                 PlayerPrefs.SetString("nickname", userData.nickName);
                 PlayerPrefs.Save();
+
+                // ✅ Fetch eggs in basket
+                LoadBasketData();
             },
             onError: (err) =>
             {
                 Debug.LogError("Failed to load player data: " + err);
-                
-                // Optional: If token is invalid, logout
-                // UnityEngine.SceneManagement.SceneManager.LoadScene("Bootstrap");
+            }
+        );
+    }
+
+    private void LoadBasketData()
+    {
+        // ✅ FIX: Call basketManager.GetBasket() instead of authManager.GetBasket()
+        basketManager.GetBasket(
+            onSuccess: (response) =>
+            {
+                Debug.Log("Basket data loaded: " + response);
+
+                BasketResponse basketData = JsonUtility.FromJson<BasketResponse>(response);
+
+                // Set eggs in PlayerWallet
+                if (playerWallet != null)
+                {
+                    playerWallet.SetEggs(basketData.eggCount);
+                    Debug.Log($"Eggs in basket: {basketData.eggCount}");
+                }
+            },
+            onError: (err) =>
+            {
+                Debug.LogError("Failed to load basket data: " + err);
             }
         );
     }
@@ -83,5 +109,11 @@ public class PlayerDataLoader : MonoBehaviour
         public string userFP;
         public string referralCode;
         public string referredByCode;
+    }
+
+    [Serializable]
+    private class BasketResponse
+    {
+        public int eggCount;
     }
 }

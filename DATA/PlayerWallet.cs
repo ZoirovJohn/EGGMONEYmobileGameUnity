@@ -4,38 +4,39 @@ using System;
 public class PlayerWallet : MonoBehaviour
 {
     // =========================
-    // Profile (manual in Inspector)
+    // Profile
     // =========================
-    [Header("Profile (manual values set in Inspector)")]
-    [SerializeField] string playerName = "Edwin";
+    [Header("Profile (loaded from backend)")]
+    [SerializeField] string playerName = "playerName";
     [SerializeField, Min(1)] int level = 1;
-    [SerializeField] string location = "Kor";
-    [SerializeField, Min(1)] int ranking = 1111;
-    [SerializeField, Min(0)] int eggs = 1_000_000;
+    [SerializeField] string location = "location";
+    [SerializeField, Min(0)] int ranking = 0;
+    [SerializeField, Min(0)] int eggs = 0;
+    [SerializeField, Min(0)] int video = 0;
 
     // =========================
     // Wallet
     // =========================
     [Header("Wallet")]
-    [SerializeField, Min(0)] int fp = 1_000_000; // aka Point in some UIs
+    [SerializeField, Min(0)] int fp = 0;
 
     // =========================
     // Social / Farms / Chickens (Yellow Panel)
     // =========================
     [Header("Social / Farms / Chickens (Yellow Panel)")]
-    [SerializeField, Min(0)] int friends = 30;      // friendsNum
-    [SerializeField, Min(0)] int farms = 5;         // farm
-    [SerializeField, Min(0)] int whiteChick = 10;   // whiteChick
-    [SerializeField, Min(0)] int champChick = 2;    // champChick
-    [SerializeField, Min(0)] int silverEgg = 50;    // siilverEgg (UI spelling), inventory-style counter
-    [SerializeField, Min(0)] int goldEgg = 20;      // goldEgg (inventory-style counter)
+    [SerializeField, Min(0)] int friends = 0;
+    [SerializeField, Min(0)] int farms = 0;
+    [SerializeField, Min(0)] int whiteChick = 0;
+    [SerializeField, Min(0)] int champChick = 0;
+    [SerializeField, Min(0)] int silverEgg = 0;
+    [SerializeField, Min(0)] int goldEgg = 0;
 
     // =========================
-    // Inventory (extra items kept from earlier wallet)
+    // Inventory
     // =========================
     [Header("Inventory (counts)")]
-    [SerializeField, Min(0)] int nest = 1;
-    [SerializeField, Min(0)] int food = 1;
+    [SerializeField, Min(0)] int nest = 0;
+    [SerializeField, Min(0)] int food = 0;
     [SerializeField, Min(0)] int booster = 0;
     [SerializeField, Min(0)] int battery = 0;
     [SerializeField, Min(0)] int keyFarm = 0;
@@ -45,29 +46,27 @@ public class PlayerWallet : MonoBehaviour
     [SerializeField, Min(0)] int superBattery = 0;
     [SerializeField, Min(0)] int superBlueEgg = 0;
     [SerializeField, Min(0)] int superRedEgg = 0;
-    [SerializeField, Min(0)] int superFarmKey = 0; // <--- NEW: Premium/Super Farm Key
-    [SerializeField, Min(0)] int superNest = 0; // NEW super nest
-
+    [SerializeField, Min(0)] int superFarmKey = 0;
+    [SerializeField, Min(0)] int superNest = 0;
 
     // =========================
-    // Public getters / aliases
+    // Public getters
     // =========================
     public string Name => playerName;
     public int Level => level;
     public string Location => location;
     public int Ranking => ranking;
     public int Eggs => eggs;
+    public int Video => video;
     public int FP => fp;
 
-    // Yellow panel getters
     public int Friends => friends;
     public int Farms => farms;
     public int WhiteChick => whiteChick;
     public int ChampChick => champChick;
-    public int SilverEgg => silverEgg; // inventory-style silver egg count
-    public int GoldEgg => goldEgg;     // inventory-style gold egg count
+    public int SilverEgg => silverEgg;
+    public int GoldEgg => goldEgg;
 
-    // Inventory getters retained
     public int Nest => nest;
     public int Food => food;
     public int Booster => booster;
@@ -79,19 +78,18 @@ public class PlayerWallet : MonoBehaviour
     public int SuperBattery => superBattery;
     public int SuperBlueEgg => superBlueEgg;
     public int SuperRedEgg => superRedEgg;
-    public int SuperFarmKey => superFarmKey; // <--- NEW Getter
-    public int SuperNest => superNest; // NEW getter
-
+    public int SuperFarmKey => superFarmKey;
+    public int SuperNest => superNest;
 
     // =========================
     // Events
     // =========================
-    public event Action<int> OnFPChanged;          // emits new FP
-    public event Action OnProfileChanged;          // emits when any profile-visible field changes
-    public event Action<string,int> OnItemChanged; // (id, newCount) for inventory-style items
+    public event Action<int> OnFPChanged;
+    public event Action OnProfileChanged;
+    public event Action<string,int> OnItemChanged;
 
     // =========================
-    // FP (Point) operations
+    // FP operations
     // =========================
     public bool Has(int amount) => amount <= fp;
 
@@ -119,7 +117,7 @@ public class PlayerWallet : MonoBehaviour
     }
 
     // =========================
-    // Eggs / Level helpers
+    // Eggs / Level
     // =========================
     public bool TrySpendEggs(int amount)
     {
@@ -179,47 +177,108 @@ public class PlayerWallet : MonoBehaviour
 
     public void SetRanking(int newRank)
     {
-        newRank = Mathf.Max(1, newRank);
+        newRank = Mathf.Max(0, newRank);
         if (ranking == newRank) return;
         ranking = newRank;
         OnProfileChanged?.Invoke();
     }
 
-    // =========================
-    // Yellow panel setters (emit profile change)
-    // =========================
-    public void SetFriends(int v)     { v = Mathf.Max(0, v); if (friends == v) return; friends = v; OnProfileChanged?.Invoke(); }
-    public void SetFarms(int v)       { v = Mathf.Max(0, v); if (farms == v) return; farms = v; OnProfileChanged?.Invoke(); }
-    public void SetWhiteChick(int v)  { v = Mathf.Max(0, v); if (whiteChick == v) return; whiteChick = v; OnItemChanged?.Invoke("white_chick", v); OnProfileChanged?.Invoke(); }
-    public void SetChampChick(int v)  { v = Mathf.Max(0, v); if (champChick == v) return; champChick = v; OnItemChanged?.Invoke("champ_chick", v); OnProfileChanged?.Invoke(); }
-    public void SetSilverEgg(int v)   { v = Mathf.Max(0, v); if (silverEgg == v) return; silverEgg = v; OnItemChanged?.Invoke("silver_egg", v); OnProfileChanged?.Invoke(); }
-    public void SetGoldEgg(int v)     { v = Mathf.Max(0, v); if (goldEgg == v) return; goldEgg = v; OnItemChanged?.Invoke("gold_egg", v); OnProfileChanged?.Invoke(); }
-    public void SetSuperFarmKey(int v){ v = Mathf.Max(0, v); if (superFarmKey == v) return; superFarmKey = v; OnItemChanged?.Invoke("super_farm_key", v); OnProfileChanged?.Invoke(); } // <--- NEW Setter
+    public void SetVideo(int newVideo)
+    {
+        newVideo = Mathf.Max(0, newVideo);
+        if (video == newVideo) return;
+        video = newVideo;
+        OnProfileChanged?.Invoke();
+    }
 
     // =========================
-    // Inventory (string id friendly)
+    // Yellow panel setters
+    // =========================
+    public void SetFriends(int v) 
+    { 
+        v = Mathf.Max(0, v); 
+        if (friends == v) return; 
+        friends = v; 
+        OnProfileChanged?.Invoke(); 
+    }
+
+    public void SetFarms(int v) 
+    { 
+        v = Mathf.Max(0, v); 
+        if (farms == v) return; 
+        farms = v; 
+        OnProfileChanged?.Invoke(); 
+    }
+
+    public void SetWhiteChick(int v) 
+    { 
+        v = Mathf.Max(0, v); 
+        if (whiteChick == v) return; 
+        whiteChick = v; 
+        OnItemChanged?.Invoke("white_chick", v); 
+        OnProfileChanged?.Invoke(); 
+    }
+
+    public void SetChampChick(int v) 
+    { 
+        v = Mathf.Max(0, v); 
+        if (champChick == v) return; 
+        champChick = v; 
+        OnItemChanged?.Invoke("champ_chick", v); 
+        OnProfileChanged?.Invoke(); 
+    }
+
+    public void SetSilverEgg(int v) 
+    { 
+        v = Mathf.Max(0, v); 
+        if (silverEgg == v) return; 
+        silverEgg = v; 
+        OnItemChanged?.Invoke("silver_egg", v); 
+        OnProfileChanged?.Invoke(); 
+    }
+
+    public void SetGoldEgg(int v) 
+    { 
+        v = Mathf.Max(0, v); 
+        if (goldEgg == v) return; 
+        goldEgg = v; 
+        OnItemChanged?.Invoke("gold_egg", v); 
+        OnProfileChanged?.Invoke(); 
+    }
+
+    public void SetSuperFarmKey(int v) 
+    { 
+        v = Mathf.Max(0, v); 
+        if (superFarmKey == v) return; 
+        superFarmKey = v; 
+        OnItemChanged?.Invoke("super_farm_key", v); 
+        OnProfileChanged?.Invoke(); 
+    }
+
+    // =========================
+    // Inventory
     // =========================
     public int GetItemCount(string id)
     {
         switch (MapId(id))
         {
-            case Item.Nest:           return nest;
-            case Item.SilverEgg:      return silverEgg;
-            case Item.Food:           return food;
-            case Item.GoldEgg:        return goldEgg;
-            case Item.Booster:        return booster;
-            case Item.Battery:        return battery;
-            case Item.KeyFarm:        return keyFarm;
-            case Item.Robot:          return robot;
-            case Item.SuperFood:      return superFood;
-            case Item.SuperBooster:   return superBooster;
-            case Item.SuperBattery:   return superBattery;
-            case Item.SuperBlueEgg:   return superBlueEgg;
-            case Item.SuperRedEgg:    return superRedEgg;
-            case Item.WhiteChick:     return whiteChick;
-            case Item.ChampChick:     return champChick;
-            case Item.SuperFarmKey:   return superFarmKey; // <--- NEW
-            case Item.SuperNest:   return superNest; // <--- NEW
+            case Item.Nest: return nest;
+            case Item.SilverEgg: return silverEgg;
+            case Item.Food: return food;
+            case Item.GoldEgg: return goldEgg;
+            case Item.Booster: return booster;
+            case Item.Battery: return battery;
+            case Item.KeyFarm: return keyFarm;
+            case Item.Robot: return robot;
+            case Item.SuperFood: return superFood;
+            case Item.SuperBooster: return superBooster;
+            case Item.SuperBattery: return superBattery;
+            case Item.SuperBlueEgg: return superBlueEgg;
+            case Item.SuperRedEgg: return superRedEgg;
+            case Item.WhiteChick: return whiteChick;
+            case Item.ChampChick: return champChick;
+            case Item.SuperFarmKey: return superFarmKey;
+            case Item.SuperNest: return superNest;
             default: return 0;
         }
     }
@@ -243,7 +302,7 @@ public class PlayerWallet : MonoBehaviour
     }
 
     // =========================
-    // Internal: storage & mapping
+    // Internal
     // =========================
     enum Item
     {
@@ -251,7 +310,7 @@ public class PlayerWallet : MonoBehaviour
         Nest, SilverEgg, Food, GoldEgg, Booster, Battery, KeyFarm, Robot,
         SuperFood, SuperBooster, SuperBattery, SuperBlueEgg, SuperRedEgg,
         WhiteChick, ChampChick,
-        SuperFarmKey, SuperNest // <--- NEW
+        SuperFarmKey, SuperNest
     }
 
     static string Norm(string s)
@@ -275,16 +334,14 @@ public class PlayerWallet : MonoBehaviour
         if (n == "keyfarm" || n == "farmopenkey" || n == "premiumfarmopenkey") return Item.KeyFarm;
         if (n == "robot" || n == "farmmanagementrobot") return Item.Robot;
         if (n == "superfood") return Item.SuperFood;
-        if (n == "supernest") return Item.SuperNest; // NEW super nest
+        if (n == "supernest") return Item.SuperNest;
         if (n == "superbooster") return Item.SuperBooster;
         if (n == "superbattery") return Item.SuperBattery;
         if (n == "superblueegg" || n == "bgg" || n == "eventblueegg") return Item.SuperBlueEgg;
         if (n == "superredegg" || n == "rgg" || n == "eventredegg") return Item.SuperRedEgg;
-
-        // new:
         if (n == "whitechick" || n == "white_chick") return Item.WhiteChick;
         if (n == "champchick" || n == "champ_chick" || n == "championchick") return Item.ChampChick;
-        if (n == "superfarmkey" || n == "premiumfarmkey") return Item.SuperFarmKey; // <--- NEW
+        if (n == "superfarmkey" || n == "premiumfarmkey") return Item.SuperFarmKey;
 
         return Item.Unknown;
     }
@@ -294,26 +351,26 @@ public class PlayerWallet : MonoBehaviour
         value = Mathf.Max(0, value);
         switch (key)
         {
-            case Item.Nest:           nest = value;          RaiseItem("nest", value); break;
-            case Item.SilverEgg:      silverEgg = value;     RaiseItem("silver_egg", value); break;
-            case Item.Food:           food = value;          RaiseItem("food", value); break;
-            case Item.GoldEgg:        goldEgg = value;       RaiseItem("gold_egg", value); break;
-            case Item.Booster:        booster = value;       RaiseItem("booster", value); break;
-            case Item.Battery:        battery = value;       RaiseItem("battery", value); break;
-            case Item.KeyFarm:        keyFarm = value;       RaiseItem("key_farm", value); break;
-            case Item.Robot:          robot = value;         RaiseItem("robot", value); break;
-            case Item.SuperFood:      superFood = value;     RaiseItem("super_food", value); break;
-            case Item.SuperNest:      superNest = value;     RaiseItem("super_nest", value); break;
-            case Item.SuperBooster:   superBooster = value;  RaiseItem("super_booster", value); break;
-            case Item.SuperBattery:   superBattery = value;  RaiseItem("super_battery", value); break;
-            case Item.SuperBlueEgg:   superBlueEgg = value;  RaiseItem("super_blue_egg", value); break;
-            case Item.SuperRedEgg:    superRedEgg = value;   RaiseItem("super_red_egg", value); break;
-            case Item.WhiteChick:     whiteChick = value;    RaiseItem("white_chick", value); break;
-            case Item.ChampChick:     champChick = value;    RaiseItem("champ_chick", value); break;
-            case Item.SuperFarmKey:   superFarmKey = value;  RaiseItem("super_farm_key", value); break; // <--- NEW
+            case Item.Nest: nest = value; RaiseItem("nest", value); break;
+            case Item.SilverEgg: silverEgg = value; RaiseItem("silver_egg", value); break;
+            case Item.Food: food = value; RaiseItem("food", value); break;
+            case Item.GoldEgg: goldEgg = value; RaiseItem("gold_egg", value); break;
+            case Item.Booster: booster = value; RaiseItem("booster", value); break;
+            case Item.Battery: battery = value; RaiseItem("battery", value); break;
+            case Item.KeyFarm: keyFarm = value; RaiseItem("key_farm", value); break;
+            case Item.Robot: robot = value; RaiseItem("robot", value); break;
+            case Item.SuperFood: superFood = value; RaiseItem("super_food", value); break;
+            case Item.SuperNest: superNest = value; RaiseItem("super_nest", value); break;
+            case Item.SuperBooster: superBooster = value; RaiseItem("super_booster", value); break;
+            case Item.SuperBattery: superBattery = value; RaiseItem("super_battery", value); break;
+            case Item.SuperBlueEgg: superBlueEgg = value; RaiseItem("super_blue_egg", value); break;
+            case Item.SuperRedEgg: superRedEgg = value; RaiseItem("super_red_egg", value); break;
+            case Item.WhiteChick: whiteChick = value; RaiseItem("white_chick", value); break;
+            case Item.ChampChick: champChick = value; RaiseItem("champ_chick", value); break;
+            case Item.SuperFarmKey: superFarmKey = value; RaiseItem("super_farm_key", value); break;
             default: return;
         }
-        OnProfileChanged?.Invoke(); // inventory/profile visible change
+        OnProfileChanged?.Invoke();
     }
 
     void RaiseItem(string id, int value) => OnItemChanged?.Invoke(id, value);
@@ -321,17 +378,18 @@ public class PlayerWallet : MonoBehaviour
 #if UNITY_EDITOR
     void OnValidate()
     {
-        level   = Mathf.Max(1, level);
-        ranking = Mathf.Max(1, ranking);
-        eggs    = Mathf.Max(0, eggs);
-        fp      = Mathf.Max(0, fp);
+        level = Mathf.Max(1, level);
+        ranking = Mathf.Max(0, ranking);
+        eggs = Mathf.Max(0, eggs);
+        video = Mathf.Max(0, video);
+        fp = Mathf.Max(0, fp);
 
         friends = Mathf.Max(0, friends);
-        farms   = Mathf.Max(0, farms);
+        farms = Mathf.Max(0, farms);
         whiteChick = Mathf.Max(0, whiteChick);
         champChick = Mathf.Max(0, champChick);
-        silverEgg  = Mathf.Max(0, silverEgg);
-        goldEgg    = Mathf.Max(0, goldEgg);
+        silverEgg = Mathf.Max(0, silverEgg);
+        goldEgg = Mathf.Max(0, goldEgg);
 
         nest = Mathf.Max(0, nest);
         food = Mathf.Max(0, food);
@@ -345,7 +403,7 @@ public class PlayerWallet : MonoBehaviour
         superBattery = Mathf.Max(0, superBattery);
         superBlueEgg = Mathf.Max(0, superBlueEgg);
         superRedEgg = Mathf.Max(0, superRedEgg);
-        superFarmKey = Mathf.Max(0, superFarmKey); // <--- NEW
+        superFarmKey = Mathf.Max(0, superFarmKey);
     }
 #endif
 }
