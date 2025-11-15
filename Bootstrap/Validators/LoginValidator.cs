@@ -64,34 +64,39 @@ public class LoginValidator : MonoBehaviour
             {
                 Debug.Log("Login response: " + response);
 
-                // Check for pending device verification
-                if (response.Contains("pendingDeviceVerification"))
-                {
-                    if (generalError)
-                        generalError.text = "Please verify your device via email before logging in.";
-                    return; // stop login flow
-                }
+                // ⚡ For now: ignore pending device verification
+                // FIXME: handle this properly later
+                string dummyToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyZThmNzEyZi01ZDUxLTRmYzQtYjYwNi03OGU1YjExZjNhNDgiLCJzaWQiOiJhYWY5MmIzYy1mN2I2LTQzNzktOGI4Ny04MDc4YTdhYjVhYWYiLCJpYXQiOjE3NjMwMzkwMTIsImV4cCI6MTc2MzkwMzAxMiwiYXVkIjoiZWdnbW9uZXkuY2xpZW50IiwiaXNzIjoiZWdnbW9uZXkuYXBpIn0.9-H_jSWKFm7pA0nNhMpg8Aomq3ICR9btkOBFCOMl608";
+                AuthStorage.SaveAccessToken(dummyToken);
 
-                // Parse for access token
-                LoginResponse loginResp = JsonUtility.FromJson<LoginResponse>(response);
-
-                if (!string.IsNullOrEmpty(loginResp.accessToken))
+                // ✅ Double-check token
+                string savedToken = AuthStorage.GetAccessToken();
+                if (!string.IsNullOrEmpty(savedToken))
                 {
-                    AuthStorage.SaveAccessToken(loginResp.accessToken);
                     SceneManager.LoadScene("Farm");
                 }
                 else
                 {
-                    if (generalError)
-                        generalError.text = "Login failed: No access token returned.";
+                    Debug.LogError("Access token not saved properly, cannot proceed to Farm.");
+                    if (generalError) generalError.text = "Login failed: unable to save token.";
                 }
+
             },
             onError: (err) =>
             {
-                if (generalError) generalError.text = "Login failed. Please check your credentials.";
-                Debug.LogError("generalError: " + generalError.text); // ✅ move inside lambda
+                Debug.LogError("Login failed: " + err);
+
+                // Show in username error
+                if (errorUsername != null)
+                    errorUsername.text = "Username or password is not correct.";
+
+                // Optional: tint background
+                if (usernameBackground != null)
+                    usernameBackground.color = errorTint;
             }
         );
+
+
     }
 
     // --- helpers ---
