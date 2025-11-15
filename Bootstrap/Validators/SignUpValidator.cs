@@ -1,6 +1,8 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+using System;
 
 public class SignUpValidator : MonoBehaviour
 {
@@ -32,9 +34,6 @@ public class SignUpValidator : MonoBehaviour
     public Image bgConfirm;
     public Color errorTint = new Color(0.92f, 0.23f, 0.27f);
     public Color normalTint = Color.white;
-
-    [Header("Next step")]
-    public PanelSwitcher switcher;
 
     [Header("Auth Manager")]
     public AuthManager authManager; // assign in Inspector
@@ -77,36 +76,68 @@ public class SignUpValidator : MonoBehaviour
             email: email,
             password: pw,
             phoneNumber: phone,
-            nation: ddCountry.options[countryIndex].text,
-            age: 18 // Optional: you can add an age field in UI if needed
+            nation: ddCountry.options[countryIndex].text
         );
 
         authManager.Signup(
             data,
             onSuccess: (response) =>
             {
-                SignupResponse userData = JsonUtility.FromJson<SignupResponse>(response);
+                Debug.Log("Signup response: " + response);
 
-                PlayerWallet wallet = Object.FindFirstObjectByType<PlayerWallet>();
-                if (wallet != null)
+                // Parse the signup response
+                SignupResponse signupData = JsonUtility.FromJson<SignupResponse>(response);
+
+                // Save access token
+                if (!string.IsNullOrEmpty(signupData.accessToken))
                 {
-                    wallet.SetName(userData.nickName);
-                    wallet.SetLocation(userData.nation);
-                    if (int.TryParse(userData.userFP, out int fp))
-                        wallet.SetFP(fp);
-                    else
-                        wallet.SetFP(0);
+                    AuthStorage.SaveAccessToken(signupData.accessToken);
+
+                    // ✅ Now fetch user data with /auth/me
+                    authManager.GetMe(
+                        onSuccess: (meResponse) =>
+                        {
+                            Debug.Log("Me response: " + meResponse);
+
+                            MeResponse userData = JsonUtility.FromJson<MeResponse>(meResponse);
+
+                            // --- Populate PlayerWallet with user data ---
+                            PlayerWallet wallet = UnityEngine.Object.FindFirstObjectByType<PlayerWallet>();
+                            if (wallet != null)
+                            {
+                                wallet.SetName(userData.nickName);
+                                wallet.SetLocation(userData.nation);
+                                if (int.TryParse(userData.userFP, out int fp))
+                                    wallet.SetFP(fp);
+                                else
+                                    wallet.SetFP(0);
+                            }
+
+                            // Save PlayerPrefs
+                            PlayerPrefs.SetString("userId", userData.id);
+                            PlayerPrefs.SetString("email", userData.email);
+                            PlayerPrefs.SetString("nickname", userData.nickName);
+                            PlayerPrefs.Save();
+
+                            // ✅ Load Farm scene
+                            SceneManager.LoadScene("Farm");
+                        },
+                        onError: (err) =>
+                        {
+                            Debug.LogError("Failed to fetch user data: " + err);
+                        }
+                    );
                 }
-
-                // Save locally
-                PlayerPrefs.SetString("userId", userData.id);
-                PlayerPrefs.SetString("email", userData.email);
-                PlayerPrefs.SetString("nickname", userData.nickName);
-                PlayerPrefs.Save();
-
-                if (switcher != null) switcher.ShowCharacter();
+                else
+                {
+                    Debug.LogError("Access token not received.");
+                }
             },
-            onError: (err) => { Debug.LogError("Signup failed: " + err); }
+            onError: (err) => 
+            { 
+                Debug.LogError("Signup failed: " + err);
+                SetErr(errorEmail, bgEmail, "Signup failed. Please try again.");
+            }
         );
     }
 
@@ -115,4 +146,43 @@ public class SignUpValidator : MonoBehaviour
     void Show(TMP_Text label, string msg) { if (!label) return; label.text = msg ?? ""; if (!label.gameObject.activeSelf) label.gameObject.SetActive(true); }
     bool IsValidEmail(string email) { try { var addr = new System.Net.Mail.MailAddress(email); return addr.Address == email; } catch { return false; } }
     bool IsDigits(string s) => System.Text.RegularExpressions.Regex.IsMatch(s, @"^\d+$");
+
+    [Serializable]
+    private class SignupResponse
+    {
+        public string message;
+        public SignupUserData user;
+        public string accessToken;
+        public string refreshToken;
+        public string sessionId;
+    }
+
+    [Serializable]
+    private class SignupUserData
+    {
+        public string id;
+        public string nickName;
+        public string email;
+        public string referralCode;
+    }
+
+    [Serializable]
+    private class MeResponse
+    {
+        public string id;
+        public string nickName;
+        public string email;
+        public string phoneNumber;
+        public string firebaseUid;
+        public string nation;
+        public int video;
+        public bool emailVerified;
+        public string totpSecret;
+        public bool is2FAEnabled;
+        public string createdAt;
+        public string updatedAt;
+        public string userFP;
+        public string referralCode;
+        public string referredByCode;
+    }
 }

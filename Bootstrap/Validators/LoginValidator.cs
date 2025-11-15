@@ -146,8 +146,16 @@ public class LoginValidator : MonoBehaviour
         public string nickName;
         public string email;
         public string phoneNumber;
+        public string firebaseUid;
         public string nation;
+        public int video;
+        public bool emailVerified;
+        public string totpSecret;
+        public bool is2FAEnabled;
+        public string createdAt;
+        public string updatedAt;
         public string userFP;
         public string referralCode;
+        public string referredByCode;
     }
 }

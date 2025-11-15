@@ -8,15 +8,14 @@ public class SignupData
     public string password;
     public string phoneNumber;
     public string nation;
-    public int age;
+    // Remove age if backend doesn't need it
 
-    public SignupData(string nickName, string email, string password, string phoneNumber, string nation, int age)
+    public SignupData(string nickName, string email, string password, string phoneNumber, string nation)
     {
         this.nickName = nickName;
         this.email = email;
         this.password = password;
         this.phoneNumber = phoneNumber;
         this.nation = nation;
-        this.age = age;
     }
 }
