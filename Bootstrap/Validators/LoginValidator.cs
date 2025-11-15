@@ -64,39 +64,56 @@ public class LoginValidator : MonoBehaviour
             {
                 Debug.Log("Login response: " + response);
 
-                // ⚡ For now: ignore pending device verification
-                // FIXME: handle this properly later
-                string dummyToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyZThmNzEyZi01ZDUxLTRmYzQtYjYwNi03OGU1YjExZjNhNDgiLCJzaWQiOiJhYWY5MmIzYy1mN2I2LTQzNzktOGI4Ny04MDc4YTdhYjVhYWYiLCJpYXQiOjE3NjMwMzkwMTIsImV4cCI6MTc2MzkwMzAxMiwiYXVkIjoiZWdnbW9uZXkuY2xpZW50IiwiaXNzIjoiZWdnbW9uZXkuYXBpIn0.9-H_jSWKFm7pA0nNhMpg8Aomq3ICR9btkOBFCOMl608";
-                AuthStorage.SaveAccessToken(dummyToken);
+                LoginResponse loginData = JsonUtility.FromJson<LoginResponse>(response);
+                
+                // Save access token
+                AuthStorage.SaveAccessToken(loginData.accessToken);
+                
+                // ✅ Now fetch user data with /auth/me
+                authManager.GetMe(
+                    onSuccess: (meResponse) =>
+                    {
+                        Debug.Log("Me response: " + meResponse);
 
-                // ✅ Double-check token
-                string savedToken = AuthStorage.GetAccessToken();
-                if (!string.IsNullOrEmpty(savedToken))
-                {
-                    SceneManager.LoadScene("Farm");
-                }
-                else
-                {
-                    Debug.LogError("Access token not saved properly, cannot proceed to Farm.");
-                    if (generalError) generalError.text = "Login failed: unable to save token.";
-                }
-
+                        MeResponse userData = JsonUtility.FromJson<MeResponse>(meResponse);
+                        
+                        // Populate PlayerWallet
+                        PlayerWallet wallet = UnityEngine.Object.FindFirstObjectByType<PlayerWallet>();
+                        if (wallet != null)
+                        {
+                            wallet.SetName(userData.nickName);
+                            wallet.SetLocation(userData.nation);
+                            if (int.TryParse(userData.userFP, out int fp))
+                                wallet.SetFP(fp);
+                            else
+                                wallet.SetFP(0);
+                        }
+                        
+                        // Save PlayerPrefs
+                        PlayerPrefs.SetString("userId", userData.id);
+                        PlayerPrefs.SetString("email", userData.email);
+                        PlayerPrefs.SetString("nickname", userData.nickName);
+                        PlayerPrefs.Save();
+                        
+                        // Load Farm
+                        SceneManager.LoadScene("Farm");
+                    },
+                    onError: (err) =>
+                    {
+                        Debug.LogError("Failed to fetch user data: " + err);
+                        if (generalError) generalError.text = "Failed to load user data.";
+                    }
+                );
             },
             onError: (err) =>
             {
                 Debug.LogError("Login failed: " + err);
-
-                // Show in username error
                 if (errorUsername != null)
                     errorUsername.text = "Username or password is not correct.";
-
-                // Optional: tint background
                 if (usernameBackground != null)
                     usernameBackground.color = errorTint;
             }
         );
-
-
     }
 
     // --- helpers ---
@@ -120,5 +137,17 @@ public class LoginValidator : MonoBehaviour
         public string accessToken;
         public string refreshToken;
         public string sessionId;
+    }
+
+    [Serializable]
+    private class MeResponse
+    {
+        public string id;
+        public string nickName;
+        public string email;
+        public string phoneNumber;
+        public string nation;
+        public string userFP;
+        public string referralCode;
     }
 }

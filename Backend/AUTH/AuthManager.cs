@@ -69,4 +69,36 @@ public class AuthManager : MonoBehaviour
             onError?.Invoke(request.error);
     }
 
+    // =====================
+    // GET ME (Fetch Current User)
+    // =====================
+    public void GetMe(Action<string> onSuccess = null, Action<string> onError = null)
+    {
+        StartCoroutine(GetMeCoroutine(onSuccess, onError));
+    }
+
+    private IEnumerator GetMeCoroutine(Action<string> onSuccess, Action<string> onError)
+    {
+        // Get the access token
+        string accessToken = AuthStorage.GetAccessToken();
+        
+        if (string.IsNullOrEmpty(accessToken))
+        {
+            onError?.Invoke("No access token found");
+            yield break;
+        }
+
+        UnityWebRequest request = UnityWebRequest.Get(config.baseUrl + "/auth/me");
+        
+        // ✅ Add Bearer token authorization
+        request.SetRequestHeader("Authorization", "Bearer " + accessToken);
+        request.SetRequestHeader("Content-Type", "application/json");
+
+        yield return request.SendWebRequest();
+
+        if (request.result == UnityWebRequest.Result.Success)
+            onSuccess?.Invoke(request.downloadHandler.text);
+        else
+            onError?.Invoke(request.error);
+    }
 }
