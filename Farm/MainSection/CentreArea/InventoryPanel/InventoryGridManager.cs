@@ -1,12 +1,17 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class InventoryGridManager : MonoBehaviour
 {
     [Header("Grid References")]
     public GridLayoutGroup grid;
     public RectTransform viewport;
+
+    [Header("Managers")]
+    public InventoryManager inventoryManager;
+    public PlayerWallet playerWallet;
 
     void Start()
     {
@@ -36,6 +41,9 @@ public class InventoryGridManager : MonoBehaviour
         // Setup grid layout
         SetupGrid();
         
+        // ✅ Load inventory from backend
+        LoadInventoryFromBackend();
+        
         Debug.Log("🎉 Inventory grid initialization complete!");
     }
 
@@ -51,6 +59,21 @@ public class InventoryGridManager : MonoBehaviour
         {
             Debug.LogError("❌ Viewport is NULL! Assign it in Inspector!");
             return false;
+        }
+
+        // Auto-find managers if not assigned
+        if (inventoryManager == null)
+        {
+            inventoryManager = FindAnyObjectByType<InventoryManager>(FindObjectsInactive.Include);
+            if (inventoryManager == null)
+                Debug.LogWarning("⚠️ InventoryManager not found!");
+        }
+
+        if (playerWallet == null)
+        {
+            playerWallet = FindAnyObjectByType<PlayerWallet>(FindObjectsInactive.Include);
+            if (playerWallet == null)
+                Debug.LogWarning("⚠️ PlayerWallet not found!");
         }
 
         Debug.Log($"✅ All references assigned");
@@ -109,6 +132,66 @@ public class InventoryGridManager : MonoBehaviour
         LayoutRebuilder.ForceRebuildLayoutImmediate(grid.GetComponent<RectTransform>());
     }
 
+    // ✅ Load inventory from backend
+    void LoadInventoryFromBackend()
+    {
+        if (inventoryManager == null)
+        {
+            Debug.LogWarning("⚠️ Cannot load inventory: InventoryManager is null");
+            return;
+        }
+
+        Debug.Log("📦 Loading inventory from backend...");
+
+        inventoryManager.GetInventory(
+            onSuccess: (response) =>
+            {
+                Debug.Log("✅ Inventory loaded successfully from backend!");
+                
+                // Refresh the grid display after inventory updates
+                RefreshInventoryDisplay();
+            },
+            onError: (err) =>
+            {
+                Debug.LogError($"❌ Failed to load inventory: {err}");
+            }
+        );
+    }
+
+    // ✅ Refresh inventory display (call after inventory changes)
+    void RefreshInventoryDisplay()
+    {
+        if (playerWallet == null || grid == null)
+        {
+            Debug.LogWarning("⚠️ Cannot refresh display: missing references");
+            return;
+        }
+
+        // Update all inventory cells with current quantities
+        foreach (Transform child in grid.transform)
+        {
+            InventoryCellId cellId = child.GetComponent<InventoryCellId>();
+            if (cellId != null && !string.IsNullOrEmpty(cellId.productId))
+            {
+                int quantity = playerWallet.GetItemCount(cellId.productId);
+                
+                // Find quantity text in the cell
+                TMP_Text quantityText = child.GetComponentInChildren<TMP_Text>();
+                if (quantityText != null)
+                {
+                    quantityText.text = quantity > 0 ? quantity.ToString() : "0";
+                    Debug.Log($"📦 Updated {cellId.productId}: {quantity}");
+                }
+            }
+        }
+        
+        // Force layout update
+        Canvas.ForceUpdateCanvases();
+        LayoutRebuilder.ForceRebuildLayoutImmediate(grid.GetComponent<RectTransform>());
+        
+        Debug.Log("🔄 Inventory display refreshed");
+    }
+
     // PUBLIC: Handle screen rotation or resize
     public void OnScreenSizeChanged()
     {
@@ -120,5 +203,11 @@ public class InventoryGridManager : MonoBehaviour
     public void RefreshLayout()
     {
         SetupGrid();
+    }
+
+    // PUBLIC: Reload inventory from backend (e.g., after purchase)
+    public void ReloadInventory()
+    {
+        LoadInventoryFromBackend();
     }
 }
