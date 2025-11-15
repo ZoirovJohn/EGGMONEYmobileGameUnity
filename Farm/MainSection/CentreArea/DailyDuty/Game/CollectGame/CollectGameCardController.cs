@@ -133,13 +133,17 @@ public class CollectGameCardController : MonoBehaviour
         isLocked = true;
         yield return new WaitForSeconds(0.8f);
 
-        gamesCompleted++;
-        UpdateProgress();
+        // ✅ Only increment if not at max
+        if (gamesCompleted < totalGamesNeeded)
+        {
+            gamesCompleted++;
+            UpdateProgress();
+        }
 
         if (gamesCompleted >= totalGamesNeeded)
         {
             Debug.Log("🎉 ALL 5 GAMES COMPLETE (100%)");
-            // Add your reward/completion logic here
+            // Keep progress at 100%, but allow replay
         }
 
         StartNewGame();

@@ -137,20 +137,20 @@ public class CardController : MonoBehaviour
 
     private void OnGameComplete()
     {
-        gamesCompleted++;
-        UpdateProgress();
+        // ✅ Only increment if not at max
+        if (gamesCompleted < totalGamesNeeded)
+        {
+            gamesCompleted++;
+            UpdateProgress();
+        }
         
         if (gamesCompleted >= totalGamesNeeded)
         {
-            // All 5 games completed - 100% progress
             Debug.Log("🎉 ALL GAMES COMPLETE! 100% Progress!");
-            // Add your victory logic here (show victory screen, confetti, etc.)
-            // Optional: Reset everything
-            // gamesCompleted = 0;
-            // InitializeProgress();
+            // Keep progress at 100%, but allow replay
         }
         
-        // Start next game automatically
+        // Start next game automatically (player can keep playing)
         StartNewGame();
     }
 

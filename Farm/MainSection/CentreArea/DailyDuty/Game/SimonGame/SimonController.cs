@@ -188,18 +188,22 @@ public class SimonController : MonoBehaviour
 
     private void OnGameComplete()
     {
-        gamesCompleted++;
-        UpdateProgress();
+        // ✅ Only increment if not at max
+        if (gamesCompleted < totalGamesNeeded)
+        {
+            gamesCompleted++;
+            UpdateProgress();
+        }
 
         if (gamesCompleted >= totalGamesNeeded)
         {
             if (statusText != null)
                 statusText.text = "🎉 100% COMPLETE!";
+            // Keep progress at 100%, but allow replay
         }
-        else
-        {
-            StartCoroutine(StartRound());
-        }
+        
+        // Start next round (player can keep playing)
+        StartCoroutine(StartRound());
     }
 
     private void UpdateProgress()
