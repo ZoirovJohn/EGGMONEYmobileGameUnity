@@ -37,12 +37,12 @@ public class PlayerWallet : MonoBehaviour
     [Header("Inventory (counts)")]
     [SerializeField, Min(0)] int nest = 0;
     [SerializeField, Min(0)] int food = 0;
-    [SerializeField, Min(0)] int booster = 0;
+    [SerializeField, Min(0)] int vitamin = 0;
     [SerializeField, Min(0)] int battery = 0;
     [SerializeField, Min(0)] int keyFarm = 0;
     [SerializeField, Min(0)] int robot = 0;
     [SerializeField, Min(0)] int superFood = 0;
-    [SerializeField, Min(0)] int superBooster = 0;
+    [SerializeField, Min(0)] int superVitamin = 0;
     [SerializeField, Min(0)] int superBattery = 0;
     [SerializeField, Min(0)] int superBlueEgg = 0;
     [SerializeField, Min(0)] int superRedEgg = 0;
@@ -69,12 +69,12 @@ public class PlayerWallet : MonoBehaviour
 
     public int Nest => nest;
     public int Food => food;
-    public int Booster => booster;
+    public int Vitamin => vitamin;
     public int Battery => battery;
     public int KeyFarm => keyFarm;
     public int Robot => robot;
     public int SuperFood => superFood;
-    public int SuperBooster => superBooster;
+    public int SuperVitamin => superVitamin;
     public int SuperBattery => superBattery;
     public int SuperBlueEgg => superBlueEgg;
     public int SuperRedEgg => superRedEgg;
@@ -266,12 +266,12 @@ public class PlayerWallet : MonoBehaviour
             case Item.SilverEgg: return silverEgg;
             case Item.Food: return food;
             case Item.GoldEgg: return goldEgg;
-            case Item.Booster: return booster;
+            case Item.vitamin: return vitamin;
             case Item.Battery: return battery;
             case Item.KeyFarm: return keyFarm;
             case Item.Robot: return robot;
             case Item.SuperFood: return superFood;
-            case Item.SuperBooster: return superBooster;
+            case Item.SuperVitamin: return superVitamin;
             case Item.SuperBattery: return superBattery;
             case Item.SuperBlueEgg: return superBlueEgg;
             case Item.SuperRedEgg: return superRedEgg;
@@ -307,8 +307,8 @@ public class PlayerWallet : MonoBehaviour
     enum Item
     {
         Unknown,
-        Nest, SilverEgg, Food, GoldEgg, Booster, Battery, KeyFarm, Robot,
-        SuperFood, SuperBooster, SuperBattery, SuperBlueEgg, SuperRedEgg,
+        Nest, SilverEgg, Food, GoldEgg, vitamin, Battery, KeyFarm, Robot,
+        SuperFood, SuperVitamin, SuperBattery, SuperBlueEgg, SuperRedEgg,
         WhiteChick, ChampChick,
         SuperFarmKey, SuperNest
     }
@@ -329,13 +329,13 @@ public class PlayerWallet : MonoBehaviour
         if (n == "silveregg" || n == "silvere") return Item.SilverEgg;
         if (n == "food" || n == "prey") return Item.Food;
         if (n == "goldegg" || n == "goldenegg" || n == "ggg") return Item.GoldEgg;
-        if (n == "booster" || n == "vitaminbooster") return Item.Booster;
+        if (n == "vitamin" || n == "vitaminvitamin") return Item.vitamin;
         if (n == "battery") return Item.Battery;
         if (n == "keyfarm" || n == "farmopenkey" || n == "premiumfarmopenkey") return Item.KeyFarm;
         if (n == "robot" || n == "farmmanagementrobot") return Item.Robot;
         if (n == "superfood") return Item.SuperFood;
         if (n == "supernest") return Item.SuperNest;
-        if (n == "superbooster") return Item.SuperBooster;
+        if (n == "supervitamin") return Item.SuperVitamin;
         if (n == "superbattery") return Item.SuperBattery;
         if (n == "superblueegg" || n == "bgg" || n == "eventblueegg") return Item.SuperBlueEgg;
         if (n == "superredegg" || n == "rgg" || n == "eventredegg") return Item.SuperRedEgg;
@@ -355,13 +355,13 @@ public class PlayerWallet : MonoBehaviour
             case Item.SilverEgg: silverEgg = value; RaiseItem("silver_egg", value); break;
             case Item.Food: food = value; RaiseItem("food", value); break;
             case Item.GoldEgg: goldEgg = value; RaiseItem("gold_egg", value); break;
-            case Item.Booster: booster = value; RaiseItem("booster", value); break;
+            case Item.vitamin: vitamin = value; RaiseItem("vitamin", value); break;
             case Item.Battery: battery = value; RaiseItem("battery", value); break;
             case Item.KeyFarm: keyFarm = value; RaiseItem("key_farm", value); break;
             case Item.Robot: robot = value; RaiseItem("robot", value); break;
             case Item.SuperFood: superFood = value; RaiseItem("super_food", value); break;
             case Item.SuperNest: superNest = value; RaiseItem("super_nest", value); break;
-            case Item.SuperBooster: superBooster = value; RaiseItem("super_booster", value); break;
+            case Item.SuperVitamin: superVitamin = value; RaiseItem("super_vitamin", value); break;
             case Item.SuperBattery: superBattery = value; RaiseItem("super_battery", value); break;
             case Item.SuperBlueEgg: superBlueEgg = value; RaiseItem("super_blue_egg", value); break;
             case Item.SuperRedEgg: superRedEgg = value; RaiseItem("super_red_egg", value); break;
@@ -393,13 +393,13 @@ public class PlayerWallet : MonoBehaviour
 
         nest = Mathf.Max(0, nest);
         food = Mathf.Max(0, food);
-        booster = Mathf.Max(0, booster);
+        vitamin = Mathf.Max(0, vitamin);
         battery = Mathf.Max(0, battery);
         keyFarm = Mathf.Max(0, keyFarm);
         robot = Mathf.Max(0, robot);
         superFood = Mathf.Max(0, superFood);
         superNest = Mathf.Max(0, superNest);
-        superBooster = Mathf.Max(0, superBooster);
+        superVitamin = Mathf.Max(0, superVitamin);
         superBattery = Mathf.Max(0, superBattery);
         superBlueEgg = Mathf.Max(0, superBlueEgg);
         superRedEgg = Mathf.Max(0, superRedEgg);

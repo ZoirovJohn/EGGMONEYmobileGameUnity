@@ -44,7 +44,7 @@ public class StoreDB : MonoBehaviour
         {
             // 1) nest
             new Item{
-                id="nest", name="Nest", priceFP=500, canBuy=true,
+                id="nest", name="Nest", priceFP=4000, canBuy=true,
                 howToGet="Store",
                 giftPermitted=true,
                 lifetime="No change after one use",
@@ -78,9 +78,9 @@ public class StoreDB : MonoBehaviour
                 performance="Tap to turn into a chick; it becomes Champ after 24 hours."
             },
 
-            // 5) Booster (Vitamin Booster)
+            // 5) Vitamin (Vitamin Vitamin)
             new Item{
-                id="booster", name="Booster", priceFP=3000, canBuy=true,
+                id="Vitamin", name="Vitamin", priceFP=5000, canBuy=true,
                 howToGet="Store",
                 giftPermitted=true,
                 lifetime="During the chicken's lifetime",
@@ -121,6 +121,15 @@ public class StoreDB : MonoBehaviour
                 giftPermitted=false,
                 lifetime="Unlimited",
                 performance="Tap to get Soondong, Champ, Legend coco, and Super Legend coco."
+            },
+
+            // 10) farmKey
+            new Item{
+                id="farmKey", name="Farm Key", priceFP=100000, canBuy=true,
+                howToGet="Store",
+                giftPermitted=true,
+                lifetime="No change after one use",
+                performance="Unlocks access to additional farm slots or premium farm features."
             },
         };
     }

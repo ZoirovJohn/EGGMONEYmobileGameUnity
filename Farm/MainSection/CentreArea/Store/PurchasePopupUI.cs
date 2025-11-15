@@ -7,7 +7,7 @@ public class PurchasePopupUI : MonoBehaviour
 {
     [Header("DB source")]
     [SerializeField] StoreDB store;        // drag StorePanel (with StoreDB)
-    [SerializeField] string productId;     // nest, silver_egg, food, gold_egg, booster, battery, robot, super_blue_egg, super_red_egg
+    [SerializeField] string productId;     // nest, silver_egg, food, gold_egg, vitamin, battery, robot, super_blue_egg, super_red_egg, farmKey
 
     [Header("UI refs")]
     [SerializeField] TMP_Text unitPriceText;   // Window/PriceText
@@ -25,6 +25,9 @@ public class PurchasePopupUI : MonoBehaviour
 
     [Header("Wallet (required)")]
     [SerializeField] PlayerWallet wallet;
+
+    [Header("Market Manager")]
+    [SerializeField] MarketManager marketManager;
 
     // runtime
     StoreDB.Item item;
@@ -56,6 +59,7 @@ public class PurchasePopupUI : MonoBehaviour
         // Resolve refs
         if (!store)  store  = StoreDB.Instance;
         if (!wallet) wallet = FindAnyObjectByType<PlayerWallet>(FindObjectsInactive.Include);
+        if (!marketManager) marketManager = FindAnyObjectByType<MarketManager>(FindObjectsInactive.Include);
 
         // Reset button listeners every time the popup opens
         if (btnBuy)    btnBuy.onClick.RemoveAllListeners();
@@ -102,7 +106,6 @@ public class PurchasePopupUI : MonoBehaviour
                 if (!btnBuy.interactable) return; // simple debounce
                 btnBuy.interactable = false;
                 TryBuy();
-                btnBuy.interactable = true;
             });
         }
 
@@ -156,18 +159,22 @@ public class PurchasePopupUI : MonoBehaviour
         }
         else
         {
-            canBuyNow = wallet.Has(total);
+            // ✅ Always allow purchase attempt - let server validate
+            canBuyNow = true;
+            
             if (messageText)
             {
-                if (canBuyNow)
+                // Show local balance as reference, but don't block
+                bool hasLocalBalance = wallet.Has(total);
+                if (hasLocalBalance)
                 {
-                    messageText.text  = "You can buy this.";
+                    messageText.text  = "Ready to purchase.";
                     messageText.color = new Color(0.16f, 0.6f, 0.2f);
                 }
                 else
                 {
-                    messageText.text  = "Insufficient balance.";
-                    messageText.color = new Color(0.85f, 0.2f, 0.2f);
+                    messageText.text  = "Low local balance - server will verify.";
+                    messageText.color = new Color(0.8f, 0.6f, 0.2f); // Orange/warning color
                 }
             }
         }
@@ -189,29 +196,120 @@ public class PurchasePopupUI : MonoBehaviour
         long totalL = (long)qty * unitPrice;
         int total = totalL > int.MaxValue ? int.MaxValue : (int)totalL;
 
-        if (wallet.TrySpend(total))
+        // ✅ Don't check local balance - let server decide
+        // The server has the authoritative balance
+
+        // ✅ Call API first before local update
+        if (marketManager != null)
         {
-            // Add to inventory
-            wallet.AddItem(productId, qty);
+            PurchaseData purchaseData = MapProductToPurchaseData(productId, qty);
+            
+            if (purchaseData != null)
+            {
+                // Show "Processing..." message
+                if (messageText)
+                {
+                    messageText.text  = "Processing purchase...";
+                    messageText.color = new Color(0.6f, 0.6f, 0.6f);
+                }
 
-            // Show success for ~3s, then restore previous message
-            if (tempMsgCo != null) { StopCoroutine(tempMsgCo); tempMsgCo = null; }
-            tempMsgCo = StartCoroutine(FlashMessage(
-                $"Purchased {qty}x {productId}!",
-                new Color(0.2f, 0.6f, 1f),
-                3f
-            ));
+                marketManager.Purchase(
+                    purchaseData,
+                    onSuccess: (response) =>
+                    {
+                        Debug.Log("Purchase API successful: " + response);
+                        
+                        // ✅ Just deduct the price from current balance
+                        if (wallet.TrySpend(total))
+                        {
+                            // Add items to local inventory
+                            wallet.AddItem(productId, qty);
 
-            // keep popup open; previous message will be restored automatically
+                            // Show success message
+                            if (tempMsgCo != null) { StopCoroutine(tempMsgCo); tempMsgCo = null; }
+                            tempMsgCo = StartCoroutine(FlashMessage(
+                                $"Purchased {qty}x {productId}!",
+                                new Color(0.2f, 0.6f, 1f),
+                                3f
+                            ));
+                        }
+                        
+                        if (btnBuy) btnBuy.interactable = true;
+                    },
+                    onError: (err) =>
+                    {
+                        Debug.LogError("Purchase API failed: " + err);
+                        
+                        if (messageText)
+                        {
+                            // Check if it's an insufficient balance error
+                            if (err.Contains("insufficient") || err.Contains("balance") || err.Contains("enough"))
+                            {
+                                messageText.text  = "Insufficient balance on server.";
+                            }
+                            else
+                            {
+                                messageText.text  = "Purchase failed. Please try again.";
+                            }
+                            messageText.color = new Color(0.85f, 0.2f, 0.2f);
+                        }
+                        
+                        if (btnBuy) btnBuy.interactable = true;
+                        RefreshUI();
+                    }
+                );
+            }
+            else
+            {
+                Debug.LogError($"Failed to map productId '{productId}' to PurchaseData");
+                if (btnBuy) btnBuy.interactable = true;
+            }
         }
         else
         {
-            if (messageText)
-            {
-                messageText.text  = "Purchase failed. Not enough FP.";
-                messageText.color = new Color(0.85f, 0.2f, 0.2f);
-            }
-            RefreshUI();
+            Debug.LogError("MarketManager not found!");
+            if (btnBuy) btnBuy.interactable = true;
+        }
+    }
+
+    // ✅ Map productId to API format
+    PurchaseData MapProductToPurchaseData(string productId, int quantity)
+    {
+        switch (productId)
+        {
+            case "silver_egg":
+                return new PurchaseData(ItemType.egg, EggTier.normal, quantity);
+            
+            case "gold_egg":
+                return new PurchaseData(ItemType.egg, EggTier.gold, quantity);
+            
+            case "super_blue_egg":
+                return new PurchaseData(ItemType.egg, EggTier.blue, quantity);
+            
+            case "super_red_egg":
+                return new PurchaseData(ItemType.egg, EggTier.red, quantity);
+            
+            case "nest":
+                return new PurchaseData(ItemType.nest, quantity);
+            
+            case "food":
+                return new PurchaseData(ItemType.food, quantity);
+            
+            case "vitamin":
+                return new PurchaseData(ItemType.vitamin, quantity);
+            
+            case "battery":
+                return new PurchaseData(ItemType.battery, quantity);
+            
+            case "farmKey":
+                return new PurchaseData(ItemType.farmKey, quantity);
+            
+            case "robot":
+                return new PurchaseData(ItemType.robot, quantity);
+            
+            default:
+                Debug.LogWarning($"Unknown productId: {productId}");
+                return null;
         }
     }
 
