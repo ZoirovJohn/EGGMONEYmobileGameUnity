@@ -8,6 +8,7 @@ public class LocationChangeHandler : MonoBehaviour
     public TMP_Dropdown locationDropdown;
     public Button changeButton;
     public AuthManager authManager;
+    public PlayerWallet playerWallet;
 
     [Header("Optional UI Feedback")]
     public TMP_Text feedbackText;
@@ -46,6 +47,9 @@ public class LocationChangeHandler : MonoBehaviour
             {
                 Debug.Log("Location updated successfully: " + response);
                 ShowFeedback($"Location changed to {selectedLocation}", true);
+                
+                // ✅ Refresh player data after successful update
+                RefreshPlayerData();
             },
             onError: (error) =>
             {
@@ -64,6 +68,63 @@ public class LocationChangeHandler : MonoBehaviour
         }
         
         Debug.Log(message);
+    }
+
+    private void RefreshPlayerData()
+    {
+        // Call GetMe to fetch updated user data
+        authManager.GetMe(
+            onSuccess: (response) =>
+            {
+                Debug.Log("Player data refreshed: " + response);
+
+                MeResponse userData = JsonUtility.FromJson<MeResponse>(response);
+
+                // Update PlayerWallet with fresh data
+                if (playerWallet != null)
+                {
+                    playerWallet.SetName(userData.nickName);
+                    playerWallet.SetLocation(userData.nation);
+                    playerWallet.SetVideo(userData.video);
+                    
+                    if (int.TryParse(userData.userFP, out int fp))
+                        playerWallet.SetFP(fp);
+                    else
+                        playerWallet.SetFP(0);
+
+                    Debug.Log($"PlayerWallet updated after location change: {userData.nation}");
+                }
+                else
+                {
+                    Debug.LogError("PlayerWallet reference is missing!");
+                }
+            },
+            onError: (err) =>
+            {
+                Debug.LogError("Failed to refresh player data: " + err);
+                ShowFeedback("Location updated but failed to refresh data", false);
+            }
+        );
+    }
+
+    [System.Serializable]
+    private class MeResponse
+    {
+        public string id;
+        public string nickName;
+        public string email;
+        public string phoneNumber;
+        public string firebaseUid;
+        public string nation;
+        public int video;
+        public bool emailVerified;
+        public string totpSecret;
+        public bool is2FAEnabled;
+        public string createdAt;
+        public string updatedAt;
+        public string userFP;
+        public string referralCode;
+        public string referredByCode;
     }
 
     private void OnDestroy()
