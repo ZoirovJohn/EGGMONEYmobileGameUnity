@@ -165,6 +165,11 @@ public class InventoryManager : MonoBehaviour
             case "battery":
             case "farmKey":
             case "robot":
+            case "super_nest":
+            case "super_food":
+            case "super_vitamin":
+            case "super_battery":
+            case "super_farm_key":
                 // These don't have specific setters, so we need to use a workaround
                 // First get current value, calculate difference, then add
                 int currentCount = playerWallet.GetItemCount(productId);
@@ -262,18 +267,38 @@ public class InventoryManager : MonoBehaviour
                 }
             
             case "nest":
+                if (tier == "premium" || tier == "super")
+                {
+                    return "super_nest";
+                }
                 return "nest";
             
             case "food":
+                if (tier == "premium" || tier == "super")
+                {
+                    return "super_food";
+                }
                 return "food";
             
             case "vitamin":
+                if (tier == "premium" || tier == "super")
+                {
+                    return "super_vitamin";
+                }
                 return "booster";
             
             case "battery":
+                if (tier == "premium" || tier == "super")
+                {
+                    return "super_battery";
+                }
                 return "battery";
             
             case "farmKey":
+                if (tier == "premium" || tier == "super")
+                {
+                    return "super_farm_key";
+                }
                 return "farmKey";
             
             case "robot":
@@ -301,7 +326,7 @@ public class InventoryItem
     public string id;
     public string userId;
     public string itemType;
-    public HenData hen;  // Changed from string to HenData object
+    public HenData hen;
     public string tier;
     public int quantity;
     public string status;
@@ -313,8 +338,8 @@ public class InventoryItem
 [Serializable]
 public class HenData
 {
-    public string kind;           // "Normal" or "Champ"
-    public string stage;          // "chick" or "hen"
+    public string kind;
+    public string stage;
     public bool cleaned;
     public string grows_at;
     public float baseSpeed;
