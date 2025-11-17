@@ -9,8 +9,7 @@ public class InventoryGridManager : MonoBehaviour
     public GridLayoutGroup grid;
     public RectTransform viewport;
 
-    [Header("Managers")]
-    public InventoryManager inventoryManager;
+    [Header("Wallet Reference (Data Source)")]
     public PlayerWallet playerWallet;
 
     void Start()
@@ -41,10 +40,98 @@ public class InventoryGridManager : MonoBehaviour
         // Setup grid layout
         SetupGrid();
         
-        // ✅ Load inventory from backend
-        LoadInventoryFromBackend();
+        // ✅ Initial display from wallet
+        RefreshInventoryDisplay();
         
         Debug.Log("🎉 Inventory grid initialization complete!");
+    }
+
+    void OnEnable()
+    {
+        Debug.Log("🔌 InventoryGridManager OnEnable() called");
+        
+        // ✅ Subscribe to wallet events for real-time updates
+        if (playerWallet != null)
+        {
+            Debug.Log($"✅ Subscribing to PlayerWallet events (Wallet instance: {playerWallet.GetInstanceID()})");
+            playerWallet.OnItemChanged += OnWalletItemChanged;
+            playerWallet.OnProfileChanged += OnWalletProfileChanged;
+            Debug.Log("✅ Successfully subscribed to PlayerWallet events");
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ PlayerWallet is NULL in OnEnable - cannot subscribe to events!");
+        }
+    }
+
+    void OnDisable()
+    {
+        Debug.Log("🔌 InventoryGridManager OnDisable() called");
+        
+        // ✅ Unsubscribe from wallet events
+        if (playerWallet != null)
+        {
+            playerWallet.OnItemChanged -= OnWalletItemChanged;
+            playerWallet.OnProfileChanged -= OnWalletProfileChanged;
+            Debug.Log("🔌 Unsubscribed from PlayerWallet events");
+        }
+    }
+
+    // ✅ Called automatically when any item changes in wallet
+    void OnWalletItemChanged(string itemId, int newQuantity)
+    {
+        Debug.Log($"🔔🔔🔔 [InventoryGridManager] Wallet item changed EVENT RECEIVED: {itemId} = {newQuantity}");
+        UpdateSingleItem(itemId, newQuantity);
+    }
+
+    // ✅ Called when profile changes (fallback - refresh all)
+    void OnWalletProfileChanged()
+    {
+        Debug.Log("🔔🔔🔔 [InventoryGridManager] Wallet profile changed EVENT RECEIVED - refreshing all items");
+        RefreshInventoryDisplay();
+    }
+
+    // ✅ Update a single item in the grid (efficient)
+    void UpdateSingleItem(string itemId, int quantity)
+    {
+        if (grid == null)
+        {
+            Debug.LogWarning("⚠️ Grid is null, cannot update item");
+            return;
+        }
+
+        Debug.Log($"🔍 Searching for cell with productId: '{itemId}'");
+        
+        bool found = false;
+        foreach (Transform child in grid.transform)
+        {
+            InventoryCellId cellId = child.GetComponent<InventoryCellId>();
+            if (cellId != null)
+            {
+                Debug.Log($"   📦 Checking cell: '{cellId.productId}' vs '{itemId}'");
+                
+                if (cellId.productId == itemId)
+                {
+                    TMP_Text quantityText = child.GetComponentInChildren<TMP_Text>();
+                    if (quantityText != null)
+                    {
+                        quantityText.text = quantity > 0 ? quantity.ToString() : "0";
+                        Debug.Log($"✅✅✅ Updated UI: {itemId} = {quantity} (TEXT CHANGED)");
+                        found = true;
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"⚠️ Cell for {itemId} found but has no TMP_Text child!");
+                    }
+                    break; // Found it, no need to continue
+                }
+            }
+        }
+        
+        if (!found)
+        {
+            Debug.LogWarning($"⚠️ No cell found for productId: '{itemId}'");
+        }
     }
 
     bool ValidateReferences()
@@ -61,22 +148,28 @@ public class InventoryGridManager : MonoBehaviour
             return false;
         }
 
-        // Auto-find managers if not assigned
-        if (inventoryManager == null)
-        {
-            inventoryManager = FindAnyObjectByType<InventoryManager>(FindObjectsInactive.Include);
-            if (inventoryManager == null)
-                Debug.LogWarning("⚠️ InventoryManager not found!");
-        }
-
+        // Auto-find wallet if not assigned
         if (playerWallet == null)
         {
+            Debug.Log("🔍 PlayerWallet not assigned, searching...");
             playerWallet = FindAnyObjectByType<PlayerWallet>(FindObjectsInactive.Include);
+            
             if (playerWallet == null)
-                Debug.LogWarning("⚠️ PlayerWallet not found!");
+            {
+                Debug.LogError("❌ PlayerWallet not found in scene!");
+                return false;
+            }
+            else
+            {
+                Debug.Log($"✅ Found PlayerWallet: {playerWallet.gameObject.name} (Instance: {playerWallet.GetInstanceID()})");
+            }
+        }
+        else
+        {
+            Debug.Log($"✅ PlayerWallet already assigned: {playerWallet.gameObject.name} (Instance: {playerWallet.GetInstanceID()})");
         }
 
-        Debug.Log($"✅ All references assigned");
+        Debug.Log($"✅ All references validated");
         return true;
     }
 
@@ -105,7 +198,6 @@ public class InventoryGridManager : MonoBehaviour
 
         Debug.Log(isTablet ? "📱 Detected Tablet → 4 columns" : "📱 Detected Phone → 3 columns");
 
-
         // Calculate cell size
         float totalSpacing = spacing * (columns - 1);
         float cellSize = (viewportWidth - totalSpacing) / columns;
@@ -132,34 +224,8 @@ public class InventoryGridManager : MonoBehaviour
         LayoutRebuilder.ForceRebuildLayoutImmediate(grid.GetComponent<RectTransform>());
     }
 
-    // ✅ Load inventory from backend
-    void LoadInventoryFromBackend()
-    {
-        if (inventoryManager == null)
-        {
-            Debug.LogWarning("⚠️ Cannot load inventory: InventoryManager is null");
-            return;
-        }
-
-        Debug.Log("📦 Loading inventory from backend...");
-
-        inventoryManager.GetInventory(
-            onSuccess: (response) =>
-            {
-                Debug.Log("✅ Inventory loaded successfully from backend!");
-                
-                // Refresh the grid display after inventory updates
-                RefreshInventoryDisplay();
-            },
-            onError: (err) =>
-            {
-                Debug.LogError($"❌ Failed to load inventory: {err}");
-            }
-        );
-    }
-
-    // ✅ Refresh inventory display (call after inventory changes)
-    void RefreshInventoryDisplay()
+    // ✅ Refresh all items from PlayerWallet
+    public void RefreshInventoryDisplay()
     {
         if (playerWallet == null || grid == null)
         {
@@ -167,7 +233,10 @@ public class InventoryGridManager : MonoBehaviour
             return;
         }
 
-        // Update all inventory cells with current quantities
+        Debug.Log("🔄 Refreshing all inventory items from PlayerWallet...");
+
+        int cellCount = 0;
+        // Update all inventory cells with current quantities from wallet
         foreach (Transform child in grid.transform)
         {
             InventoryCellId cellId = child.GetComponent<InventoryCellId>();
@@ -180,16 +249,17 @@ public class InventoryGridManager : MonoBehaviour
                 if (quantityText != null)
                 {
                     quantityText.text = quantity > 0 ? quantity.ToString() : "0";
-                    Debug.Log($"📦 Updated {cellId.productId}: {quantity}");
+                    Debug.Log($"   📦 Cell {cellCount}: {cellId.productId} = {quantity}");
+                    cellCount++;
                 }
             }
         }
         
+        Debug.Log($"✅ Refreshed {cellCount} inventory cells from wallet");
+        
         // Force layout update
         Canvas.ForceUpdateCanvases();
         LayoutRebuilder.ForceRebuildLayoutImmediate(grid.GetComponent<RectTransform>());
-        
-        Debug.Log("🔄 Inventory display refreshed");
     }
 
     // PUBLIC: Handle screen rotation or resize
@@ -205,9 +275,10 @@ public class InventoryGridManager : MonoBehaviour
         SetupGrid();
     }
 
-    // PUBLIC: Reload inventory from backend (e.g., after purchase)
-    public void ReloadInventory()
+    // PUBLIC: Manually refresh from wallet (for external calls)
+    public void RefreshFromWallet()
     {
-        LoadInventoryFromBackend();
+        Debug.Log("🔄 RefreshFromWallet() called externally");
+        RefreshInventoryDisplay();
     }
 }

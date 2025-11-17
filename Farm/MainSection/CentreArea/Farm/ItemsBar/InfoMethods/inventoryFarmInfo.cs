@@ -8,13 +8,17 @@ public class inventoryFarmInfo : MonoBehaviour
     [SerializeField] InventoryCellId cellId;
     [SerializeField] PlayerWallet wallet;
     [SerializeField] InfoErrorChanger infoErrorChanger;
-    [SerializeField] InventoryFarmItemApplier farmItemApplier; // ⭐ ADD THIS
+    [SerializeField] InventoryFarmItemApplier farmItemApplier;
+    [SerializeField] InventoryManager inventoryManager;
     
     [Header("Error Message")]
     [SerializeField] TMP_Text errorMessageText;
     
     [Header("Optional - Auto Find")]
     [SerializeField] bool autoFind = true;
+    
+    [Header("Loading State")]
+    [SerializeField] GameObject loadingIndicator;
 
     void Awake()
     {
@@ -29,13 +33,14 @@ public class inventoryFarmInfo : MonoBehaviour
             if (!infoErrorChanger)
                 infoErrorChanger = FindAnyObjectByType<InfoErrorChanger>();
             
-            // ⭐ ADD THIS - Auto find farmItemApplier
             if (!farmItemApplier)
                 farmItemApplier = FindAnyObjectByType<InventoryFarmItemApplier>();
             
+            if (!inventoryManager)
+                inventoryManager = FindAnyObjectByType<InventoryManager>();
+            
             if (!errorMessageText)
             {
-                // Try to find error message text in the scene
                 GameObject errorPanel = GameObject.Find("ErrorGoToStore");
                 if (!errorPanel) errorPanel = GameObject.Find("errorGoStore");
                 if (!errorPanel) errorPanel = GameObject.Find("ErrorGoStore");
@@ -47,7 +52,6 @@ public class inventoryFarmInfo : MonoBehaviour
             }
         }
         
-        // Hook up button click
         Button btn = GetComponent<Button>();
         if (btn)
         {
@@ -69,52 +73,123 @@ public class inventoryFarmInfo : MonoBehaviour
             return;
         }
         
-        // Get item count from wallet
+        // ✅ Sync with backend first, then check
+        CheckItemAvailability();
+    }
+
+    void CheckItemAvailability()
+    {
+        // Get item count from wallet (may be stale)
         int itemCount = wallet.GetItemCount(cellId.productId);
+        
+        Debug.Log($"📦 Checking '{cellId.productId}': {itemCount} available locally");
         
         if (itemCount == 0)
         {
-            // Show error: not enough items
-            if (errorMessageText)
+            // ✅ Sync with backend to ensure accuracy
+            if (inventoryManager != null)
             {
-                errorMessageText.text = "You don't have enough of the item.\nPurchase it from the store.";
-            }
-            
-            // Use InfoErrorChanger to show ErrorGoStore panel
-            if (infoErrorChanger != null)
-            {
-                infoErrorChanger.OpenErrorGoStore();
-                Debug.Log("🚨 Opened ErrorGoStore via InfoErrorChanger");
+                ShowLoading(true);
+                
+                inventoryManager.GetInventory(
+                    onSuccess: (response) =>
+                    {
+                        ShowLoading(false);
+                        
+                        // Recheck after sync
+                        int updatedCount = wallet.GetItemCount(cellId.productId);
+                        
+                        if (updatedCount == 0)
+                        {
+                            ShowNotEnoughItemsError();
+                        }
+                        else
+                        {
+                            ShowSetItemPanel();
+                        }
+                    },
+                    onError: (err) =>
+                    {
+                        ShowLoading(false);
+                        Debug.LogError($"Failed to sync inventory: {err}");
+                        ShowNotEnoughItemsError();
+                    }
+                );
             }
             else
             {
-                Debug.LogWarning("⚠️ InfoErrorChanger is not assigned!");
+                ShowNotEnoughItemsError();
             }
         }
         else
         {
-            // Item count > 0, show SetItemToFarm panel
+            // Has items locally, but still sync in background
+            ShowSetItemPanel();
             
-            // ⭐ ADD THIS - Set the pending item BEFORE opening the panel
-            if (farmItemApplier != null)
+            // Background sync (don't block user)
+            if (inventoryManager != null)
             {
-                farmItemApplier.SetPendingItem(cellId.productId);
-                Debug.Log($"📦 Set pending item: {cellId.productId}");
+                inventoryManager.GetInventory(
+                    onSuccess: (response) =>
+                    {
+                        Debug.Log("✅ Background inventory sync complete");
+                    },
+                    onError: (err) =>
+                    {
+                        Debug.LogWarning($"⚠️ Background sync failed: {err}");
+                    }
+                );
             }
-            else
-            {
-                Debug.LogWarning("⚠️ InventoryFarmItemApplier is not assigned!");
-            }
-            
-            if (infoErrorChanger != null)
-            {
-                infoErrorChanger.OpenInfoSetItemToFarm();
-                Debug.Log("✅ Opened InfoSetItemToFarm via InfoErrorChanger");
-            }
-            else
-            {
-                Debug.LogWarning("⚠️ InfoErrorChanger is not assigned!");
-            }
+        }
+    }
+
+    void ShowNotEnoughItemsError()
+    {
+        string itemName = GetItemDisplayName(cellId.productId);
+        
+        if (errorMessageText)
+        {
+            errorMessageText.text = $"You don't have any {itemName}.\nPurchase it from the store.";
+        }
+        
+        if (infoErrorChanger != null)
+        {
+            infoErrorChanger.OpenErrorGoStore();
+            Debug.Log("🚨 Opened ErrorGoStore - Item not available");
+        }
+    }
+
+    void ShowSetItemPanel()
+    {
+        if (farmItemApplier != null)
+        {
+            farmItemApplier.SetPendingItem(cellId.productId);
+            Debug.Log($"📦 Set pending item: {cellId.productId}");
+        }
+        
+        if (infoErrorChanger != null)
+        {
+            infoErrorChanger.OpenInfoSetItemToFarm();
+            Debug.Log("✅ Opened InfoSetItemToFarm");
+        }
+    }
+
+    void ShowLoading(bool show)
+    {
+        if (loadingIndicator != null)
+        {
+            loadingIndicator.SetActive(show);
+        }
+    }
+
+    string GetItemDisplayName(string productId)
+    {
+        switch (productId)
+        {
+            case "robot": return "Robot";
+            case "battery": return "Battery";
+            case "super_battery": return "Super Battery";
+            default: return "this item";
         }
     }
 }

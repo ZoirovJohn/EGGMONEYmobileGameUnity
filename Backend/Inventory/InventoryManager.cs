@@ -74,7 +74,20 @@ public class InventoryManager : MonoBehaviour
             // ✅ Create a dictionary to aggregate quantities by product ID
             System.Collections.Generic.Dictionary<string, int> inventoryCounts = new System.Collections.Generic.Dictionary<string, int>();
 
-            // Process each item
+            // ✅ Initialize all possible items to 0 (so we SET everything from backend)
+            string[] allItems = {
+                "chick", "whiteChick", "champChick", "silver_egg", "gold_egg",
+                "super_blue_egg", "super_red_egg", "nest", "food", "vitamin",
+                "battery", "farmKey", "robot", "super_nest", "super_food",
+                "super_vitamin", "super_battery", "super_farm_key"
+            };
+            
+            foreach (string item in allItems)
+            {
+                inventoryCounts[item] = 0;
+            }
+
+            // Process each item from backend
             foreach (var item in inventoryData.items)
             {
                 // Only process items that are stored
@@ -121,14 +134,14 @@ public class InventoryManager : MonoBehaviour
                 }
             }
 
-            // ✅ Now SET the values in PlayerWallet (not ADD)
+            // ✅ Now SET ALL values in PlayerWallet (this will trigger events for each item)
             foreach (var kvp in inventoryCounts)
             {
                 SetPlayerWalletItem(kvp.Key, kvp.Value);
                 Debug.Log($"💰 SET in wallet: {kvp.Key} = {kvp.Value}");
             }
 
-            Debug.Log("Inventory updated successfully!");
+            Debug.Log("✅ Inventory updated successfully from backend!");
         }
         catch (Exception ex)
         {
@@ -136,32 +149,48 @@ public class InventoryManager : MonoBehaviour
         }
     }
 
-    // ✅ SET item value in wallet (not add)
+    // ✅ SET item value in wallet using DIRECT SETTERS (triggers events)
     private void SetPlayerWalletItem(string productId, int quantity)
     {
-        // Use the setter methods that directly set values
+        if (playerWallet == null)
+        {
+            Debug.LogError("❌ PlayerWallet is null!");
+            return;
+        }
+
+        // Use the setter methods that directly set values and trigger events
         switch (productId)
         {
             case "chick":
                 playerWallet.SetChick(quantity);
                 break;
+                
             case "whiteChick":
                 playerWallet.SetWhiteChick(quantity);
                 break;
+                
             case "champChick":
                 playerWallet.SetChampChick(quantity);
                 break;
+                
             case "silver_egg":
                 playerWallet.SetSilverEgg(quantity);
                 break;
+                
             case "gold_egg":
                 playerWallet.SetGoldEgg(quantity);
                 break;
+                
+            case "super_farm_key":
+                playerWallet.SetSuperFarmKey(quantity);
+                break;
+                
+            // ✅ For items without specific setters, use AddItem/TryConsumeItem
             case "super_blue_egg":
             case "super_red_egg":
             case "nest":
             case "food":
-            case "booster":
+            case "vitamin":
             case "battery":
             case "farmKey":
             case "robot":
@@ -169,23 +198,27 @@ public class InventoryManager : MonoBehaviour
             case "super_food":
             case "super_vitamin":
             case "super_battery":
-            case "super_farm_key":
-                // These don't have specific setters, so we need to use a workaround
-                // First get current value, calculate difference, then add
+                // Get current count and calculate difference
                 int currentCount = playerWallet.GetItemCount(productId);
                 int difference = quantity - currentCount;
                 
                 if (difference > 0)
                 {
+                    // Need to add more
                     playerWallet.AddItem(productId, difference);
+                    Debug.Log($"➕ Added {difference}x {productId}");
                 }
                 else if (difference < 0)
                 {
+                    // Need to remove some
                     playerWallet.TryConsumeItem(productId, -difference);
+                    Debug.Log($"➖ Removed {-difference}x {productId}");
                 }
+                // else: difference == 0, already correct amount
                 break;
+                
             default:
-                Debug.LogWarning($"Unknown product ID for setting: {productId}");
+                Debug.LogWarning($"⚠️ Unknown product ID for setting: {productId}");
                 break;
         }
     }
@@ -285,7 +318,7 @@ public class InventoryManager : MonoBehaviour
                 {
                     return "super_vitamin";
                 }
-                return "booster";
+                return "vitamin";
             
             case "battery":
                 if (tier == "premium" || tier == "super")

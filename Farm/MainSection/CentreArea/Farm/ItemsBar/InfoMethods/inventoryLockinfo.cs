@@ -9,6 +9,7 @@ public class InventoryLockInfo : MonoBehaviour
     [SerializeField] PlayerWallet wallet;
     [SerializeField] InfoErrorChanger infoErrorChanger;
     [SerializeField] InventoryLockItemApplier lockItemApplier;
+    [SerializeField] InventoryManager inventoryManager;
     
     [Header("UI Elements")]
     [SerializeField] TMP_Text errorMessageText;
@@ -18,6 +19,9 @@ public class InventoryLockInfo : MonoBehaviour
     
     [Header("Optional - Auto Find")]
     [SerializeField] bool autoFind = true;
+    
+    [Header("Loading State")]
+    [SerializeField] GameObject loadingIndicator;
 
     void Awake()
     {
@@ -32,12 +36,13 @@ public class InventoryLockInfo : MonoBehaviour
             if (!infoErrorChanger)
                 infoErrorChanger = FindAnyObjectByType<InfoErrorChanger>();
             
-            // Auto find lockItemApplier
             if (!lockItemApplier)
                 lockItemApplier = FindAnyObjectByType<InventoryLockItemApplier>();
+            
+            if (!inventoryManager)
+                inventoryManager = FindAnyObjectByType<InventoryManager>();
         }
         
-        // Hook up button click
         Button btn = GetComponent<Button>();
         if (btn)
         {
@@ -59,98 +64,149 @@ public class InventoryLockInfo : MonoBehaviour
             return;
         }
         
-        // Find UI elements at click time
-        FindUIElements();
-        
-        // Get the key ID from the inventory cell
+        // ✅ Sync with backend first
+        CheckKeyAvailability();
+    }
+
+    void CheckKeyAvailability()
+    {
         string keyId = cellId.productId;
-        
-        // Get key count from wallet
         int keyCount = wallet.GetItemCount(keyId);
         
-        Debug.Log($"🔑 Key selected: {keyId} (Count: {keyCount})");
+        Debug.Log($"🔑 Checking key '{keyId}': {keyCount} available locally");
         
         if (keyCount == 0)
         {
-            // Show error: not enough keys
-            if (errorMessageText)
+            // ✅ Sync with backend to ensure accuracy
+            if (inventoryManager != null)
             {
-                errorMessageText.text = "You don't have this key.\nPurchase it from the store.";
-            }
-            
-            // Close current panel and open error panel
-            if (infoErrorChanger != null)
-            {
-                infoErrorChanger.CloseAllInfoErrorMethod();
-                infoErrorChanger.OpenErrorGoStore();
-                Debug.Log("🚨 Opened ErrorGoStore - No key available");
+                ShowLoading(true);
+                
+                inventoryManager.GetInventory(
+                    onSuccess: (response) =>
+                    {
+                        ShowLoading(false);
+                        
+                        // Recheck after sync
+                        int updatedCount = wallet.GetItemCount(keyId);
+                        
+                        if (updatedCount == 0)
+                        {
+                            ShowNoKeyError();
+                        }
+                        else
+                        {
+                            ShowKeyConfirmation(keyId);
+                        }
+                    },
+                    onError: (err) =>
+                    {
+                        ShowLoading(false);
+                        Debug.LogError($"Failed to sync inventory: {err}");
+                        ShowNoKeyError();
+                    }
+                );
             }
             else
             {
-                Debug.LogWarning("⚠️ InfoErrorChanger is not assigned!");
+                ShowNoKeyError();
             }
         }
         else
         {
-            // Key count > 0, show confirmation with Yes/No buttons
+            // Has key locally, show confirmation
+            ShowKeyConfirmation(keyId);
             
-            // Set the pending key
-            if (lockItemApplier != null)
+            // Background sync (don't block user)
+            if (inventoryManager != null)
             {
-                lockItemApplier.SetPendingItem(keyId);
-                Debug.Log($"🔑 Set pending key: {keyId}");
+                inventoryManager.GetInventory(
+                    onSuccess: (response) => Debug.Log("✅ Background sync complete"),
+                    onError: (err) => Debug.LogWarning($"⚠️ Background sync failed: {err}")
+                );
             }
-            else
-            {
-                Debug.LogWarning("⚠️ InventoryLockItemApplier is not assigned!");
-                return;
-            }
-            
-            // Update message to confirmation text (after key is selected)
-            if (infoMessageText != null)
-            {
-                infoMessageText.text = "Would you want to open a new farm?";
-                Debug.Log("📝 Updated message to confirmation (key selected)");
-            }
-            else
-            {
-                Debug.LogWarning("⚠️ Info message text not found! Searching...");
-                FindUIElements();
-                if (infoMessageText != null)
-                {
-                    infoMessageText.text = "Would you want to open a new farm?";
-                    Debug.Log("📝 Updated message after search");
-                }
-            }
-            
-            // Show Yes/No buttons (after key selection)
-            if (yesButton != null)
-            {
-                yesButton.gameObject.SetActive(true);
-                Debug.Log("👁️ Showed Yes button (key selected)");
-            }
-            else
-            {
-                Debug.LogWarning("⚠️ Yes button reference not found!");
-            }
-            
-            if (noButton != null)
-            {
-                noButton.gameObject.SetActive(true);
-                Debug.Log("👁️ Showed No button (key selected)");
-            }
-            else
-            {
-                Debug.LogWarning("⚠️ No button reference not found!");
-            }
-            
-            Debug.Log("✅ Ready for user confirmation");
         }
     }
-    
-    private void FindUIElements()
+
+    void ShowNoKeyError()
     {
-        // Find error message text
+        FindUIElements();
+        
+        if (errorMessageText)
+        {
+            errorMessageText.text = "You don't have this key.\nPurchase it from the store.";
+        }
+        
+        if (infoErrorChanger != null)
+        {
+            infoErrorChanger.CloseAllInfoErrorMethod();
+            infoErrorChanger.OpenErrorGoStore();
+            Debug.Log("🚨 Opened ErrorGoStore - No key available");
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ InfoErrorChanger is not assigned!");
+        }
+    }
+
+    void ShowKeyConfirmation(string keyId)
+    {
+        FindUIElements();
+        
+        if (lockItemApplier != null)
+        {
+            lockItemApplier.SetPendingItem(keyId);
+            Debug.Log($"🔑 Set pending key: {keyId}");
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ InventoryLockItemApplier is not assigned!");
+            return;
+        }
+        
+        if (infoMessageText != null)
+        {
+            infoMessageText.text = "Would you want to open a new farm?";
+            Debug.Log("📝 Updated message to confirmation (key selected)");
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ Info message text not found!");
+        }
+        
+        if (yesButton != null)
+        {
+            yesButton.gameObject.SetActive(true);
+            Debug.Log("👁️ Showed Yes button (key selected)");
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ Yes button reference not found!");
+        }
+        
+        if (noButton != null)
+        {
+            noButton.gameObject.SetActive(true);
+            Debug.Log("👁️ Showed No button (key selected)");
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ No button reference not found!");
+        }
+        
+        Debug.Log("✅ Ready for user confirmation");
+    }
+
+    void ShowLoading(bool show)
+    {
+        if (loadingIndicator != null)
+        {
+            loadingIndicator.SetActive(show);
+        }
+    }
+
+    void FindUIElements()
+    {
         if (errorMessageText == null)
         {
             GameObject errorPanel = GameObject.Find("ErrorGoToStore");
@@ -169,7 +225,6 @@ public class InventoryLockInfo : MonoBehaviour
             }
         }
         
-        // Find info message text
         if (infoMessageText == null)
         {
             GameObject infoPanel = GameObject.Find("InfoOpenFarm");
@@ -181,7 +236,6 @@ public class InventoryLockInfo : MonoBehaviour
                 TMP_Text[] texts = infoPanel.GetComponentsInChildren<TMP_Text>(true);
                 foreach (var txt in texts)
                 {
-                    // Skip title texts and button texts
                     if (!txt.gameObject.name.ToLower().Contains("title") && 
                         !txt.gameObject.name.ToLower().Contains("button"))
                     {
@@ -191,7 +245,6 @@ public class InventoryLockInfo : MonoBehaviour
                     }
                 }
                 
-                // Fallback to first text if nothing found
                 if (infoMessageText == null && texts.Length > 0)
                 {
                     infoMessageText = texts[0];
@@ -200,7 +253,6 @@ public class InventoryLockInfo : MonoBehaviour
             }
         }
         
-        // Find Yes/No buttons
         if (yesButton == null)
         {
             GameObject yesObj = GameObject.Find("BtnYes");
@@ -232,16 +284,13 @@ public class InventoryLockInfo : MonoBehaviour
         }
     }
     
-    // Helper method to get a friendly display name for the key
     string GetKeyDisplayName(string keyId)
     {
-        // Handle generic farm keys
         if (keyId == "key_farm")
         {
             return "Farm Key";
         }
         
-        // Handle premium farm key
         if (keyId == "premiumfarmkey" || keyId == "premium_farm_key" || keyId == "premiumFarmKey")
         {
             return "Premium Farm Key";

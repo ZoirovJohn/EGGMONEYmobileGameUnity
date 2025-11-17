@@ -186,6 +186,7 @@ public class inventoryCageInfo : MonoBehaviour
             case "gold_egg":
                 return "Gold Egg";
             case "booster":
+            case "vitamin":
                 return "Vitamin Booster";
             case "battery":
                 return "Battery";
