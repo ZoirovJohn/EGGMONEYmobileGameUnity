@@ -73,6 +73,13 @@ public class inventoryFarmInfo : MonoBehaviour
             return;
         }
         
+        // ✅ SKIP EGGS - they should open InfoHatch, not InfoSetItemToFarm
+        if (cellId.productId == "silver_egg" || cellId.productId == "gold_egg")
+        {
+            Debug.Log($"⏭️ Skipping farm info for {cellId.productId} - eggs open InfoHatch instead");
+            return;
+        }
+        
         // ✅ Sync with backend first, then check
         CheckItemAvailability();
     }
