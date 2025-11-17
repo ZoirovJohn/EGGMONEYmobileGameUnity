@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 public class EggHatchAPI : MonoBehaviour
 {
@@ -14,6 +15,12 @@ public class EggHatchAPI : MonoBehaviour
     
     [Header("Optional - Auto Find")]
     [SerializeField] bool autoFind = true;
+    
+    [Header("Delayed Refresh Settings")]
+    [SerializeField] float delayedRefreshTime = 130f; // 130 seconds
+
+    // ✅ Track ALL scheduled delayed refreshes (one per hatch)
+    private List<Coroutine> scheduledRefreshes = new List<Coroutine>();
 
     void Awake()
     {
@@ -129,6 +136,10 @@ public class EggHatchAPI : MonoBehaviour
                     
                     if (response.ok)
                     {
+                        // ✅ Record the hatch time
+                        string hatchTime = DateTime.Now.ToString("HH:mm:ss");
+                        string delayedTime = DateTime.Now.AddSeconds(delayedRefreshTime).ToString("HH:mm:ss");
+                        
                         // Check if it's a super egg (blue/red)
                         bool isSuperEgg = eggType == "super_red_egg" || eggType == "super_blue_egg";
                         
@@ -136,15 +147,15 @@ public class EggHatchAPI : MonoBehaviour
                         {
                             Debug.Log($"🎁 Super egg hatched! Reward: {response.reward}");
                             
-                            // ✅ Refresh inventory from backend to get updated data
+                            // ✅ Refresh inventory from backend to get updated data (IMMEDIATE)
                             if (inventoryManager != null)
                             {
-                                Debug.Log("📦 Refreshing inventory from backend...");
+                                Debug.Log($"📦 Refreshing inventory from backend (IMMEDIATE at {hatchTime})...");
                                 
                                 inventoryManager.GetInventory(
                                     onSuccess: (invResponse) =>
                                     {
-                                        Debug.Log("✅ Inventory refreshed after super egg hatch");
+                                        Debug.Log($"✅ Inventory refreshed after super egg hatch at {hatchTime}");
                                         onSuccess?.Invoke(response);
                                     },
                                     onError: (err) =>
@@ -154,6 +165,9 @@ public class EggHatchAPI : MonoBehaviour
                                         onSuccess?.Invoke(response);
                                     }
                                 );
+                                
+                                // ✅ SCHEDULE INDIVIDUAL DELAYED REFRESH for this specific hatch
+                                ScheduleDelayedRefresh(hatchTime, delayedTime);
                             }
                             else
                             {
@@ -163,10 +177,16 @@ public class EggHatchAPI : MonoBehaviour
                         }
                         else
                         {
-                            // Normal or gold egg - update wallet locally
+                            // Normal or gold egg - update wallet locally (IMMEDIATE)
                             UpdateWalletAfterHatch(eggType, quantity, response);
-                            Debug.Log($"🐣 Successfully hatched {response.hatched} egg(s)!");
+                            Debug.Log($"🐣 Successfully hatched {response.hatched} egg(s) at {hatchTime}!");
                             onSuccess?.Invoke(response);
+                            
+                            // ✅ SCHEDULE INDIVIDUAL DELAYED REFRESH for this specific hatch
+                            if (inventoryManager != null)
+                            {
+                                ScheduleDelayedRefresh(hatchTime, delayedTime);
+                            }
                         }
                     }
                     else
@@ -188,6 +208,54 @@ public class EggHatchAPI : MonoBehaviour
                 onError?.Invoke(errorMsg);
             }
         }
+    }
+
+    /// <summary>
+    /// Schedules a NEW delayed inventory refresh for this specific hatch
+    /// Does NOT cancel previous ones - each hatch gets its own timer
+    /// </summary>
+    void ScheduleDelayedRefresh(string hatchTime, string delayedTime)
+    {
+        // ✅ Start a NEW delayed refresh (independent of others)
+        Coroutine newRefresh = StartCoroutine(DelayedInventoryRefresh(delayedRefreshTime, hatchTime, delayedTime));
+        scheduledRefreshes.Add(newRefresh);
+        
+        Debug.Log($"⏱️ Scheduled refresh #{scheduledRefreshes.Count}: Hatched at {hatchTime}, will refresh at {delayedTime}");
+    }
+
+    /// <summary>
+    /// Refreshes inventory after a delay (e.g., 130 seconds for chick growth)
+    /// Each hatch gets its own independent timer
+    /// </summary>
+    IEnumerator DelayedInventoryRefresh(float delaySeconds, string hatchTime, string delayedTime)
+    {
+        Debug.Log($"⏱️ [Hatch {hatchTime}] Waiting {delaySeconds} seconds until {delayedTime}...");
+        
+        yield return new WaitForSeconds(delaySeconds);
+        
+        if (inventoryManager != null)
+        {
+            string actualTime = DateTime.Now.ToString("HH:mm:ss");
+            Debug.Log($"🔄 [Hatch {hatchTime}] Executing DELAYED refresh now at {actualTime} (expected {delayedTime})...");
+            
+            inventoryManager.GetInventory(
+                onSuccess: (response) =>
+                {
+                    Debug.Log($"✅ [Hatch {hatchTime}] DELAYED refresh complete at {actualTime}!");
+                },
+                onError: (err) =>
+                {
+                    Debug.LogWarning($"⚠️ [Hatch {hatchTime}] Delayed refresh failed: {err}");
+                }
+            );
+        }
+        else
+        {
+            Debug.LogWarning($"⚠️ [Hatch {hatchTime}] InventoryManager not available for delayed refresh");
+        }
+        
+        // Clean up completed coroutine from list
+        scheduledRefreshes.Remove(StartCoroutine(DelayedInventoryRefresh(delaySeconds, hatchTime, delayedTime)));
     }
 
     void UpdateWalletAfterHatch(string eggType, int quantity, HatchResponse response)
