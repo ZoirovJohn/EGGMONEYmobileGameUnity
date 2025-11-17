@@ -1,5 +1,6 @@
 using UnityEngine;
 using System;
+using UnityEngine.SceneManagement;
 
 public class PlayerDataLoader : MonoBehaviour
 {
@@ -21,6 +22,7 @@ public class PlayerDataLoader : MonoBehaviour
         if (string.IsNullOrEmpty(accessToken))
         {
             Debug.LogWarning("No access token found. User not authenticated.");
+            SceneManager.LoadScene("Bootstrap");
             return;
         }
 
