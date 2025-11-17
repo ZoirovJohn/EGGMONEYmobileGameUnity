@@ -74,7 +74,10 @@ public class inventoryFarmInfo : MonoBehaviour
         }
         
         // ✅ SKIP EGGS - they should open InfoHatch, not InfoSetItemToFarm
-        if (cellId.productId == "silver_egg" || cellId.productId == "gold_egg")
+        if (cellId.productId == "silver_egg" || 
+            cellId.productId == "gold_egg" || 
+            cellId.productId == "super_red_egg" || 
+            cellId.productId == "super_blue_egg")
         {
             Debug.Log($"⏭️ Skipping farm info for {cellId.productId} - eggs open InfoHatch instead");
             return;

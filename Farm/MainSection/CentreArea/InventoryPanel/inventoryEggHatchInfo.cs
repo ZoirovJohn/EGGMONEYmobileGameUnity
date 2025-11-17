@@ -65,32 +65,24 @@ public class inventoryEggHatchInfo : MonoBehaviour
         
         Debug.Log($"🔍 Cell product ID: {cellId.productId}");
         
-        // Check if it's an egg item - ONLY handle eggs
-        if (cellId.productId != "silver_egg" && cellId.productId != "gold_egg")
+        // ✅ CHECK IF IT'S ANY TYPE OF EGG (including super eggs)
+        if (cellId.productId != "silver_egg" && 
+            cellId.productId != "gold_egg" && 
+            cellId.productId != "super_red_egg" && 
+            cellId.productId != "super_blue_egg")
         {
             Debug.Log($"Item '{cellId.productId}' is not an egg, letting other handlers process");
             // Not an egg, let other handlers process
             return;
         }
         
-        // ✅ IT'S AN EGG - STOP OTHER HANDLERS FROM EXECUTING
-        Debug.Log($"✅✅✅ It's an egg! Type: {cellId.productId} - BLOCKING other handlers");
+        // ✅ IT'S AN EGG (any type) - HANDLE IT
+        Debug.Log($"✅✅✅ It's an egg! Type: {cellId.productId} - Opening hatch panel");
         
         if (!wallet)
         {
             Debug.LogWarning("Wallet reference is missing!");
             return;
-        }
-        
-        // Remove ALL other listeners temporarily to prevent inventoryFarmInfo from executing
-        if (button != null)
-        {
-            // Store current listener count
-            int listenerCount = button.onClick.GetPersistentEventCount();
-            Debug.Log($"🔧 Button has {listenerCount} persistent listeners");
-            
-            // The onClick is a UnityEvent, we can't easily remove runtime listeners
-            // So we'll rely on inventoryFarmInfo's check instead
         }
         
         eggType = cellId.productId;

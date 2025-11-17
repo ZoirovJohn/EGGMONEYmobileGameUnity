@@ -10,22 +10,27 @@ public class EggHatchAPI : MonoBehaviour
     
     [Header("References")]
     [SerializeField] PlayerWallet wallet;
+    [SerializeField] InventoryManager inventoryManager;
     
     [Header("Optional - Auto Find")]
     [SerializeField] bool autoFind = true;
 
     void Awake()
     {
-        if (autoFind && !wallet)
+        if (autoFind)
         {
-            wallet = FindAnyObjectByType<PlayerWallet>();
+            if (!wallet)
+                wallet = FindAnyObjectByType<PlayerWallet>();
+            
+            if (!inventoryManager)
+                inventoryManager = FindAnyObjectByType<InventoryManager>();
         }
     }
 
     /// <summary>
     /// Hatch eggs and update wallet
     /// </summary>
-    /// <param name="eggType">"silver_egg" or "gold_egg"</param>
+    /// <param name="eggType">"silver_egg", "gold_egg", "super_red_egg", or "super_blue_egg"</param>
     /// <param name="quantity">Number of eggs to hatch</param>
     /// <param name="onSuccess">Called when hatching succeeds</param>
     /// <param name="onError">Called when hatching fails</param>
@@ -50,11 +55,29 @@ public class EggHatchAPI : MonoBehaviour
         }
 
         // Determine tier based on egg type
-        string tier = eggType == "gold_egg" ? "gold" : "normal";
+        string tier = MapEggTypeToTier(eggType);
         
         Debug.Log($"🥚 Starting hatch request: {quantity}x {eggType} (tier: {tier})");
         
         StartCoroutine(HatchEggsCoroutine(tier, quantity, eggType, onSuccess, onError));
+    }
+
+    string MapEggTypeToTier(string eggType)
+    {
+        switch (eggType)
+        {
+            case "silver_egg":
+                return "normal";
+            case "gold_egg":
+                return "gold";
+            case "super_red_egg":
+                return "red";
+            case "super_blue_egg":
+                return "blue";
+            default:
+                Debug.LogWarning($"Unknown egg type: {eggType}, defaulting to 'normal'");
+                return "normal";
+        }
     }
 
     IEnumerator HatchEggsCoroutine(string tier, int quantity, string eggType, Action<HatchResponse> onSuccess, Action<string> onError)
@@ -106,11 +129,45 @@ public class EggHatchAPI : MonoBehaviour
                     
                     if (response.ok)
                     {
-                        // Update wallet - add chicks and remove eggs
-                        UpdateWalletAfterHatch(eggType, quantity, response);
+                        // Check if it's a super egg (blue/red)
+                        bool isSuperEgg = eggType == "super_red_egg" || eggType == "super_blue_egg";
                         
-                        Debug.Log($"🐣 Successfully hatched {response.hatched} egg(s)!");
-                        onSuccess?.Invoke(response);
+                        if (isSuperEgg)
+                        {
+                            Debug.Log($"🎁 Super egg hatched! Reward: {response.reward}");
+                            
+                            // ✅ Refresh inventory from backend to get updated data
+                            if (inventoryManager != null)
+                            {
+                                Debug.Log("📦 Refreshing inventory from backend...");
+                                
+                                inventoryManager.GetInventory(
+                                    onSuccess: (invResponse) =>
+                                    {
+                                        Debug.Log("✅ Inventory refreshed after super egg hatch");
+                                        onSuccess?.Invoke(response);
+                                    },
+                                    onError: (err) =>
+                                    {
+                                        Debug.LogWarning($"⚠️ Failed to refresh inventory after hatch: {err}");
+                                        // Still call success since hatching worked
+                                        onSuccess?.Invoke(response);
+                                    }
+                                );
+                            }
+                            else
+                            {
+                                Debug.LogWarning("⚠️ InventoryManager not found, can't refresh inventory");
+                                onSuccess?.Invoke(response);
+                            }
+                        }
+                        else
+                        {
+                            // Normal or gold egg - update wallet locally
+                            UpdateWalletAfterHatch(eggType, quantity, response);
+                            Debug.Log($"🐣 Successfully hatched {response.hatched} egg(s)!");
+                            onSuccess?.Invoke(response);
+                        }
                     }
                     else
                     {
@@ -178,8 +235,14 @@ public class EggHatchAPI : MonoBehaviour
     public class HatchResponse
     {
         public bool ok;
+        
+        // For normal/gold eggs (returns chick)
         public int hatched;
         public ChickData chick;
+        
+        // For super eggs (returns kind or reward)
+        public string kind;     // "Champ" for red eggs
+        public string reward;   // "1 premium nest" for blue eggs
     }
 
     [Serializable]
