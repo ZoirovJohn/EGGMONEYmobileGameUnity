@@ -12,8 +12,8 @@ public class StatusPanelUI : MonoBehaviour
 
     void Awake()
     {
-        if (!wallet) wallet = FindObjectOfType<PlayerWallet>();
-        if (!farmStats) farmStats = FindObjectOfType<FarmStats>();
+        if (!wallet) wallet = FindFirstObjectByType<PlayerWallet>();
+        if (!farmStats) farmStats = FindFirstObjectByType<FarmStats>();
 
         // right-side Inventory diagram numbers
         CacheNum("FpNum");

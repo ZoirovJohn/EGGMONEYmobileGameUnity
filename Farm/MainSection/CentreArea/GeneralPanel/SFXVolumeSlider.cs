@@ -4,30 +4,48 @@ using UnityEngine.UI;
 public class SFXVolumeSlider : MonoBehaviour
 {
     [Header("UI Components")]
-    public Scrollbar sfxScrollbar;   // Interactive scrollbar
-    public Image fillImage;          // Fill image for visual effect
+    public Scrollbar sfxScrollbar;
+    public Image fillImage;
 
     private void Start()
     {
-        // Initialize the scrollbar value based on current SFX volume
         if (GameAudioManager.Instance != null)
-            sfxScrollbar.value = GameAudioManager.Instance.sfxSource.volume;
+        {
+            Initialize();
+        }
+        else
+        {
+            Invoke(nameof(Initialize), 0.1f);
+        }
+    }
 
-        // Add listener to handle value changes
+    private void Initialize()
+    {
+        if (GameAudioManager.Instance == null)
+        {
+            Debug.LogError("GameAudioManager.Instance is null!");
+            return;
+        }
+
+        sfxScrollbar.value = GameAudioManager.Instance.GetSFXVolume();
         sfxScrollbar.onValueChanged.AddListener(OnValueChanged);
-
-        // Update fill image immediately
         OnValueChanged(sfxScrollbar.value);
     }
 
     private void OnValueChanged(float value)
     {
-        // Update SFX volume in GameAudioManager
-        if (GameAudioManager.Instance != null && GameAudioManager.Instance.sfxSource != null)
-            GameAudioManager.Instance.sfxSource.volume = value;
+        if (GameAudioManager.Instance != null)
+        {
+            GameAudioManager.Instance.SetSFXVolume(value);
+        }
 
-        // Update visual fill image
         if (fillImage != null)
-            fillImage.fillAmount = value; // Left-to-right fill
+            fillImage.fillAmount = value;
+    }
+
+    private void OnDestroy()
+    {
+        if (sfxScrollbar != null)
+            sfxScrollbar.onValueChanged.RemoveListener(OnValueChanged);
     }
 }

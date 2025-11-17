@@ -44,6 +44,16 @@ public class CenterAreaFlow : MonoBehaviour
         if (instructionsPanel) instructionsPanel.SetActive(false);
         if (farmPanel)         farmPanel.SetActive(false);
 
+        // 🎵 Start background music immediately
+        if (GameAudioManager.Instance != null)
+        {
+            Debug.Log("[CenterAreaFlow] ✅ BGM will auto-start from GameAudioManager");
+        }
+        else
+        {
+            Debug.LogWarning("[CenterAreaFlow] ⚠️ GameAudioManager not found! Add AudioManager to scene.");
+        }
+
         Debug.Log($"[CenterAreaFlow] Start; HideInstructions={PlayerPrefs.GetInt(PREFS_KEY, 0)}");
 
         // ✅ Load inventory data from backend

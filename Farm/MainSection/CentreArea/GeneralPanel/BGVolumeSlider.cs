@@ -3,22 +3,48 @@ using UnityEngine.UI;
 
 public class BGVolumeSlider : MonoBehaviour
 {
-    public Scrollbar volumeScrollbar; // the interactive scrollbar
-    public Image fillImage;           // visual fill bar behind handle
+    public Scrollbar volumeScrollbar;
+    public Image fillImage;
 
     private void Start()
     {
+        if (GameAudioManager.Instance != null)
+        {
+            Initialize();
+        }
+        else
+        {
+            Invoke(nameof(Initialize), 0.1f);
+        }
+    }
+
+    private void Initialize()
+    {
+        if (GameAudioManager.Instance == null)
+        {
+            Debug.LogError("GameAudioManager.Instance is null!");
+            return;
+        }
+
+        volumeScrollbar.value = GameAudioManager.Instance.GetMusicVolume();
         volumeScrollbar.onValueChanged.AddListener(OnValueChanged);
-        OnValueChanged(volumeScrollbar.value); // initialize
+        OnValueChanged(volumeScrollbar.value);
     }
 
     private void OnValueChanged(float value)
     {
-        // Update music volume
-        GameAudioManager.Instance.musicSource.volume = value;
+        if (GameAudioManager.Instance != null)
+        {
+            GameAudioManager.Instance.SetMusicVolume(value);
+        }
 
-        // Update visual fill bar
         if (fillImage != null)
-            fillImage.fillAmount = value; // left-to-right fill
+            fillImage.fillAmount = value;
+    }
+
+    private void OnDestroy()
+    {
+        if (volumeScrollbar != null)
+            volumeScrollbar.onValueChanged.RemoveListener(OnValueChanged);
     }
 }
