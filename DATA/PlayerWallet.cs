@@ -26,6 +26,7 @@ public class PlayerWallet : MonoBehaviour
     [Header("Social / Farms / Chickens (Yellow Panel)")]
     [SerializeField, Min(0)] int friends = 0;
     [SerializeField, Min(0)] int farms = 0;
+    [SerializeField, Min(0)] int chick = 0;
     [SerializeField, Min(0)] int whiteChick = 0;
     [SerializeField, Min(0)] int champChick = 0;
     [SerializeField, Min(0)] int silverEgg = 0;
@@ -62,6 +63,7 @@ public class PlayerWallet : MonoBehaviour
 
     public int Friends => friends;
     public int Farms => farms;
+    public int Chick => chick;
     public int WhiteChick => whiteChick;
     public int ChampChick => champChick;
     public int SilverEgg => silverEgg;
@@ -210,6 +212,15 @@ public class PlayerWallet : MonoBehaviour
         OnProfileChanged?.Invoke(); 
     }
 
+    public void SetChick(int v) 
+    { 
+        v = Mathf.Max(0, v); 
+        if (chick == v) return; 
+        chick = v; 
+        OnItemChanged?.Invoke("chick", v); 
+        OnProfileChanged?.Invoke(); 
+    }
+
     public void SetWhiteChick(int v) 
     { 
         v = Mathf.Max(0, v); 
@@ -275,6 +286,7 @@ public class PlayerWallet : MonoBehaviour
             case Item.SuperBattery: return superBattery;
             case Item.SuperBlueEgg: return superBlueEgg;
             case Item.SuperRedEgg: return superRedEgg;
+            case Item.Chick: return chick;
             case Item.WhiteChick: return whiteChick;
             case Item.ChampChick: return champChick;
             case Item.SuperFarmKey: return superFarmKey;
@@ -309,7 +321,7 @@ public class PlayerWallet : MonoBehaviour
         Unknown,
         Nest, SilverEgg, Food, GoldEgg, vitamin, Battery, KeyFarm, Robot,
         SuperFood, SuperVitamin, SuperBattery, SuperBlueEgg, SuperRedEgg,
-        WhiteChick, ChampChick,
+        Chick, WhiteChick, ChampChick,
         SuperFarmKey, SuperNest
     }
 
@@ -329,9 +341,9 @@ public class PlayerWallet : MonoBehaviour
         if (n == "silveregg" || n == "silvere") return Item.SilverEgg;
         if (n == "food" || n == "prey") return Item.Food;
         if (n == "goldegg" || n == "goldenegg" || n == "ggg") return Item.GoldEgg;
-        if (n == "vitamin" || n == "vitaminvitamin") return Item.vitamin;
+        if (n == "vitamin" || n == "vitaminvitamin" || n == "booster") return Item.vitamin;
         if (n == "battery") return Item.Battery;
-        if (n == "keyfarm" || n == "farmopenkey" || n == "premiumfarmopenkey") return Item.KeyFarm;
+        if (n == "keyfarm" || n == "farmopenkey" || n == "premiumfarmopenkey" || n == "farmkey") return Item.KeyFarm;
         if (n == "robot" || n == "farmmanagementrobot") return Item.Robot;
         if (n == "superfood") return Item.SuperFood;
         if (n == "supernest") return Item.SuperNest;
@@ -339,8 +351,9 @@ public class PlayerWallet : MonoBehaviour
         if (n == "superbattery") return Item.SuperBattery;
         if (n == "superblueegg" || n == "bgg" || n == "eventblueegg") return Item.SuperBlueEgg;
         if (n == "superredegg" || n == "rgg" || n == "eventredegg") return Item.SuperRedEgg;
-        if (n == "whitechick" || n == "white_chick") return Item.WhiteChick;
-        if (n == "champchick" || n == "champ_chick" || n == "championchick") return Item.ChampChick;
+        if (n == "chick") return Item.Chick;
+        if (n == "whitechick") return Item.WhiteChick;
+        if (n == "champchick" || n == "championchick") return Item.ChampChick;
         if (n == "superfarmkey" || n == "premiumfarmkey") return Item.SuperFarmKey;
 
         return Item.Unknown;
@@ -365,6 +378,7 @@ public class PlayerWallet : MonoBehaviour
             case Item.SuperBattery: superBattery = value; RaiseItem("super_battery", value); break;
             case Item.SuperBlueEgg: superBlueEgg = value; RaiseItem("super_blue_egg", value); break;
             case Item.SuperRedEgg: superRedEgg = value; RaiseItem("super_red_egg", value); break;
+            case Item.Chick: chick = value; RaiseItem("chick", value); break;
             case Item.WhiteChick: whiteChick = value; RaiseItem("white_chick", value); break;
             case Item.ChampChick: champChick = value; RaiseItem("champ_chick", value); break;
             case Item.SuperFarmKey: superFarmKey = value; RaiseItem("super_farm_key", value); break;
@@ -386,6 +400,7 @@ public class PlayerWallet : MonoBehaviour
 
         friends = Mathf.Max(0, friends);
         farms = Mathf.Max(0, farms);
+        chick = Mathf.Max(0, chick);
         whiteChick = Mathf.Max(0, whiteChick);
         champChick = Mathf.Max(0, champChick);
         silverEgg = Mathf.Max(0, silverEgg);

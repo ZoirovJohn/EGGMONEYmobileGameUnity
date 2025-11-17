@@ -71,20 +71,61 @@ public class InventoryManager : MonoBehaviour
                 return;
             }
 
-            // Process each item (PlayerWallet will handle adding/updating quantities)
+            // ✅ Create a dictionary to aggregate quantities by product ID
+            System.Collections.Generic.Dictionary<string, int> inventoryCounts = new System.Collections.Generic.Dictionary<string, int>();
+
+            // Process each item
             foreach (var item in inventoryData.items)
             {
-                // Only process items that are stored and not assigned to a hen
-                if (item.status == "stored" && string.IsNullOrEmpty(item.hen))
+                // Only process items that are stored
+                if (item.status == "stored")
                 {
-                    string productId = MapInventoryItemToProductId(item.itemType, item.tier);
+                    string productId = null;
+                    
+                    // ✅ Check if item has a VALID hen (not just non-null, but with actual data)
+                    bool hasValidHen = item.hen != null && 
+                                       !string.IsNullOrEmpty(item.hen.stage) && 
+                                       !string.IsNullOrEmpty(item.hen.kind);
+                    
+                    Debug.Log($"🔍 Processing item: {item.itemType}, tier: {item.tier}, quantity: {item.quantity}, status: {item.status}, hen: {(hasValidHen ? "YES" : "NO")}");
+                    
+                    if (hasValidHen)
+                    {
+                        // It's a hatched egg with a chicken
+                        productId = MapHenToProductId(item.hen);
+                    }
+                    else
+                    {
+                        // Regular item (not hatched)
+                        productId = MapInventoryItemToProductId(item.itemType, item.tier);
+                    }
                     
                     if (!string.IsNullOrEmpty(productId))
                     {
-                        playerWallet.AddItem(productId, item.quantity);
-                        Debug.Log($"Added to inventory: {productId} x{item.quantity}");
+                        // Aggregate quantities
+                        if (inventoryCounts.ContainsKey(productId))
+                        {
+                            inventoryCounts[productId] += item.quantity;
+                        }
+                        else
+                        {
+                            inventoryCounts[productId] = item.quantity;
+                        }
+                        
+                        Debug.Log($"✅ Aggregated: {productId} = {inventoryCounts[productId]}");
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"⚠️ Failed to map item: {item.itemType}/{item.tier}");
                     }
                 }
+            }
+
+            // ✅ Now SET the values in PlayerWallet (not ADD)
+            foreach (var kvp in inventoryCounts)
+            {
+                SetPlayerWalletItem(kvp.Key, kvp.Value);
+                Debug.Log($"💰 SET in wallet: {kvp.Key} = {kvp.Value}");
             }
 
             Debug.Log("Inventory updated successfully!");
@@ -93,6 +134,107 @@ public class InventoryManager : MonoBehaviour
         {
             Debug.LogError("Failed to parse inventory response: " + ex.Message);
         }
+    }
+
+    // ✅ SET item value in wallet (not add)
+    private void SetPlayerWalletItem(string productId, int quantity)
+    {
+        // Use the setter methods that directly set values
+        switch (productId)
+        {
+            case "chick":
+                playerWallet.SetChick(quantity);
+                break;
+            case "whiteChick":
+                playerWallet.SetWhiteChick(quantity);
+                break;
+            case "champChick":
+                playerWallet.SetChampChick(quantity);
+                break;
+            case "silver_egg":
+                playerWallet.SetSilverEgg(quantity);
+                break;
+            case "gold_egg":
+                playerWallet.SetGoldEgg(quantity);
+                break;
+            case "super_blue_egg":
+            case "super_red_egg":
+            case "nest":
+            case "food":
+            case "booster":
+            case "battery":
+            case "farmKey":
+            case "robot":
+                // These don't have specific setters, so we need to use a workaround
+                // First get current value, calculate difference, then add
+                int currentCount = playerWallet.GetItemCount(productId);
+                int difference = quantity - currentCount;
+                
+                if (difference > 0)
+                {
+                    playerWallet.AddItem(productId, difference);
+                }
+                else if (difference < 0)
+                {
+                    playerWallet.TryConsumeItem(productId, -difference);
+                }
+                break;
+            default:
+                Debug.LogWarning($"Unknown product ID for setting: {productId}");
+                break;
+        }
+    }
+
+    // =====================
+    // MAP HEN DATA TO PRODUCT ID
+    // =====================
+    private string MapHenToProductId(HenData hen)
+    {
+        // Safety check for null or empty values
+        if (hen == null)
+        {
+            Debug.LogWarning("Hen data is null");
+            return null;
+        }
+
+        if (string.IsNullOrEmpty(hen.stage))
+        {
+            Debug.LogWarning("Hen stage is null or empty");
+            return null;
+        }
+
+        if (string.IsNullOrEmpty(hen.kind))
+        {
+            Debug.LogWarning("Hen kind is null or empty");
+            return null;
+        }
+
+        // Determine product ID based on stage and kind
+        if (hen.stage == "chick")
+        {
+            // Both Normal and Champ chicks use the same product ID
+            return "chick";
+        }
+        else if (hen.stage == "hen")
+        {
+            // Hen stage depends on kind
+            if (hen.kind == "Normal")
+            {
+                return "whiteChick"; // Normal hen
+            }
+            else if (hen.kind == "Champ")
+            {
+                return "champChick"; // Champion hen
+            }
+            else
+            {
+                Debug.LogWarning($"Unknown hen kind: {hen.kind}");
+                return null;
+            }
+        }
+        
+        Debug.LogWarning($"Unknown hen stage: {hen.stage}");
+        return null;
     }
 
     // =====================
@@ -159,13 +301,28 @@ public class InventoryItem
     public string id;
     public string userId;
     public string itemType;
-    public string hen;
+    public HenData hen;  // Changed from string to HenData object
     public string tier;
     public int quantity;
     public string status;
     public ItemMeta meta;
     public string source;
     public string createdAt;
+}
+
+[Serializable]
+public class HenData
+{
+    public string kind;           // "Normal" or "Champ"
+    public string stage;          // "chick" or "hen"
+    public bool cleaned;
+    public string grows_at;
+    public float baseSpeed;
+    public bool foodGiven;
+    public string hatchedAt;
+    public bool isChampion;
+    public string promotedAt;
+    public int lifetimeDaysRemaining;
 }
 
 [Serializable]
