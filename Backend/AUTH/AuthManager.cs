@@ -93,4 +93,40 @@ public class AuthManager : MonoBehaviour
         else
             onError?.Invoke(request.error);
     }
+
+    // =====================
+    // UPDATE USER (PATCH /auth/update)
+    // =====================
+    public void UpdateUser(string jsonData, Action<string> onSuccess = null, Action<string> onError = null)
+    {
+        StartCoroutine(UpdateUserCoroutine(jsonData, onSuccess, onError));
+    }
+
+    private IEnumerator UpdateUserCoroutine(string jsonData, Action<string> onSuccess, Action<string> onError)
+    {
+        // Get the access token
+        string accessToken = AuthStorage.GetAccessToken();
+        
+        if (string.IsNullOrEmpty(accessToken))
+        {
+            onError?.Invoke("No access token found");
+            yield break;
+        }
+
+        string url = config.baseUrl + "/auth/update";
+        
+        UnityWebRequest request = new UnityWebRequest(url, "POST");
+        byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonData);
+        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+        request.downloadHandler = new DownloadHandlerBuffer();
+        request.SetRequestHeader("Content-Type", "application/json");
+        request.SetRequestHeader("Authorization", "Bearer " + accessToken);
+
+        yield return request.SendWebRequest();
+
+        if (request.result == UnityWebRequest.Result.Success)
+            onSuccess?.Invoke(request.downloadHandler.text);
+        else
+            onError?.Invoke(request.error);
+    }
 }

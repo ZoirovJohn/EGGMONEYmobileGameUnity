@@ -38,6 +38,9 @@ public class SignUpValidator : MonoBehaviour
     [Header("Auth Manager")]
     public AuthManager authManager; // assign in Inspector
 
+    [Header("Panel Switcher")]
+    public PanelSwitcher panelSwitcher; // assign in Inspector
+
     public void OnSignUpPressed()
     {
         bool ok = true;
@@ -119,8 +122,15 @@ public class SignUpValidator : MonoBehaviour
                             PlayerPrefs.SetString("nickname", userData.nickName);
                             PlayerPrefs.Save();
 
-                            // ✅ Load Farm scene
-                            SceneManager.LoadScene("Farm");
+                            // ✅ Show Character Selection Panel instead of loading Farm scene
+                            if (panelSwitcher != null)
+                            {
+                                panelSwitcher.ShowCharacter();
+                            }
+                            else
+                            {
+                                Debug.LogError("PanelSwitcher is not assigned!");
+                            }
                         },
                         onError: (err) =>
                         {
