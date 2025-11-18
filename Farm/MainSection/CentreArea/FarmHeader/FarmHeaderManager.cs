@@ -13,14 +13,17 @@ public class FarmHeaderManager : MonoBehaviour
     public Button leftButton;
     public Button rightButton;
 
-    [Header("Counts - Will be loaded from Database")]
-    [Tooltip("These values will be overwritten by database on Start")]
+    [Header("Counts - Will be loaded from PlayerWallet")]
+    [Tooltip("These values will be overwritten by PlayerWallet on Start")]
     public int farmCount = 3;
     public int lockCount = 5;
     
     [Header("Max Farms Setting")]
     [Tooltip("Total number of farms available in the game (unlocked + locked)")]
     public int maxTotalFarms = 8;
+
+    [Header("Backend Integration")]
+    public PlayerWallet playerWallet; // ✅ NEW: Load farm count from wallet
 
     [Header("Database")]
     public FarmDatabase farmDatabase;
@@ -30,8 +33,8 @@ public class FarmHeaderManager : MonoBehaviour
     public InventoryItemsBarChanger inventoryBarChanger;
 
     [Header("Centre Area")]
-    public Transform centreAreaRoot; // Reference to close all panels
-    public GameObject farmPanel; // The farm panel to keep open
+    public Transform centreAreaRoot;
+    public GameObject farmPanel;
 
     [Header("Responsive Viewport Settings")]
     public int visibleItemsPhone = 4;
@@ -50,7 +53,7 @@ public class FarmHeaderManager : MonoBehaviour
     private bool isScrolling = false;
     private int currentVisibleItems = 4;
     private List<GameObject> spawned = new List<GameObject>();
-    private List<GameObject> farmSlots = new List<GameObject>(); // Track only farm slots
+    private List<GameObject> farmSlots = new List<GameObject>();
     private int selectedFarmIndex = 0;
     private float slotPlusDividerWidth = 0f;
 
@@ -75,18 +78,36 @@ public class FarmHeaderManager : MonoBehaviour
         {
             Debug.LogError("❌ FarmGridManager not assigned in FarmHeaderManager!");
         }
+        if (playerWallet == null)
+        {
+            Debug.LogWarning("⚠️ PlayerWallet not assigned - will use default farm count");
+        }
 
-        // Load farm counts from database
-        LoadFarmCountsFromDatabase();
+        // Load farm counts from PlayerWallet (or fallback to database)
+        LoadFarmCountsFromBackend();
         
         Refresh();
     }
 
     /// <summary>
-    /// Load farm counts from FarmDatabase instead of using hardcoded values
+    /// Load farm counts from PlayerWallet (loaded from backend via /auth/me)
+    /// If PlayerWallet is not available, fallback to FarmDatabase
     /// </summary>
-    void LoadFarmCountsFromDatabase()
+    void LoadFarmCountsFromBackend()
     {
+        // ✅ PRIORITY 1: Try to load from PlayerWallet (backend data)
+        if (playerWallet != null)
+        {
+            farmCount = playerWallet.UserFarms;
+            
+            // Always show 7 locks next to user's farms
+            lockCount = 7;
+            
+            Debug.Log($"📊 Loaded from PlayerWallet: {farmCount} farms, {lockCount} locks");
+            return;
+        }
+        
+        // ✅ FALLBACK: Load from FarmDatabase if PlayerWallet not available
         if (farmDatabase == null || farmDatabase.farms == null)
         {
             Debug.LogWarning("⚠️ FarmDatabase not available, using default counts");
@@ -122,8 +143,8 @@ public class FarmHeaderManager : MonoBehaviour
 
     public void Refresh()
     {
-        // Reload counts from database before refreshing
-        LoadFarmCountsFromDatabase();
+        // Reload counts from PlayerWallet/database before refreshing
+        LoadFarmCountsFromBackend();
         
         DetermineVisibleItems();
         BuildItems();
@@ -159,7 +180,7 @@ public class FarmHeaderManager : MonoBehaviour
             Destroy(t.gameObject);
 
         spawned.Clear();
-        farmSlots.Clear(); // Clear farm slots list
+        farmSlots.Clear();
 
         int totalSlots = farmCount + lockCount;
         float viewportWidth = scrollRect.viewport.rect.width;
@@ -173,14 +194,13 @@ public class FarmHeaderManager : MonoBehaviour
         content.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, totalWidth);
         content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
 
-        int farmSlotIndex = 0; // Track actual farm index
+        int farmSlotIndex = 0;
 
         for (int i = 0; i < totalSlots; i++)
         {
             bool isFarmSlot = i < farmCount;
             GameObject prefab = isFarmSlot ? farmSlotPrefab : lockSlotPrefab;
             
-            // Create the slot and capture the farm index at creation time
             if (isFarmSlot)
             {
                 CreateFarmSlot(prefab, itemWidth, height, farmSlotIndex);
@@ -210,7 +230,6 @@ public class FarmHeaderManager : MonoBehaviour
 
     /// <summary>
     /// Update visual indicators for a specific farm slot
-    /// Call this after applying items to refresh the farm slot appearance
     /// </summary>
     public void UpdateFarmSlotVisual(int farmIndex)
     {
@@ -229,7 +248,6 @@ public class FarmHeaderManager : MonoBehaviour
             return;
         }
         
-        // Update the visual component if it exists
         FarmSlotVisual visual = farmSlot.GetComponent<FarmSlotVisual>();
         if (visual != null)
         {
@@ -244,7 +262,6 @@ public class FarmHeaderManager : MonoBehaviour
 
     /// <summary>
     /// Update visuals for all farm slots
-    /// Call this to refresh all farm appearances
     /// </summary>
     public void UpdateAllFarmSlotVisuals()
     {
@@ -275,13 +292,12 @@ public class FarmHeaderManager : MonoBehaviour
         rt.anchoredPosition = new Vector2(xPos, 0);
         rt.sizeDelta = new Vector2(width, 0);
 
-        // Find button in children (not on root)
         Button btn = obj.GetComponentInChildren<Button>();
         
         if (btn != null)
         {
-            int capturedIndex = farmIndex; // Capture the index!
-            btn.onClick.RemoveAllListeners(); // Clear any existing listeners
+            int capturedIndex = farmIndex;
+            btn.onClick.RemoveAllListeners();
             btn.onClick.AddListener(() => OnFarmClicked(capturedIndex));
             Debug.Log($"✅ Added onClick to Farm {capturedIndex + 1} button (found in children)");
         }
@@ -291,9 +307,8 @@ public class FarmHeaderManager : MonoBehaviour
         }
 
         spawned.Add(obj);
-        farmSlots.Add(obj); // Track this as a farm slot
+        farmSlots.Add(obj);
     }
-
 
     void CreateLockSlot(GameObject prefab, float width, float height)
     {
@@ -314,7 +329,6 @@ public class FarmHeaderManager : MonoBehaviour
         rt.anchoredPosition = new Vector2(xPos, 0);
         rt.sizeDelta = new Vector2(width, 0);
 
-        // ✅ Add LockSlotClick component if it doesn't exist
         LockSlotClick lockClick = obj.GetComponent<LockSlotClick>();
         if (lockClick == null)
         {
@@ -322,10 +336,8 @@ public class FarmHeaderManager : MonoBehaviour
             Debug.Log("✅ Added LockSlotClick component to lock slot");
         }
         
-        // ✅ Assign InventoryItemsBarChanger reference
         if (inventoryBarChanger != null)
         {
-            // Use reflection to set the private field, or make it public in LockSlotClick
             var field = typeof(LockSlotClick).GetField("inventoryBarChanger", 
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             
@@ -418,14 +430,12 @@ public class FarmHeaderManager : MonoBehaviour
         {
             GameObject child = centreAreaRoot.GetChild(i).gameObject;
             
-            // Skip the farm panel - keep it open
             if (child == farmPanel)
                 continue;
             
             child.SetActive(false);
         }
         
-        // Ensure farm panel is active
         if (farmPanel != null)
         {
             farmPanel.SetActive(true);
@@ -438,25 +448,21 @@ public class FarmHeaderManager : MonoBehaviour
     {
         Debug.Log($"🖱️ Farm {farmIndex + 1} button clicked!");
         
-        // ✅ FIRST: Close all panels in CentreArea
         CloseAllCentreAreaPanels();
         
         selectedFarmIndex = farmIndex;
         
-        // Get the farm data to access farmId
         FarmData clickedFarm = farmDatabase.GetFarmByIndex(farmIndex);
         
         if (clickedFarm != null)
         {
             Debug.Log($"📍 Farm ID: {clickedFarm.farmId}");
             
-            // Check if farmId is empty
             if (string.IsNullOrEmpty(clickedFarm.farmId))
             {
                 Debug.LogError("❌ FARM ID IS EMPTY! Check your JSON file and reload FarmDatabase!");
             }
             
-            // Open inventory farm bar with the farmId (ALWAYS)
             if (inventoryBarChanger != null)
             {
                 inventoryBarChanger.InventoryFarmBarMethod(clickedFarm.farmId);
@@ -471,7 +477,6 @@ public class FarmHeaderManager : MonoBehaviour
             Debug.LogError($"❌ Farm data is NULL for index {farmIndex}!");
         }
         
-        // Update visual selection
         UpdateFarmSelection(farmIndex);
         
         if (farmDatabase != null)
@@ -499,27 +504,23 @@ public class FarmHeaderManager : MonoBehaviour
     {
         if (farmIndex < 0 || farmIndex >= farmSlots.Count) return;
 
-        // Reset all farm slots to normal state
         for (int i = 0; i < farmSlots.Count; i++)
         {
             GameObject slot = farmSlots[i];
             
-            // Get the Image component on the farm prefab root (the yellow background)
             Image backgroundImg = slot.GetComponent<Image>();
             
             if (backgroundImg != null)
             {
                 if (i == farmIndex)
                 {
-                    // Selected - show yellow background (alpha = 255)
                     Color c = backgroundImg.color;
-                    backgroundImg.color = new Color(c.r, c.g, c.b, 1f); // Alpha = 1 (255)
+                    backgroundImg.color = new Color(c.r, c.g, c.b, 1f);
                 }
                 else
                 {
-                    // Unselected - hide yellow background (alpha = 0)
                     Color c = backgroundImg.color;
-                    backgroundImg.color = new Color(c.r, c.g, c.b, 0f); // Alpha = 0
+                    backgroundImg.color = new Color(c.r, c.g, c.b, 0f);
                 }
             }
             else

@@ -60,7 +60,7 @@ public class LoginValidator : MonoBehaviour
             loginData,
             onSuccess: (response) =>
             {
-                Debug.Log("Login response: " + response);
+                Debug.Log("✅ Login response: " + response);
 
                 LoginResponse loginData = JsonUtility.FromJson<LoginResponse>(response);
                 AuthStorage.SaveAccessToken(loginData.accessToken);
@@ -68,7 +68,7 @@ public class LoginValidator : MonoBehaviour
                 authManager.GetMe(
                     onSuccess: (meResponse) =>
                     {
-                        Debug.Log("Me response: " + meResponse);
+                        Debug.Log("✅ Me response: " + meResponse);
 
                         MeResponse userData = JsonUtility.FromJson<MeResponse>(meResponse);
                         
@@ -82,6 +82,12 @@ public class LoginValidator : MonoBehaviour
                                 wallet.SetFP(fp);
                             else
                                 wallet.SetFP(0);
+
+                            Debug.Log($"💰 Wallet updated: {userData.nickName}, {userData.userFarms} farms, {userData.userFP} FP");
+                        }
+                        else
+                        {
+                            Debug.LogWarning("⚠️ PlayerWallet not found in scene");
                         }
                         
                         PlayerPrefs.SetString("userId", userData.id);
@@ -90,18 +96,20 @@ public class LoginValidator : MonoBehaviour
                         PlayerPrefs.SetInt("userFarms", userData.userFarms);
                         PlayerPrefs.Save();
                         
+                        // ✅ Scene will load, and PlayerDataLoader will load farm data
+                        Debug.Log("🎮 Loading Farm scene...");
                         SceneManager.LoadScene("Farm");
                     },
                     onError: (err) =>
                     {
-                        Debug.LogError("Failed to fetch user data: " + err);
+                        Debug.LogError("❌ Failed to fetch user data: " + err);
                         if (generalError) generalError.text = "Failed to load user data.";
                     }
                 );
             },
             onError: (err) =>
             {
-                Debug.LogError("Login failed: " + err);
+                Debug.LogError("❌ Login failed: " + err);
                 if (errorUsername != null)
                     errorUsername.text = "Username or password is not correct.";
                 if (usernameBackground != null)

@@ -58,7 +58,7 @@ public class FarmDatabase : ScriptableObject
         }
     }
 
-    private void GenerateCagesFromFarmData()
+    public void GenerateCagesFromFarmData()
     {
         foreach (var farm in farms)
         {
