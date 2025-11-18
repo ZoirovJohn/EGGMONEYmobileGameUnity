@@ -36,16 +36,15 @@ public class SignUpValidator : MonoBehaviour
     public Color normalTint = Color.white;
 
     [Header("Auth Manager")]
-    public AuthManager authManager; // assign in Inspector
+    public AuthManager authManager;
 
     [Header("Panel Switcher")]
-    public PanelSwitcher panelSwitcher; // assign in Inspector
+    public PanelSwitcher panelSwitcher;
 
     public void OnSignUpPressed()
     {
         bool ok = true;
 
-        // --- Validation ---
         var name = (inputName ? inputName.text : "").Trim();
         if (string.IsNullOrEmpty(name)) { SetErr(errorName, bgName, "Name is required."); ok = false; }
 
@@ -73,7 +72,6 @@ public class SignUpValidator : MonoBehaviour
 
         if (!ok) return;
 
-        // --- Validation passed: create SignupData and call backend ---
         SignupData data = new SignupData(
             nickName: name,
             email: email,
@@ -88,15 +86,12 @@ public class SignUpValidator : MonoBehaviour
             {
                 Debug.Log("Signup response: " + response);
 
-                // Parse the signup response
                 SignupResponse signupData = JsonUtility.FromJson<SignupResponse>(response);
 
-                // Save access token
                 if (!string.IsNullOrEmpty(signupData.accessToken))
                 {
                     AuthStorage.SaveAccessToken(signupData.accessToken);
 
-                    // ✅ Now fetch user data with /auth/me
                     authManager.GetMe(
                         onSuccess: (meResponse) =>
                         {
@@ -104,25 +99,24 @@ public class SignUpValidator : MonoBehaviour
 
                             MeResponse userData = JsonUtility.FromJson<MeResponse>(meResponse);
 
-                            // --- Populate PlayerWallet with user data ---
                             PlayerWallet wallet = UnityEngine.Object.FindFirstObjectByType<PlayerWallet>();
                             if (wallet != null)
                             {
                                 wallet.SetName(userData.nickName);
                                 wallet.SetLocation(userData.nation);
+                                wallet.SetUserFarms(userData.userFarms);
                                 if (int.TryParse(userData.userFP, out int fp))
                                     wallet.SetFP(fp);
                                 else
                                     wallet.SetFP(0);
                             }
 
-                            // Save PlayerPrefs
                             PlayerPrefs.SetString("userId", userData.id);
                             PlayerPrefs.SetString("email", userData.email);
                             PlayerPrefs.SetString("nickname", userData.nickName);
+                            PlayerPrefs.SetInt("userFarms", userData.userFarms);
                             PlayerPrefs.Save();
 
-                            // ✅ Show Character Selection Panel instead of loading Farm scene
                             if (panelSwitcher != null)
                             {
                                 panelSwitcher.ShowCharacter();
@@ -151,7 +145,6 @@ public class SignUpValidator : MonoBehaviour
         );
     }
 
-    // --- helpers ---
     void SetErr(TMP_Text label, Image bg, string msg) { Show(label, msg); if (bg) bg.color = string.IsNullOrEmpty(msg) ? normalTint : errorTint; }
     void Show(TMP_Text label, string msg) { if (!label) return; label.text = msg ?? ""; if (!label.gameObject.activeSelf) label.gameObject.SetActive(true); }
     bool IsValidEmail(string email) { try { var addr = new System.Net.Mail.MailAddress(email); return addr.Address == email; } catch { return false; } }
@@ -194,5 +187,6 @@ public class SignUpValidator : MonoBehaviour
         public string userFP;
         public string referralCode;
         public string referredByCode;
+        public int userFarms;
     }
 }

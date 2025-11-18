@@ -21,17 +21,15 @@ public class LoginValidator : MonoBehaviour
     public Color normalTint = Color.white;
 
     [Header("References")]
-    public AuthManager authManager; // assign in Inspector
-    public TMP_Text generalError;   // optional message label
+    public AuthManager authManager;
+    public TMP_Text generalError;
 
     void Start()
     {
-        // Clear errors at start
         SetUsernameError(null);
         SetPasswordError(null);
         if (generalError) generalError.text = "";
 
-        // Clear on typing
         if (inputUsername) inputUsername.onValueChanged.AddListener(_ => SetUsernameError(null));
         if (inputPassword) inputPassword.onValueChanged.AddListener(_ => SetPasswordError(null));
     }
@@ -65,11 +63,8 @@ public class LoginValidator : MonoBehaviour
                 Debug.Log("Login response: " + response);
 
                 LoginResponse loginData = JsonUtility.FromJson<LoginResponse>(response);
-                
-                // Save access token
                 AuthStorage.SaveAccessToken(loginData.accessToken);
                 
-                // ✅ Now fetch user data with /auth/me
                 authManager.GetMe(
                     onSuccess: (meResponse) =>
                     {
@@ -77,25 +72,24 @@ public class LoginValidator : MonoBehaviour
 
                         MeResponse userData = JsonUtility.FromJson<MeResponse>(meResponse);
                         
-                        // Populate PlayerWallet
                         PlayerWallet wallet = UnityEngine.Object.FindFirstObjectByType<PlayerWallet>();
                         if (wallet != null)
                         {
                             wallet.SetName(userData.nickName);
                             wallet.SetLocation(userData.nation);
+                            wallet.SetUserFarms(userData.userFarms);
                             if (int.TryParse(userData.userFP, out int fp))
                                 wallet.SetFP(fp);
                             else
                                 wallet.SetFP(0);
                         }
                         
-                        // Save PlayerPrefs
                         PlayerPrefs.SetString("userId", userData.id);
                         PlayerPrefs.SetString("email", userData.email);
                         PlayerPrefs.SetString("nickname", userData.nickName);
+                        PlayerPrefs.SetInt("userFarms", userData.userFarms);
                         PlayerPrefs.Save();
                         
-                        // Load Farm
                         SceneManager.LoadScene("Farm");
                     },
                     onError: (err) =>
@@ -116,7 +110,6 @@ public class LoginValidator : MonoBehaviour
         );
     }
 
-    // --- helpers ---
     void SetUsernameError(string msg)
     {
         if (errorUsername) errorUsername.text = msg ?? "";
@@ -157,5 +150,6 @@ public class LoginValidator : MonoBehaviour
         public string userFP;
         public string referralCode;
         public string referredByCode;
+        public int userFarms;
     }
 }

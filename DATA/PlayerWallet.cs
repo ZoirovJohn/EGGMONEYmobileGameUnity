@@ -13,6 +13,7 @@ public class PlayerWallet : MonoBehaviour
     [SerializeField, Min(0)] int ranking = 0;
     [SerializeField, Min(0)] int eggs = 0;
     [SerializeField, Min(0)] int video = 0;
+    [SerializeField, Min(0)] int userFarms = 0;
 
     // =========================
     // Wallet
@@ -59,6 +60,7 @@ public class PlayerWallet : MonoBehaviour
     public int Ranking => ranking;
     public int Eggs => eggs;
     public int Video => video;
+    public int UserFarms => userFarms;
     public int FP => fp;
 
     public int Friends => friends;
@@ -198,6 +200,15 @@ public class PlayerWallet : MonoBehaviour
         newVideo = Mathf.Max(0, newVideo);
         if (video == newVideo) return;
         video = newVideo;
+        OnProfileChanged?.Invoke();
+    }
+
+    public void SetUserFarms(int newUserFarms)
+    {
+        newUserFarms = Mathf.Max(0, newUserFarms);
+        if (userFarms == newUserFarms) return;
+        userFarms = newUserFarms;
+        Debug.Log($"🚜 SetUserFarms: Set to {userFarms} farms");
         OnProfileChanged?.Invoke();
     }
 
@@ -416,6 +427,7 @@ public class PlayerWallet : MonoBehaviour
         ranking = Mathf.Max(0, ranking);
         eggs = Mathf.Max(0, eggs);
         video = Mathf.Max(0, video);
+        userFarms = Mathf.Max(0, userFarms);
         fp = Mathf.Max(0, fp);
 
         friends = Mathf.Max(0, friends);

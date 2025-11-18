@@ -16,7 +16,6 @@ public class PlayerDataLoader : MonoBehaviour
 
     private void LoadPlayerData()
     {
-        // Check if we have an access token
         string accessToken = AuthStorage.GetAccessToken();
 
         if (string.IsNullOrEmpty(accessToken))
@@ -26,7 +25,6 @@ public class PlayerDataLoader : MonoBehaviour
             return;
         }
 
-        // Fetch user data from backend
         authManager.GetMe(
             onSuccess: (response) =>
             {
@@ -34,32 +32,31 @@ public class PlayerDataLoader : MonoBehaviour
 
                 MeResponse userData = JsonUtility.FromJson<MeResponse>(response);
 
-                // Populate PlayerWallet
                 if (playerWallet != null)
                 {
                     playerWallet.SetName(userData.nickName);
                     playerWallet.SetLocation(userData.nation);
                     playerWallet.SetVideo(userData.video);
+                    playerWallet.SetUserFarms(userData.userFarms);
                     
                     if (int.TryParse(userData.userFP, out int fp))
                         playerWallet.SetFP(fp);
                     else
                         playerWallet.SetFP(0);
 
-                    Debug.Log($"PlayerWallet updated: {userData.nickName}, {userData.nation}, {userData.userFP} FP, {userData.video} videos");
+                    Debug.Log($"PlayerWallet updated: {userData.nickName}, {userData.nation}, {userData.userFP} FP, {userData.video} videos, {userData.userFarms} farms");
                 }
                 else
                 {
                     Debug.LogError("PlayerWallet reference is missing!");
                 }
 
-                // Update PlayerPrefs for offline access
                 PlayerPrefs.SetString("userId", userData.id);
                 PlayerPrefs.SetString("email", userData.email);
                 PlayerPrefs.SetString("nickname", userData.nickName);
+                PlayerPrefs.SetInt("userFarms", userData.userFarms);
                 PlayerPrefs.Save();
 
-                // ✅ Fetch eggs in basket
                 LoadBasketData();
             },
             onError: (err) =>
@@ -71,7 +68,6 @@ public class PlayerDataLoader : MonoBehaviour
 
     private void LoadBasketData()
     {
-        // ✅ FIX: Call basketManager.GetBasket() instead of authManager.GetBasket()
         basketManager.GetBasket(
             onSuccess: (response) =>
             {
@@ -79,7 +75,6 @@ public class PlayerDataLoader : MonoBehaviour
 
                 BasketResponse basketData = JsonUtility.FromJson<BasketResponse>(response);
 
-                // Set eggs in PlayerWallet
                 if (playerWallet != null)
                 {
                     playerWallet.SetEggs(basketData.eggCount);
@@ -111,6 +106,7 @@ public class PlayerDataLoader : MonoBehaviour
         public string userFP;
         public string referralCode;
         public string referredByCode;
+        public int userFarms;
     }
 
     [Serializable]

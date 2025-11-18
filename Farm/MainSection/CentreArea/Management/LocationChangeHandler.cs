@@ -15,7 +15,6 @@ public class LocationChangeHandler : MonoBehaviour
 
     private void Start()
     {
-        // Assign button click listener
         if (changeButton != null)
         {
             changeButton.onClick.AddListener(OnChangeButtonClicked);
@@ -24,23 +23,17 @@ public class LocationChangeHandler : MonoBehaviour
 
     private void OnChangeButtonClicked()
     {
-        // Check if placeholder is selected (index 0)
         if (locationDropdown.value == 0)
         {
             ShowFeedback("Please select a valid location", false);
             return;
         }
 
-        // Get the selected location name
         string selectedLocation = locationDropdown.options[locationDropdown.value].text;
-
-        // Create JSON data
         string jsonData = $"{{\"nation\": \"{selectedLocation}\"}}";
 
-        // Show loading feedback
         ShowFeedback("Updating location...", true);
 
-        // Call UpdateUser from AuthManager
         authManager.UpdateUser(
             jsonData,
             onSuccess: (response) =>
@@ -48,7 +41,6 @@ public class LocationChangeHandler : MonoBehaviour
                 Debug.Log("Location updated successfully: " + response);
                 ShowFeedback($"Location changed to {selectedLocation}", true);
                 
-                // ✅ Refresh player data after successful update
                 RefreshPlayerData();
             },
             onError: (error) =>
@@ -72,7 +64,6 @@ public class LocationChangeHandler : MonoBehaviour
 
     private void RefreshPlayerData()
     {
-        // Call GetMe to fetch updated user data
         authManager.GetMe(
             onSuccess: (response) =>
             {
@@ -80,12 +71,12 @@ public class LocationChangeHandler : MonoBehaviour
 
                 MeResponse userData = JsonUtility.FromJson<MeResponse>(response);
 
-                // Update PlayerWallet with fresh data
                 if (playerWallet != null)
                 {
                     playerWallet.SetName(userData.nickName);
                     playerWallet.SetLocation(userData.nation);
                     playerWallet.SetVideo(userData.video);
+                    playerWallet.SetUserFarms(userData.userFarms);
                     
                     if (int.TryParse(userData.userFP, out int fp))
                         playerWallet.SetFP(fp);
@@ -125,11 +116,11 @@ public class LocationChangeHandler : MonoBehaviour
         public string userFP;
         public string referralCode;
         public string referredByCode;
+        public int userFarms;
     }
 
     private void OnDestroy()
     {
-        // Clean up listener
         if (changeButton != null)
         {
             changeButton.onClick.RemoveListener(OnChangeButtonClicked);
