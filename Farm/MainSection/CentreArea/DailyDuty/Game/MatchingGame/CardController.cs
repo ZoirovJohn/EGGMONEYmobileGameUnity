@@ -11,10 +11,16 @@ public class CardController : MonoBehaviour
     [SerializeField] private Sprite[] sprites;
     
     [Header("Progress Bar")]
-    [SerializeField] private Image[] progressCards; // 10 card images (2 per game completion)
-    [SerializeField] private Sprite grayCardSprite; // Gray progress card
-    [SerializeField] private Sprite redCardSprite; // Red progress card
-    [SerializeField] private TextMeshProUGUI progressText; // Shows "20%", "40%", etc.
+    [SerializeField] private Image[] progressCards;
+    [SerializeField] private Sprite grayCardSprite;
+    [SerializeField] private Sprite redCardSprite;
+    [SerializeField] private TextMeshProUGUI progressText;
+
+    [Header("Sound Effects")]
+    [SerializeField] private AudioClip cardFlipSound;     // Sound when card is clicked/flipped
+    [SerializeField] private AudioClip matchSound;        // Sound when cards match
+    [SerializeField] private AudioClip completeSound;     // Sound when 100% complete
+    private AudioSource audioSource;
 
     private List<Sprite> spritePairs;
     private Card firstSelected;
@@ -23,18 +29,22 @@ public class CardController : MonoBehaviour
     
     private int totalPairs;
     private int matchedPairs = 0;
-    private int gamesCompleted = 0; // Track completed games
-    private int totalGamesNeeded = 1; // 1 games = 100%
+    private int gamesCompleted = 0;
+    private int totalGamesNeeded = 1;
 
     private void Start()
     {
+        // Get or add AudioSource component
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+            audioSource = gameObject.AddComponent<AudioSource>();
+
         InitializeProgress();
         StartNewGame();
     }
 
     private void InitializeProgress()
     {
-        // Set all progress cards to gray sprite
         foreach (Image card in progressCards)
         {
             card.sprite = grayCardSprite;
@@ -90,6 +100,9 @@ public class CardController : MonoBehaviour
     {
         if (isChecking || card.isSelected) return;
 
+        // 🔊 Play card flip sound
+        PlaySound(cardFlipSound);
+
         card.Show();
 
         if (firstSelected == null)
@@ -110,6 +123,9 @@ public class CardController : MonoBehaviour
 
         if (firstSelected.GetIconSprite() == secondSelected.GetIconSprite())
         {
+            // 🔊 Play match sound
+            PlaySound(matchSound);
+
             // Match found
             firstSelected.SetMatched();
             secondSelected.SetMatched();
@@ -142,6 +158,12 @@ public class CardController : MonoBehaviour
         {
             gamesCompleted++;
             UpdateProgress();
+            
+            // 🔊 Play complete sound when reaching 100%
+            if (gamesCompleted >= totalGamesNeeded)
+            {
+                PlaySound(completeSound);
+            }
         }
         
         if (gamesCompleted >= totalGamesNeeded)
@@ -156,10 +178,8 @@ public class CardController : MonoBehaviour
 
     private void UpdateProgress()
     {
-        // Each game completion = 20% = 2 cards out of 10
-        int cardsToFill = gamesCompleted * 10; // 2 cards per game (20%)
+        int cardsToFill = gamesCompleted * 10; // 1 game = 10 cards (100%)
         
-        // Swap sprites for progress cards
         for (int i = 0; i < progressCards.Length; i++)
         {
             progressCards[i].sprite = i < cardsToFill ? redCardSprite : grayCardSprite;
@@ -172,8 +192,16 @@ public class CardController : MonoBehaviour
     {
         if (progressText != null)
         {
-            int percent = gamesCompleted * 100; // 20% per game
+            int percent = gamesCompleted * 100; // 1 game = 100%
             progressText.text = percent + "%";
+        }
+    }
+
+    private void PlaySound(AudioClip clip)
+    {
+        if (audioSource != null && clip != null)
+        {
+            audioSource.PlayOneShot(clip);
         }
     }
 

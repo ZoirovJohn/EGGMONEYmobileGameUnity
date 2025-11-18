@@ -35,6 +35,11 @@ public class SimonController : MonoBehaviour
     [SerializeField] private Sprite redCardSprite;
     [SerializeField] private TextMeshProUGUI progressText;
 
+    [Header("Sound Effects")]
+    [SerializeField] private AudioClip matchSound;      // Sound when sequence is correct
+    [SerializeField] private AudioClip completeSound;   // Sound when 100% complete
+    private AudioSource audioSource;
+
     private List<int> sequence = new List<int>();
     private List<int> playerInput = new List<int>();
     private bool isPlayerTurn = false;
@@ -48,6 +53,11 @@ public class SimonController : MonoBehaviour
     private void Start()
     {
         Random.InitState((int)System.DateTime.Now.Ticks);
+
+        // Get or add AudioSource component
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+            audioSource = gameObject.AddComponent<AudioSource>();
 
         redButton.onClick.AddListener(() => OnButtonPressed(0));
         greenButton.onClick.AddListener(() => OnButtonPressed(1));
@@ -109,7 +119,6 @@ public class SimonController : MonoBehaviour
 
         foreach (int index in sequenceCopy)
         {
-            // Simulate button click - this will trigger the sprite change AND sound
             Button btn = GetButton(index);
             if (btn != null)
             {
@@ -171,6 +180,9 @@ public class SimonController : MonoBehaviour
 
         if (isCorrect)
         {
+            // 🔊 Play match sound for correct sequence
+            PlaySound(matchSound);
+
             if (statusText != null)
                 statusText.text = "PERFECT!";
 
@@ -193,13 +205,20 @@ public class SimonController : MonoBehaviour
         {
             gamesCompleted++;
             UpdateProgress();
+            
+            // 🔊 Play complete sound when reaching 100%
+            if (gamesCompleted >= totalGamesNeeded)
+            {
+                PlaySound(completeSound);
+                
+                if (statusText != null)
+                    statusText.text = "🎉 100% COMPLETE!";
+            }
         }
-
-        if (gamesCompleted >= totalGamesNeeded)
+        else
         {
             if (statusText != null)
                 statusText.text = "🎉 100% COMPLETE!";
-            // Keep progress at 100%, but allow replay
         }
         
         // Start next round (player can keep playing)
@@ -208,7 +227,7 @@ public class SimonController : MonoBehaviour
 
     private void UpdateProgress()
     {
-        int cardsToFill = gamesCompleted * 10;
+        int cardsToFill = gamesCompleted * 10; // 1 game = 10 cards (100%)
         for (int i = 0; i < progressCards.Length; i++)
             progressCards[i].sprite = i < cardsToFill ? redCardSprite : grayCardSprite;
 
@@ -219,8 +238,16 @@ public class SimonController : MonoBehaviour
     {
         if (progressText != null)
         {
-            int percent = gamesCompleted * 100;
+            int percent = gamesCompleted * 100; // 1 game = 100%
             progressText.text = percent + "%";
+        }
+    }
+
+    private void PlaySound(AudioClip clip)
+    {
+        if (audioSource != null && clip != null)
+        {
+            audioSource.PlayOneShot(clip);
         }
     }
 

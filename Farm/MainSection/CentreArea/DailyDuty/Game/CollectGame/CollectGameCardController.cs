@@ -19,6 +19,12 @@ public class CollectGameCardController : MonoBehaviour
     [SerializeField] private Sprite redCardSprite;
     [SerializeField] private TextMeshProUGUI progressText;
 
+    [Header("Sound Effects")]
+    [SerializeField] private AudioClip cardClickSound;    // Sound when any card is clicked
+    [SerializeField] private AudioClip correctSound;      // Sound when correct number is found
+    [SerializeField] private AudioClip completeSound;     // Sound when 100% complete
+    private AudioSource audioSource;
+
     private List<CollectGameCard> cards = new List<CollectGameCard>();
     private int nextNumber = 1; // User must click this number next
     private bool isLocked = false;
@@ -28,6 +34,11 @@ public class CollectGameCardController : MonoBehaviour
 
     private void Start()
     {
+        // Get or add AudioSource component
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+            audioSource = gameObject.AddComponent<AudioSource>();
+
         InitializeProgress();
         StartNewGame();
     }
@@ -95,9 +106,15 @@ public class CollectGameCardController : MonoBehaviour
         // ✅ Don't click already revealed cards
         if (card.IsRevealed()) return;
 
+        // 🔊 Play card click sound
+        PlaySound(cardClickSound);
+
         // ✅ Correct: clicked the next number in sequence (1→2→3→...→9)
         if (number == nextNumber)
         {
+            // 🔊 Play correct number found sound
+            PlaySound(correctSound);
+
             card.Show(); // ✅ OPEN and KEEP IT OPEN
             nextNumber++;
 
@@ -138,11 +155,17 @@ public class CollectGameCardController : MonoBehaviour
         {
             gamesCompleted++;
             UpdateProgress();
+            
+            // 🔊 Play complete sound when reaching 100%
+            if (gamesCompleted >= totalGamesNeeded)
+            {
+                PlaySound(completeSound);
+            }
         }
 
         if (gamesCompleted >= totalGamesNeeded)
         {
-            Debug.Log("🎉 ALL 5 GAMES COMPLETE (100%)");
+            Debug.Log("🎉 ALL GAMES COMPLETE (100%)");
             // Keep progress at 100%, but allow replay
         }
 
@@ -151,7 +174,7 @@ public class CollectGameCardController : MonoBehaviour
 
     private void UpdateProgress()
     {
-        int filled = gamesCompleted * 10; // 5 games → 10 cards filled
+        int filled = gamesCompleted * 10; // 1 game = 10 cards (100%)
 
         for (int i = 0; i < progressCards.Length; i++)
         {
@@ -166,6 +189,14 @@ public class CollectGameCardController : MonoBehaviour
         if (progressText != null)
         {
             progressText.text = (gamesCompleted * 100) + "%";
+        }
+    }
+
+    private void PlaySound(AudioClip clip)
+    {
+        if (audioSource != null && clip != null)
+        {
+            audioSource.PlayOneShot(clip);
         }
     }
 
