@@ -41,7 +41,7 @@ public class SimonController : MonoBehaviour
     private bool isPlayingSequence = false;
 
     private int gamesCompleted = 0;
-    private int totalGamesNeeded = 5;
+    private int totalGamesNeeded = 1;
     private int currentSequenceLength = 4;
     private int[] sequenceLengths = new int[] { 4, 4, 5, 5, 6 };
 
@@ -208,7 +208,7 @@ public class SimonController : MonoBehaviour
 
     private void UpdateProgress()
     {
-        int cardsToFill = gamesCompleted * 2;
+        int cardsToFill = gamesCompleted * 10;
         for (int i = 0; i < progressCards.Length; i++)
             progressCards[i].sprite = i < cardsToFill ? redCardSprite : grayCardSprite;
 
@@ -219,7 +219,7 @@ public class SimonController : MonoBehaviour
     {
         if (progressText != null)
         {
-            int percent = gamesCompleted * 20;
+            int percent = gamesCompleted * 100;
             progressText.text = percent + "%";
         }
     }

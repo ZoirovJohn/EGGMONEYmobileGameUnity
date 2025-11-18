@@ -24,7 +24,7 @@ public class CardController : MonoBehaviour
     private int totalPairs;
     private int matchedPairs = 0;
     private int gamesCompleted = 0; // Track completed games
-    private int totalGamesNeeded = 5; // 5 games = 100%
+    private int totalGamesNeeded = 1; // 1 games = 100%
 
     private void Start()
     {
@@ -157,7 +157,7 @@ public class CardController : MonoBehaviour
     private void UpdateProgress()
     {
         // Each game completion = 20% = 2 cards out of 10
-        int cardsToFill = gamesCompleted * 2; // 2 cards per game (20%)
+        int cardsToFill = gamesCompleted * 10; // 2 cards per game (20%)
         
         // Swap sprites for progress cards
         for (int i = 0; i < progressCards.Length; i++)
@@ -172,7 +172,7 @@ public class CardController : MonoBehaviour
     {
         if (progressText != null)
         {
-            int percent = gamesCompleted * 20; // 20% per game
+            int percent = gamesCompleted * 100; // 20% per game
             progressText.text = percent + "%";
         }
     }

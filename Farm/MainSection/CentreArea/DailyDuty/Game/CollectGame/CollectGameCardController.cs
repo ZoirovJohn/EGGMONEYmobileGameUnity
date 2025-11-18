@@ -24,7 +24,7 @@ public class CollectGameCardController : MonoBehaviour
     private bool isLocked = false;
 
     private int gamesCompleted = 0;
-    private int totalGamesNeeded = 5;
+    private int totalGamesNeeded = 1;
 
     private void Start()
     {
@@ -151,7 +151,7 @@ public class CollectGameCardController : MonoBehaviour
 
     private void UpdateProgress()
     {
-        int filled = gamesCompleted * 2; // 5 games → 10 cards filled
+        int filled = gamesCompleted * 10; // 5 games → 10 cards filled
 
         for (int i = 0; i < progressCards.Length; i++)
         {
@@ -165,7 +165,7 @@ public class CollectGameCardController : MonoBehaviour
     {
         if (progressText != null)
         {
-            progressText.text = (gamesCompleted * 20) + "%";
+            progressText.text = (gamesCompleted * 100) + "%";
         }
     }
 
