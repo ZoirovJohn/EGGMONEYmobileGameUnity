@@ -14,6 +14,7 @@ public class PanelOneYellowInfoBinder : MonoBehaviour
     [Header("Outputs (TMP only)")]
     public TMP_Text friendsNumTMP;
     public TMP_Text farmTMP;
+    public TMP_Text userFarmsTMP;   // <--- NEW
     public TMP_Text whiteChickTMP;
     public TMP_Text champChickTMP;
     public TMP_Text siilverEggTMP; 
@@ -38,13 +39,16 @@ public class PanelOneYellowInfoBinder : MonoBehaviour
         if (!wallet) return;
 
         SetDigits(friendsNumTMP, wallet.Friends);
-        SetDigits(farmTMP,       wallet.Farms);
+        SetDigits(farmTMP, wallet.Farms);
+
+        // Get user farm count — depends on your PlayerWallet structure
+        SetDigits(userFarmsTMP, wallet.UserFarms);   // <--- NEW LINE (replace with your real property)
 
         SetDigits(whiteChickTMP, wallet.GetItemCount(whiteChickId));
         SetDigits(champChickTMP, wallet.GetItemCount(champChickId));
 
         SetDigits(siilverEggTMP, wallet.SilverEgg);
-        SetDigits(goldEggTMP,    wallet.GoldEgg);
+        SetDigits(goldEggTMP, wallet.GoldEgg);
     }
 
     // --- Helpers ---
