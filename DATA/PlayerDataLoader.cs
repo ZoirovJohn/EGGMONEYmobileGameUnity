@@ -10,9 +10,9 @@ public class PlayerDataLoader : MonoBehaviour
     public PlayerWallet playerWallet;
     
     [Header("Farm Data Loading")]
-    public FarmAPIManager farmAPIManager; // ✅ NEW: For loading farm data
-    public FarmDatabase farmDatabase;     // ✅ NEW: For storing farm data
-    public FarmHeaderManager farmHeaderManager; // ✅ NEW: For refreshing UI
+    public FarmAPIManager farmAPIManager;
+    public FarmDatabase farmDatabase;
+    public FarmHeaderManager farmHeaderManager;
 
     private void Start()
     {
@@ -65,7 +65,7 @@ public class PlayerDataLoader : MonoBehaviour
                 // ✅ Load basket data
                 LoadBasketData();
                 
-                // ✅ NEW: Load farm data from backend
+                // ✅ Load farm data from backend
                 LoadFarmData(userData.userFarms);
             },
             onError: (err) =>
@@ -105,7 +105,7 @@ public class PlayerDataLoader : MonoBehaviour
     }
 
     /// <summary>
-    /// ✅ NEW: Load all farm data from backend
+    /// ✅ Load all farm data from backend
     /// </summary>
     private void LoadFarmData(int farmCount)
     {
@@ -187,7 +187,7 @@ public class PlayerDataLoader : MonoBehaviour
     }
 
     /// <summary>
-    /// Convert a single FarmSummary to FarmData
+    /// ✅ UPDATED: Convert a single FarmSummary to FarmData with all backend data
     /// </summary>
     private FarmData ConvertSummaryToFarmData(FarmSummary summary, int index)
     {
@@ -196,42 +196,93 @@ public class PlayerDataLoader : MonoBehaviour
             farmIndex = index,
             farmId = $"farm_{(index + 1):D3}", // farm_001, farm_002, etc.
             farmName = $"Farm {summary.farm.farmNumber}",
+            
+            // ✅ Backend farm data
+            isPremium = summary.farm.isPremium,
+            maxCapacity = summary.farm.maxCapacity,
+            
+            // ✅ Nest data from backend
             nestsOccupied = summary.nests.occupied,
+            
             cages = new System.Collections.Generic.List<CageData>()
         };
 
-        // Count chicks by kind
+        // ✅ Count chicks by kind from backend nest details
         int totalNormalChicks = 0;
         int totalChampChicks = 0;
         int totalLegendChicks = 0;
         int totalSuperLegendChicks = 0;
 
-        foreach (var nest in summary.nests.details)
+        if (summary.nests.details != null)
         {
-            if (nest.hen != null && nest.hen.alive)
+            foreach (var nest in summary.nests.details)
             {
-                switch (nest.hen.kind)
+                if (nest.hen != null && nest.hen.alive)
                 {
-                    case "Normal":
-                        totalNormalChicks++;
-                        break;
-                    case "Champ":
-                        totalChampChicks++;
-                        break;
-                    case "Legend":
-                        totalLegendChicks++;
-                        break;
-                    case "SuperLegend":
-                        totalSuperLegendChicks++;
-                        break;
+                    switch (nest.hen.kind)
+                    {
+                        case "Normal":
+                            totalNormalChicks++;
+                            break;
+                        case "Champ":
+                            totalChampChicks++;
+                            break;
+                        case "Legend":
+                            totalLegendChicks++;
+                            break;
+                        case "SuperLegend":
+                            totalSuperLegendChicks++;
+                            break;
+                    }
                 }
             }
         }
 
         farm.normalChicks = totalNormalChicks;
         farm.champChicks = totalChampChicks;
+        farm.legendChicks = totalLegendChicks;
+        farm.superLegendChicks = totalSuperLegendChicks;
+        
+        // ✅ Robot data from backend
+        if (summary.robot != null)
+        {
+            farm.hasRobot = !string.IsNullOrEmpty(summary.robot.id);
+            farm.robotActive = summary.robot.isActive;
+            farm.robotPoweredUntil = summary.robot.poweredUntil ?? "";
+            
+            // Update robotType for compatibility
+            if (farm.hasRobot)
+            {
+                farm.robotType = "robot";
+            }
+        }
+        else
+        {
+            farm.hasRobot = false;
+            farm.robotActive = false;
+            farm.robotPoweredUntil = "";
+            farm.robotType = "none";
+        }
 
-        Debug.Log($"🐔 Farm {summary.farm.farmNumber}: {farm.nestsOccupied} nests, Normal: {farm.normalChicks}, Champ: {farm.champChicks}");
+        // ✅ Set farmKeyType based on isPremium
+        if (farm.isPremium)
+        {
+            farm.farmKeyType = "premiumfarmkey";
+        }
+        else
+        {
+            farm.farmKeyType = "normal";
+        }
+
+        Debug.Log($"🐔 Farm {summary.farm.farmNumber}: " +
+                  $"Nests: {farm.nestsOccupied}/{farm.maxCapacity}, " +
+                  $"Normal: {farm.normalChicks}, " +
+                  $"Champ: {farm.champChicks}, " +
+                  $"Legend: {farm.legendChicks}, " +
+                  $"SuperLegend: {farm.superLegendChicks}, " +
+                  $"Premium: {farm.isPremium}, " +
+                  $"HasRobot: {farm.hasRobot}, " +
+                  $"RobotActive: {farm.robotActive}");
 
         return farm;
     }

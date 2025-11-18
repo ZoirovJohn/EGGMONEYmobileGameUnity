@@ -39,17 +39,24 @@ public class FarmGridManager : MonoBehaviour
             yield break;
         }
 
-        // Load farm data
-        Debug.Log("📂 Loading data from JSON...");
-        farmDatabase.LoadFromJSON();
-        
+        // ✅ FIXED: Check if backend data is already loaded
         if (farmDatabase.farms == null || farmDatabase.farms.Count == 0)
         {
-            Debug.LogError("❌ No farms loaded! Check JSON file assignment.");
-            yield break;
+            Debug.Log("📂 No backend data found, loading from JSON as fallback...");
+            farmDatabase.LoadFromJSON();
+            
+            if (farmDatabase.farms == null || farmDatabase.farms.Count == 0)
+            {
+                Debug.LogError("❌ No farms loaded! Check JSON file assignment.");
+                yield break;
+            }
+        }
+        else
+        {
+            Debug.Log($"✅ Backend data already loaded: {farmDatabase.farms.Count} farms available");
         }
 
-        Debug.Log($"✅ Loaded {farmDatabase.farms.Count} farms");
+        Debug.Log($"✅ Using {farmDatabase.farms.Count} farms from database");
 
         // Set to Farm 1 (index 0) by default
         farmDatabase.currentFarmIndex = 0;
@@ -350,8 +357,6 @@ public class FarmGridManager : MonoBehaviour
     }
 
     // PUBLIC: Called from FarmHeaderManager when farm clicked
-    // PUBLIC: Called from FarmHeaderManager when farm clicked
-    // PUBLIC: Called from FarmHeaderManager when farm clicked
     public void SwitchFarm(int farmIndex)
     {
         Debug.Log($"🔄 Switching to Farm {farmIndex + 1}...");
@@ -389,9 +394,6 @@ public class FarmGridManager : MonoBehaviour
         SetupGrid();
         BuildCages();
     }
-
-    // Add these methods to your existing FarmGridManager.cs
-    // Place them at the end of the class, before the closing brace
 
     #region FARM ITEM APPLICATION SUPPORT
 
