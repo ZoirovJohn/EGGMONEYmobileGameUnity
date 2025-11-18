@@ -19,17 +19,37 @@ public class LocationDropdownPopulator : MonoBehaviour
         // Add placeholder first
         List<string> options = new List<string>
         {
-            "Select location",   // placeholder
-            "Korea",
-            "China",
-            "Japan",
-            "USA",
-            "UK",
-            "Germany",
-            "France",
-            "India",
-            "Vietnam",
-            "Thailand"
+        "Select location",   // placeholder
+        "South Korea",
+        "Japan",
+        "China",
+        "Hong Kong",
+        "Taiwan",
+        "Vietnam",
+        "Thailand",
+        "Indonesia",
+        "Philippines",
+        "Malaysia",
+        "Singapore",
+        "India",
+        "United States",
+        "Canada",
+        "Mexico",
+        "Brazil",
+        "Argentina",
+        "Chile",
+        "Colombia",
+        "United Kingdom",
+        "Germany",
+        "France",
+        "Spain",
+        "Italy",
+        "Netherlands",
+        "Sweden",
+        "Poland",
+        "Portugal",
+        "United Arab Emirates",
+        "South Africa"
         };
 
         dropdown.AddOptions(options);

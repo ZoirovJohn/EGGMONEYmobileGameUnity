@@ -13,6 +13,42 @@ public class LocationChangeHandler : MonoBehaviour
     [Header("Optional UI Feedback")]
     public TMP_Text feedbackText;
 
+    // Country code mapping (matches LocationDropdownPopulator order)
+    private static readonly string[] CountryCodes = new string[]
+    {
+        "", // placeholder "Select location"
+        "KR", // South Korea
+        "JP", // Japan
+        "CN", // China
+        "HK", // Hong Kong
+        "TW", // Taiwan
+        "VN", // Vietnam
+        "TH", // Thailand
+        "ID", // Indonesia
+        "PH", // Philippines
+        "MY", // Malaysia
+        "SG", // Singapore
+        "IN", // India
+        "US", // United States
+        "CA", // Canada
+        "MX", // Mexico
+        "BR", // Brazil
+        "AR", // Argentina
+        "CL", // Chile
+        "CO", // Colombia
+        "GB", // United Kingdom
+        "DE", // Germany
+        "FR", // France
+        "ES", // Spain
+        "IT", // Italy
+        "NL", // Netherlands
+        "SE", // Sweden
+        "PL", // Poland
+        "PT", // Portugal
+        "AE", // United Arab Emirates
+        "ZA"  // South Africa
+    };
+
     private void Start()
     {
         if (changeButton != null)
@@ -23,23 +59,39 @@ public class LocationChangeHandler : MonoBehaviour
 
     private void OnChangeButtonClicked()
     {
+        if (locationDropdown == null)
+        {
+            ShowFeedback("Location dropdown is not assigned!", false);
+            return;
+        }
+
         if (locationDropdown.value == 0)
         {
             ShowFeedback("Please select a valid location", false);
             return;
         }
 
-        string selectedLocation = locationDropdown.options[locationDropdown.value].text;
-        string jsonData = $"{{\"nation\": \"{selectedLocation}\"}}";
+        // Get country code from dropdown index (same as SignUpValidator)
+        string countryCode = GetCountryCode(locationDropdown.value);
+        
+        if (string.IsNullOrEmpty(countryCode))
+        {
+            ShowFeedback("Invalid location selection", false);
+            return;
+        }
+
+        // Send short country code (e.g., "KR", "US", "JP") to the API
+        string jsonData = $"{{\"nation\": \"{countryCode}\"}}";
 
         ShowFeedback("Updating location...", true);
+        Debug.Log($"📍 Sending location update: {countryCode}");
 
         authManager.UpdateUser(
             jsonData,
             onSuccess: (response) =>
             {
                 Debug.Log("✅ Location updated successfully: " + response);
-                ShowFeedback($"Location changed to {selectedLocation}", true);
+                ShowFeedback($"Location changed to {countryCode}", true);
                 
                 RefreshPlayerData();
             },
@@ -49,6 +101,16 @@ public class LocationChangeHandler : MonoBehaviour
                 ShowFeedback("Failed to update location: " + error, false);
             }
         );
+    }
+
+    // Helper method to get country code by dropdown index (same as SignUpValidator)
+    private string GetCountryCode(int index)
+    {
+        if (index >= 0 && index < CountryCodes.Length)
+        {
+            return CountryCodes[index];
+        }
+        return "KR"; // Default to South Korea
     }
 
     private void ShowFeedback(string message, bool isSuccess)
@@ -75,9 +137,8 @@ public class LocationChangeHandler : MonoBehaviour
                 {
                     playerWallet.SetName(userData.nickName);
                     playerWallet.SetLocation(userData.nation);
-                    playerWallet.SetVideo(userData.video);
                     playerWallet.SetUserFarms(userData.userFarms);
-                    playerWallet.SetReferralCode(userData.referralCode); // ✅ NEW: Set referral code
+                    playerWallet.SetReferralCode(userData.referralCode);
                     
                     if (int.TryParse(userData.userFP, out int fp))
                         playerWallet.SetFP(fp);

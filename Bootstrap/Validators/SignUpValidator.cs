@@ -41,6 +41,42 @@ public class SignUpValidator : MonoBehaviour
     [Header("Panel Switcher")]
     public PanelSwitcher panelSwitcher;
 
+    // Country code mapping (matches LocationDropdownPopulator order)
+    private static readonly string[] CountryCodes = new string[]
+    {
+        "", // placeholder "Select location"
+        "KR", // South Korea
+        "JP", // Japan
+        "CN", // China
+        "HK", // Hong Kong
+        "TW", // Taiwan
+        "VN", // Vietnam
+        "TH", // Thailand
+        "ID", // Indonesia
+        "PH", // Philippines
+        "MY", // Malaysia
+        "SG", // Singapore
+        "IN", // India
+        "US", // United States
+        "CA", // Canada
+        "MX", // Mexico
+        "BR", // Brazil
+        "AR", // Argentina
+        "CL", // Chile
+        "CO", // Colombia
+        "GB", // United Kingdom
+        "DE", // Germany
+        "FR", // France
+        "ES", // Spain
+        "IT", // Italy
+        "NL", // Netherlands
+        "SE", // Sweden
+        "PL", // Poland
+        "PT", // Portugal
+        "AE", // United Arab Emirates
+        "ZA"  // South Africa
+    };
+
     public void OnSignUpPressed()
     {
         bool ok = true;
@@ -72,12 +108,15 @@ public class SignUpValidator : MonoBehaviour
 
         if (!ok) return;
 
+        // Get country code from dropdown index
+        string countryCode = GetCountryCode(countryIndex);
+
         SignupData data = new SignupData(
             nickName: name,
             email: email,
             password: pw,
             phoneNumber: phone,
-            nation: ddCountry.options[countryIndex].text
+            nation: countryCode // ✅ Send short country code (e.g., "KR", "US", "JP")
         );
 
         authManager.Signup(
@@ -105,7 +144,7 @@ public class SignUpValidator : MonoBehaviour
                                 wallet.SetName(userData.nickName);
                                 wallet.SetLocation(userData.nation);
                                 wallet.SetUserFarms(userData.userFarms);
-                                wallet.SetReferralCode(userData.referralCode); // ✅ NEW: Set referral code
+                                wallet.SetReferralCode(userData.referralCode);
                                 
                                 if (int.TryParse(userData.userFP, out int fp))
                                     wallet.SetFP(fp);
@@ -119,7 +158,7 @@ public class SignUpValidator : MonoBehaviour
                             PlayerPrefs.SetString("email", userData.email);
                             PlayerPrefs.SetString("nickname", userData.nickName);
                             PlayerPrefs.SetInt("userFarms", userData.userFarms);
-                            PlayerPrefs.SetString("referralCode", userData.referralCode); // ✅ NEW: Save to PlayerPrefs
+                            PlayerPrefs.SetString("referralCode", userData.referralCode);
                             PlayerPrefs.Save();
 
                             if (panelSwitcher != null)
@@ -148,6 +187,16 @@ public class SignUpValidator : MonoBehaviour
                 SetErr(errorEmail, bgEmail, "Signup failed. Please try again.");
             }
         );
+    }
+
+    // Helper method to get country code by dropdown index
+    private string GetCountryCode(int index)
+    {
+        if (index >= 0 && index < CountryCodes.Length)
+        {
+            return CountryCodes[index];
+        }
+        return "KR"; // Default to South Korea
     }
 
     void SetErr(TMP_Text label, Image bg, string msg) { Show(label, msg); if (bg) bg.color = string.IsNullOrEmpty(msg) ? normalTint : errorTint; }
