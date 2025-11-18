@@ -84,7 +84,7 @@ public class SignUpValidator : MonoBehaviour
             data,
             onSuccess: (response) =>
             {
-                Debug.Log("Signup response: " + response);
+                Debug.Log("✅ Signup response: " + response);
 
                 SignupResponse signupData = JsonUtility.FromJson<SignupResponse>(response);
 
@@ -95,7 +95,7 @@ public class SignUpValidator : MonoBehaviour
                     authManager.GetMe(
                         onSuccess: (meResponse) =>
                         {
-                            Debug.Log("Me response: " + meResponse);
+                            Debug.Log("✅ Me response: " + meResponse);
 
                             MeResponse userData = JsonUtility.FromJson<MeResponse>(meResponse);
 
@@ -105,16 +105,21 @@ public class SignUpValidator : MonoBehaviour
                                 wallet.SetName(userData.nickName);
                                 wallet.SetLocation(userData.nation);
                                 wallet.SetUserFarms(userData.userFarms);
+                                wallet.SetReferralCode(userData.referralCode); // ✅ NEW: Set referral code
+                                
                                 if (int.TryParse(userData.userFP, out int fp))
                                     wallet.SetFP(fp);
                                 else
                                     wallet.SetFP(0);
+
+                                Debug.Log($"💰 Wallet updated: {userData.nickName}, {userData.userFarms} farms, Referral: {userData.referralCode}");
                             }
 
                             PlayerPrefs.SetString("userId", userData.id);
                             PlayerPrefs.SetString("email", userData.email);
                             PlayerPrefs.SetString("nickname", userData.nickName);
                             PlayerPrefs.SetInt("userFarms", userData.userFarms);
+                            PlayerPrefs.SetString("referralCode", userData.referralCode); // ✅ NEW: Save to PlayerPrefs
                             PlayerPrefs.Save();
 
                             if (panelSwitcher != null)
@@ -128,7 +133,7 @@ public class SignUpValidator : MonoBehaviour
                         },
                         onError: (err) =>
                         {
-                            Debug.LogError("Failed to fetch user data: " + err);
+                            Debug.LogError("❌ Failed to fetch user data: " + err);
                         }
                     );
                 }
@@ -139,7 +144,7 @@ public class SignUpValidator : MonoBehaviour
             },
             onError: (err) => 
             { 
-                Debug.LogError("Signup failed: " + err);
+                Debug.LogError("❌ Signup failed: " + err);
                 SetErr(errorEmail, bgEmail, "Signup failed. Please try again.");
             }
         );

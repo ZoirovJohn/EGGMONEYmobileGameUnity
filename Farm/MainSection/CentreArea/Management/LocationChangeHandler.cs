@@ -38,14 +38,14 @@ public class LocationChangeHandler : MonoBehaviour
             jsonData,
             onSuccess: (response) =>
             {
-                Debug.Log("Location updated successfully: " + response);
+                Debug.Log("✅ Location updated successfully: " + response);
                 ShowFeedback($"Location changed to {selectedLocation}", true);
                 
                 RefreshPlayerData();
             },
             onError: (error) =>
             {
-                Debug.LogError("Failed to update location: " + error);
+                Debug.LogError("❌ Failed to update location: " + error);
                 ShowFeedback("Failed to update location: " + error, false);
             }
         );
@@ -67,7 +67,7 @@ public class LocationChangeHandler : MonoBehaviour
         authManager.GetMe(
             onSuccess: (response) =>
             {
-                Debug.Log("Player data refreshed: " + response);
+                Debug.Log("✅ Player data refreshed: " + response);
 
                 MeResponse userData = JsonUtility.FromJson<MeResponse>(response);
 
@@ -77,22 +77,23 @@ public class LocationChangeHandler : MonoBehaviour
                     playerWallet.SetLocation(userData.nation);
                     playerWallet.SetVideo(userData.video);
                     playerWallet.SetUserFarms(userData.userFarms);
+                    playerWallet.SetReferralCode(userData.referralCode); // ✅ NEW: Set referral code
                     
                     if (int.TryParse(userData.userFP, out int fp))
                         playerWallet.SetFP(fp);
                     else
                         playerWallet.SetFP(0);
 
-                    Debug.Log($"PlayerWallet updated after location change: {userData.nation}");
+                    Debug.Log($"💰 PlayerWallet updated after location change: {userData.nation}, Referral: {userData.referralCode}");
                 }
                 else
                 {
-                    Debug.LogError("PlayerWallet reference is missing!");
+                    Debug.LogError("❌ PlayerWallet reference is missing!");
                 }
             },
             onError: (err) =>
             {
-                Debug.LogError("Failed to refresh player data: " + err);
+                Debug.LogError("❌ Failed to refresh player data: " + err);
                 ShowFeedback("Location updated but failed to refresh data", false);
             }
         );

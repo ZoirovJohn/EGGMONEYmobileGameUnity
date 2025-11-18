@@ -78,12 +78,14 @@ public class LoginValidator : MonoBehaviour
                             wallet.SetName(userData.nickName);
                             wallet.SetLocation(userData.nation);
                             wallet.SetUserFarms(userData.userFarms);
+                            wallet.SetReferralCode(userData.referralCode); // ✅ NEW: Set referral code
+                            
                             if (int.TryParse(userData.userFP, out int fp))
                                 wallet.SetFP(fp);
                             else
                                 wallet.SetFP(0);
 
-                            Debug.Log($"💰 Wallet updated: {userData.nickName}, {userData.userFarms} farms, {userData.userFP} FP");
+                            Debug.Log($"💰 Wallet updated: {userData.nickName}, {userData.userFarms} farms, {userData.userFP} FP, Referral: {userData.referralCode}");
                         }
                         else
                         {
@@ -94,9 +96,9 @@ public class LoginValidator : MonoBehaviour
                         PlayerPrefs.SetString("email", userData.email);
                         PlayerPrefs.SetString("nickname", userData.nickName);
                         PlayerPrefs.SetInt("userFarms", userData.userFarms);
+                        PlayerPrefs.SetString("referralCode", userData.referralCode); // ✅ NEW: Save to PlayerPrefs
                         PlayerPrefs.Save();
                         
-                        // ✅ Scene will load, and PlayerDataLoader will load farm data
                         Debug.Log("🎮 Loading Farm scene...");
                         SceneManager.LoadScene("Farm");
                     },

@@ -43,13 +43,14 @@ public class PlayerDataLoader : MonoBehaviour
                     playerWallet.SetLocation(userData.nation);
                     playerWallet.SetVideo(userData.video);
                     playerWallet.SetUserFarms(userData.userFarms);
+                    playerWallet.SetReferralCode(userData.referralCode); // ✅ NEW: Set referral code
                     
                     if (int.TryParse(userData.userFP, out int fp))
                         playerWallet.SetFP(fp);
                     else
                         playerWallet.SetFP(0);
 
-                    Debug.Log($"💰 PlayerWallet updated: {userData.nickName}, {userData.nation}, {userData.userFP} FP, {userData.video} videos, {userData.userFarms} farms");
+                    Debug.Log($"💰 PlayerWallet updated: {userData.nickName}, {userData.nation}, {userData.userFP} FP, {userData.video} videos, {userData.userFarms} farms, Referral: {userData.referralCode}");
                 }
                 else
                 {
@@ -60,6 +61,7 @@ public class PlayerDataLoader : MonoBehaviour
                 PlayerPrefs.SetString("email", userData.email);
                 PlayerPrefs.SetString("nickname", userData.nickName);
                 PlayerPrefs.SetInt("userFarms", userData.userFarms);
+                PlayerPrefs.SetString("referralCode", userData.referralCode); // ✅ NEW: Save to PlayerPrefs
                 PlayerPrefs.Save();
 
                 // ✅ Load basket data
@@ -187,7 +189,7 @@ public class PlayerDataLoader : MonoBehaviour
     }
 
     /// <summary>
-    /// ✅ UPDATED: Convert a single FarmSummary to FarmData with all backend data
+    /// ✅ Convert a single FarmSummary to FarmData with all backend data
     /// </summary>
     private FarmData ConvertSummaryToFarmData(FarmSummary summary, int index)
     {

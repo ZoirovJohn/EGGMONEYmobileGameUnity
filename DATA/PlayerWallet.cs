@@ -14,6 +14,7 @@ public class PlayerWallet : MonoBehaviour
     [SerializeField, Min(0)] int eggs = 0;
     [SerializeField, Min(0)] int video = 0;
     [SerializeField, Min(0)] int userFarms = 0;
+    [SerializeField] string referralCode = ""; // ✅ NEW: Referral code from backend
 
     // =========================
     // Wallet
@@ -61,6 +62,7 @@ public class PlayerWallet : MonoBehaviour
     public int Eggs => eggs;
     public int Video => video;
     public int UserFarms => userFarms;
+    public string ReferralCode => referralCode; // ✅ NEW: Public getter
     public int FP => fp;
 
     public int Friends => friends;
@@ -209,6 +211,15 @@ public class PlayerWallet : MonoBehaviour
         if (userFarms == newUserFarms) return;
         userFarms = newUserFarms;
         Debug.Log($"🚜 SetUserFarms: Set to {userFarms} farms");
+        OnProfileChanged?.Invoke();
+    }
+
+    // ✅ NEW: Set referral code
+    public void SetReferralCode(string code)
+    {
+        if (string.IsNullOrEmpty(code) || referralCode == code) return;
+        referralCode = code;
+        Debug.Log($"🎫 SetReferralCode: Set to {referralCode}");
         OnProfileChanged?.Invoke();
     }
 
