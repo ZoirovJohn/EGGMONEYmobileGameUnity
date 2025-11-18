@@ -25,6 +25,9 @@ public class CollectGameCardController : MonoBehaviour
     [SerializeField] private AudioClip completeSound;     // Sound when 100% complete
     private AudioSource audioSource;
 
+    [Header("Collecting Manager")]
+    [SerializeField] private CollectingManager collectingManager;
+
     private List<CollectGameCard> cards = new List<CollectGameCard>();
     private int nextNumber = 1; // User must click this number next
     private bool isLocked = false;
@@ -160,6 +163,19 @@ public class CollectGameCardController : MonoBehaviour
             if (gamesCompleted >= totalGamesNeeded)
             {
                 PlaySound(completeSound);
+                
+                // 🥚 Call collecting API when 100% complete
+                if (collectingManager != null)
+                {
+                    collectingManager.CollectAll(
+                        onSuccess: (response) => {
+                            Debug.Log($"✅ Collection successful! Collected: {response.collected} eggs, Basket total: {response.basketEggCount}");
+                        },
+                        onError: (error) => {
+                            Debug.LogError("Collection failed: " + error);
+                        }
+                    );
+                }
             }
         }
 

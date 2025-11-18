@@ -17,10 +17,13 @@ public class CardController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI progressText;
 
     [Header("Sound Effects")]
-    [SerializeField] private AudioClip cardFlipSound;     // Sound when card is clicked/flipped
-    [SerializeField] private AudioClip matchSound;        // Sound when cards match
-    [SerializeField] private AudioClip completeSound;     // Sound when 100% complete
+    [SerializeField] private AudioClip cardFlipSound;
+    [SerializeField] private AudioClip matchSound;
+    [SerializeField] private AudioClip completeSound;
     private AudioSource audioSource;
+
+    [Header("Cleanup Manager")]
+    [SerializeField] private CleanupManager cleanupManager;
 
     private List<Sprite> spritePairs;
     private Card firstSelected;
@@ -34,7 +37,6 @@ public class CardController : MonoBehaviour
 
     private void Start()
     {
-        // Get or add AudioSource component
         audioSource = GetComponent<AudioSource>();
         if (audioSource == null)
             audioSource = gameObject.AddComponent<AudioSource>();
@@ -100,7 +102,6 @@ public class CardController : MonoBehaviour
     {
         if (isChecking || card.isSelected) return;
 
-        // 🔊 Play card flip sound
         PlaySound(cardFlipSound);
 
         card.Show();
@@ -123,16 +124,13 @@ public class CardController : MonoBehaviour
 
         if (firstSelected.GetIconSprite() == secondSelected.GetIconSprite())
         {
-            // 🔊 Play match sound
             PlaySound(matchSound);
 
-            // Match found
             firstSelected.SetMatched();
             secondSelected.SetMatched();
             
             matchedPairs++;
             
-            // Check if current game is complete
             if (matchedPairs >= totalPairs)
             {
                 yield return new WaitForSeconds(1f);
@@ -141,7 +139,6 @@ public class CardController : MonoBehaviour
         }
         else
         {
-            // No match
             firstSelected.Hide();
             secondSelected.Hide();
         }
@@ -153,32 +150,37 @@ public class CardController : MonoBehaviour
 
     private void OnGameComplete()
     {
-        // ✅ Only increment if not at max
         if (gamesCompleted < totalGamesNeeded)
         {
             gamesCompleted++;
             UpdateProgress();
             
-            // 🔊 Play complete sound when reaching 100%
             if (gamesCompleted >= totalGamesNeeded)
             {
                 PlaySound(completeSound);
+                
+                // 🧹 Call cleanup API when 100% complete
+                if (cleanupManager != null)
+                {
+                    cleanupManager.CleanAll(
+                        onSuccess: (response) => Debug.Log("Cleanup successful after game completion"),
+                        onError: (error) => Debug.LogError("Cleanup failed: " + error)
+                    );
+                }
             }
         }
         
         if (gamesCompleted >= totalGamesNeeded)
         {
             Debug.Log("🎉 ALL GAMES COMPLETE! 100% Progress!");
-            // Keep progress at 100%, but allow replay
         }
         
-        // Start next game automatically (player can keep playing)
         StartNewGame();
     }
 
     private void UpdateProgress()
     {
-        int cardsToFill = gamesCompleted * 10; // 1 game = 10 cards (100%)
+        int cardsToFill = gamesCompleted * 10;
         
         for (int i = 0; i < progressCards.Length; i++)
         {
@@ -192,7 +194,7 @@ public class CardController : MonoBehaviour
     {
         if (progressText != null)
         {
-            int percent = gamesCompleted * 100; // 1 game = 100%
+            int percent = gamesCompleted * 100;
             progressText.text = percent + "%";
         }
     }
