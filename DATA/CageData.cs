@@ -31,6 +31,8 @@ public class FarmData
     public int champChicks = 0;
     public int legendChicks = 0;      // ✅ Added for backend support
     public int superLegendChicks = 0; // ✅ Added for backend support
+    public int premiumNests = 0;      // ✅ Count of premium nests
+    public int normalNests = 0;       // ✅ Count of normal nests
     
     // Cage list
     public List<CageData> cages = new List<CageData>();
