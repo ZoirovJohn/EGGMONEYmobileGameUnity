@@ -36,6 +36,9 @@ public class FarmHeaderManager : MonoBehaviour
     public Transform centreAreaRoot;
     public GameObject farmPanel;
 
+    [Header("Footer Panel")]
+    [SerializeField] private FooterPanelSwitcher footerPanelSwitcher;
+
     [Header("Responsive Viewport Settings")]
     public int visibleItemsPhone = 4;
     public int visibleItemsTablet = 5;
@@ -81,6 +84,16 @@ public class FarmHeaderManager : MonoBehaviour
         if (playerWallet == null)
         {
             Debug.LogWarning("⚠️ PlayerWallet not assigned - will use default farm count");
+        }
+
+        // ✅ Auto-find FooterPanelSwitcher if not assigned
+        if (footerPanelSwitcher == null)
+        {
+            footerPanelSwitcher = FindAnyObjectByType<FooterPanelSwitcher>();
+            if (footerPanelSwitcher != null)
+            {
+                Debug.Log("✅ Auto-found FooterPanelSwitcher");
+            }
         }
 
         // Load farm counts from PlayerWallet (or fallback to database)
@@ -336,7 +349,7 @@ public class FarmHeaderManager : MonoBehaviour
             Debug.Log("✅ Added LockSlotClick component to lock slot");
         }
         
-        // ✅ NEW: Assign FarmHeaderManager reference
+        // ✅ Assign FarmHeaderManager reference
         var farmHeaderField = typeof(LockSlotClick).GetField("farmHeaderManager", 
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         
@@ -427,9 +440,9 @@ public class FarmHeaderManager : MonoBehaviour
 
     /// <summary>
     /// Close all panels inside CentreArea except farmPanel
+    /// Also clears footer button background highlights
     /// </summary>
-    // In FarmHeaderManager.cs, change line 424:
-    public void CloseAllCentreAreaPanels() // ✅ Changed from private to public
+    public void CloseAllCentreAreaPanels()
     {
         if (centreAreaRoot == null)
         {
@@ -450,6 +463,13 @@ public class FarmHeaderManager : MonoBehaviour
         if (farmPanel != null)
         {
             farmPanel.SetActive(true);
+        }
+        
+        // ✅ Clear footer button highlights when switching to farm view
+        if (footerPanelSwitcher != null)
+        {
+            footerPanelSwitcher.ClearFooterSelection(closePanels: false);
+            Debug.Log("🎨 Cleared footer button backgrounds");
         }
         
         Debug.Log("🚪 Closed all CentreArea panels except farm panel");
