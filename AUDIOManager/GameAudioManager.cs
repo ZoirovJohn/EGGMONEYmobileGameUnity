@@ -28,24 +28,26 @@ public class GameAudioManager : MonoBehaviour
         }
         else
         {
+            // IMPORTANT: Copy clips from the new scene instance before destroying
+            if (bgmClips != null && bgmClips.Length > 0)
+            {
+                Debug.Log("Copying audio clips from duplicate instance");
+                Instance.bgmClips = bgmClips;
+                Instance.buttonClickClip = buttonClickClip;
+                
+                // Restart music with new clips if not playing
+                if (!Instance.musicSource.isPlaying)
+                {
+                    Instance.currentTrackIndex = 0;
+                    Instance.StartCoroutine(Instance.StartMusicDelayed());
+                }
+            }
+            
             Destroy(gameObject);
             return;
         }
     }
     
-    private void OnEnable()
-    {
-        // Resume music when scene loads if Instance exists
-        if (Instance == this && musicSource != null && !musicSource.isPlaying)
-        {
-            if (bgmClips != null && bgmClips.Length > 0)
-            {
-                Debug.Log("Resuming music on scene load");
-                PlayNextTrack();
-            }
-        }
-    }
-
     private void InitializeAudioSources()
     {
         if (musicSource == null)
@@ -60,28 +62,27 @@ public class GameAudioManager : MonoBehaviour
             Debug.LogWarning("SFX AudioSource was missing - created automatically");
         }
 
-        if (musicSource.volume == 0) musicSource.volume = 0.7f;
-        if (sfxSource.volume == 0) sfxSource.volume = 1f;
+        musicSource.volume = musicSource.volume == 0 ? 0.7f : musicSource.volume;
+        sfxSource.volume = sfxSource.volume == 0 ? 1f : sfxSource.volume;
     }
 
     private void Start()
     {
-        // Start music immediately when AudioManager is created
-        StartCoroutine(StartMusicDelayed());
+        // Only start if this is the singleton instance
+        if (Instance == this)
+        {
+            StartCoroutine(StartMusicDelayed());
+        }
     }
 
-    private System.Collections.IEnumerator StartMusicDelayed()
+    private IEnumerator StartMusicDelayed()
     {
-        // Wait a frame to ensure everything is initialized
         yield return null;
 
-        if (Instance == this && bgmClips != null && bgmClips.Length > 0)
+        if (bgmClips != null && bgmClips.Length > 0 && !musicSource.isPlaying)
         {
-            if (!musicSource.isPlaying)
-            {
-                Debug.Log("🎵 Starting BGM");
-                PlayNextTrack();
-            }
+            Debug.Log("🎵 Starting BGM with " + bgmClips.Length + " tracks");
+            PlayNextTrack();
         }
     }
 
@@ -100,10 +101,12 @@ public class GameAudioManager : MonoBehaviour
         musicSource.clip = bgmClips[currentTrackIndex];
         musicSource.loop = false;
         musicSource.Play();
+        Debug.Log($"Playing track {currentTrackIndex}: {bgmClips[currentTrackIndex].name}");
 
         currentTrackIndex = (currentTrackIndex + 1) % bgmClips.Length;
     }
 
+    // Rest of your methods remain the same...
     public void PlaySFX(AudioClip clip)
     {
         if (clip != null && sfxSource != null)
