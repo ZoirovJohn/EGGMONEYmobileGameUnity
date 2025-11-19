@@ -151,16 +151,21 @@ public class inventoryCageInfo : MonoBehaviour
         }
     }
 
+    // In ShowSetItemPanel():
     void ShowSetItemPanel()
     {
         if (infoErrorChanger != null)
         {
             infoErrorChanger.OpenInfoSetItemToCage();
+            
+            // Pass the selected item to ManyToFarm
+            ManyToFarm manyToFarm = FindAnyObjectByType<ManyToFarm>();
+            if (manyToFarm != null)
+            {
+                manyToFarm.SetItem(cellId);
+            }
+            
             Debug.Log($"✅ Opened InfoSetItemToCage for '{cellId.productId}'");
-        }
-        else
-        {
-            Debug.LogWarning("⚠️ InfoErrorChanger is not assigned!");
         }
     }
 

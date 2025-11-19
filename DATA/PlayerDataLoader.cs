@@ -43,7 +43,7 @@ public class PlayerDataLoader : MonoBehaviour
                     playerWallet.SetLocation(userData.nation);
                     playerWallet.SetVideo(userData.video);
                     playerWallet.SetUserFarms(userData.userFarms);
-                    playerWallet.SetReferralCode(userData.referralCode); // ✅ NEW: Set referral code
+                    playerWallet.SetReferralCode(userData.referralCode);
                     
                     if (int.TryParse(userData.userFP, out int fp))
                         playerWallet.SetFP(fp);
@@ -61,7 +61,7 @@ public class PlayerDataLoader : MonoBehaviour
                 PlayerPrefs.SetString("email", userData.email);
                 PlayerPrefs.SetString("nickname", userData.nickName);
                 PlayerPrefs.SetInt("userFarms", userData.userFarms);
-                PlayerPrefs.SetString("referralCode", userData.referralCode); // ✅ NEW: Save to PlayerPrefs
+                PlayerPrefs.SetString("referralCode", userData.referralCode);
                 PlayerPrefs.Save();
 
                 // ✅ Load basket data
@@ -189,7 +189,7 @@ public class PlayerDataLoader : MonoBehaviour
     }
 
     /// <summary>
-    /// ✅ Convert a single FarmSummary to FarmData with all backend data
+    /// ✅ FIXED: Convert a single FarmSummary to FarmData with correct nest count
     /// </summary>
     private FarmData ConvertSummaryToFarmData(FarmSummary summary, int index)
     {
@@ -203,47 +203,38 @@ public class PlayerDataLoader : MonoBehaviour
             isPremium = summary.farm.isPremium,
             maxCapacity = summary.farm.maxCapacity,
             
-            // ✅ Nest data from backend
-            nestsOccupied = summary.nests.occupied,
+            // ✅✅ FIXED: Use summary.nests.total instead of occupied
+            // This gives the TOTAL number of nests (10), not just occupied ones (2)
+            nestsOccupied = summary.nests.total,  // ✅ CORRECT!
             
             cages = new System.Collections.Generic.List<CageData>()
         };
 
-        // ✅ Count chicks by kind from backend nest details
-        int totalNormalChicks = 0;
-        int totalChampChicks = 0;
-        int totalLegendChicks = 0;
-        int totalSuperLegendChicks = 0;
-
+        // ✅ Count chicks by kind from backend hen stats
+        farm.normalChicks = summary.henStats.byKind.Normal;
+        farm.champChicks = summary.henStats.byKind.Champ;
+        farm.legendChicks = summary.henStats.byKind.Legend;
+        farm.superLegendChicks = summary.henStats.byKind.SuperLegend;
+        
+        // ✅ Count premium and normal nests
+        int premiumNests = 0;
+        int normalNests = 0;
+        
         if (summary.nests.details != null)
         {
             foreach (var nest in summary.nests.details)
             {
-                if (nest.hen != null && nest.hen.alive)
-                {
-                    switch (nest.hen.kind)
-                    {
-                        case "Normal":
-                            totalNormalChicks++;
-                            break;
-                        case "Champ":
-                            totalChampChicks++;
-                            break;
-                        case "Legend":
-                            totalLegendChicks++;
-                            break;
-                        case "SuperLegend":
-                            totalSuperLegendChicks++;
-                            break;
-                    }
-                }
+                if (nest.isPremium)
+                    premiumNests++;
+                else
+                    normalNests++;
             }
         }
-
-        farm.normalChicks = totalNormalChicks;
-        farm.champChicks = totalChampChicks;
-        farm.legendChicks = totalLegendChicks;
-        farm.superLegendChicks = totalSuperLegendChicks;
+        
+        farm.premiumNests = premiumNests;
+        farm.normalNests = normalNests;
+        
+        Debug.Log($"🪺 Nest breakdown: {premiumNests} premium, {normalNests} normal (Total: {summary.nests.total})");
         
         // ✅ Robot data from backend
         if (summary.robot != null)
@@ -277,7 +268,7 @@ public class PlayerDataLoader : MonoBehaviour
         }
 
         Debug.Log($"🐔 Farm {summary.farm.farmNumber}: " +
-                  $"Nests: {farm.nestsOccupied}/{farm.maxCapacity}, " +
+                  $"Nests: {farm.nestsOccupied}/{farm.maxCapacity} ({premiumNests} premium, {normalNests} normal), " +
                   $"Normal: {farm.normalChicks}, " +
                   $"Champ: {farm.champChicks}, " +
                   $"Legend: {farm.legendChicks}, " +

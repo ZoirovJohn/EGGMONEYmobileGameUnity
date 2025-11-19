@@ -13,7 +13,7 @@ public class FarmSummary
 [Serializable]
 public class FarmInfo
 {
-    public int farmNumber;
+    public int farmNumber; 
     public bool isPremium;
     public int maxCapacity;
 }
