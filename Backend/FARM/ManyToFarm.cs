@@ -510,42 +510,47 @@ public class ManyToFarm : MonoBehaviour
 
     /// <summary>
     /// Map Unity product IDs to backend tiers
-    /// For HENS: "normal", "champ", "legend", "superlegend" (lowercase!)
+    /// For HENS: "normal", "gold", "legend", "superlegend" (lowercase!)
     /// For NESTS: "normal", "premium" (lowercase)
     /// For ROBOT: null (no tier)
+    /// 
+    /// IMPORTANT: Backend stores champ hens as "gold" tier!
     /// </summary>
     string MapProductIdToTier(string productId)
     {
         string normalized = productId.ToLowerInvariant().Replace("_", "").Replace(" ", "");
         
-        Debug.Log($"🔍 MapProductIdToTier: '{productId}' → normalized: '{normalized}'");
+        Debug.Log($"🔍 MapProductIdToTier input: '{productId}'");
+        Debug.Log($"🔍 Normalized: '{normalized}'");
         
-        // ✅ HEN TIERS (lowercase - backend stores eggs with lowercase tiers!)
+        // ✅ HEN TIERS (lowercase - backend expects these exact values!)
         if (normalized.Contains("chick") || normalized.Contains("hen"))
         {
-            if (normalized.Contains("superlegend"))
+            // Check in order of specificity (most specific first)
+            if (normalized.Contains("superlegend") || normalized.Contains("super"))
             {
-                Debug.Log($"   ✅ Hen tier: 'superlegend'");
+                Debug.Log($"   ✅ Returning hen tier: 'superlegend'");
                 return "superlegend";
             }
             else if (normalized.Contains("legend"))
             {
-                Debug.Log($"   ✅ Hen tier: 'legend'");
+                Debug.Log($"   ✅ Returning hen tier: 'legend'");
                 return "legend";
             }
-            else if (normalized.Contains("champ"))
+            // ✅ FIXED: Map "champ" to "gold" for backend (backend stores it as "gold")
+            else if (normalized.Contains("champ") || normalized.Contains("gold"))
             {
-                Debug.Log($"   ✅ Hen tier: 'champ'");
-                return "champ";
+                Debug.Log($"   ✅ Returning hen tier: 'gold' (backend expects 'gold' not 'champ')");
+                return "gold";
             }
-            else if (normalized.Contains("normal") || normalized.Contains("white"))
+            else if (normalized.Contains("normal") || normalized.Contains("white") || normalized.Contains("basic"))
             {
-                Debug.Log($"   ✅ Hen tier: 'normal'");
+                Debug.Log($"   ✅ Returning hen tier: 'normal'");
                 return "normal";
             }
             else
             {
-                Debug.LogWarning($"⚠️ Unknown hen tier for: {productId}, defaulting to normal");
+                Debug.LogWarning($"⚠️ Unknown hen tier for: {productId}, defaulting to 'normal'");
                 return "normal";
             }
         }
@@ -553,14 +558,20 @@ public class ManyToFarm : MonoBehaviour
         // ✅ NEST TIERS (lowercase)
         if (normalized.Contains("nest"))
         {
-            if (normalized.Contains("super") || normalized.Contains("premium"))
+            if (normalized.Contains("premium") || normalized.Contains("super"))
             {
-                Debug.Log($"   ✅ Nest tier: 'premium'");
+                Debug.Log($"   ✅ Returning nest tier: 'premium'");
                 return "premium";
+            }
+            // Don't map "gold" nests - backend might expect "gold" for nests
+            else if (normalized.Contains("gold"))
+            {
+                Debug.Log($"   ⚠️ Gold nest detected - returning 'premium' (verify if backend expects 'gold' or 'premium')");
+                return "premium"; // Change to "gold" if backend expects it
             }
             else
             {
-                Debug.Log($"   ✅ Nest tier: 'normal'");
+                Debug.Log($"   ✅ Returning nest tier: 'normal'");
                 return "normal";
             }
         }
@@ -568,11 +579,11 @@ public class ManyToFarm : MonoBehaviour
         // ✅ ROBOT - no tier needed
         if (normalized.Contains("robot"))
         {
-            Debug.Log($"   ✅ Robot: no tier");
+            Debug.Log($"   ✅ Robot item: returning null (no tier)");
             return null;
         }
         
-        Debug.LogWarning($"⚠️ Unknown tier for: {productId}");
+        Debug.LogWarning($"⚠️ Unknown item type for: {productId}, returning null");
         return null;
     }
 
