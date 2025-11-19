@@ -17,7 +17,7 @@ public class EggHatchAPI : MonoBehaviour
     [SerializeField] bool autoFind = true;
     
     [Header("Delayed Refresh Settings")]
-    [SerializeField] float delayedRefreshTime = 130f; // 130 seconds
+    [SerializeField] float delayedRefreshTime = 13f; // 13 seconds
 
     // ✅ Track ALL scheduled delayed refreshes (one per hatch)
     private List<Coroutine> scheduledRefreshes = new List<Coroutine>();
@@ -224,7 +224,7 @@ public class EggHatchAPI : MonoBehaviour
     }
 
     /// <summary>
-    /// Refreshes inventory after a delay (e.g., 130 seconds for chick growth)
+    /// Refreshes inventory after a delay (e.g., 13 seconds for chick growth)
     /// Each hatch gets its own independent timer
     /// </summary>
     IEnumerator DelayedInventoryRefresh(float delaySeconds, string hatchTime, string delayedTime)

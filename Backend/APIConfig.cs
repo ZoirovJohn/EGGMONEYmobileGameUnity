@@ -4,5 +4,5 @@ using UnityEngine;
 public class APIConfig : ScriptableObject
 {
     [Header("Backend URL")]
-    public string baseUrl = "http://localhost:3000";
+    public string baseUrl = "http://localhost:4000";
 }
