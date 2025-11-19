@@ -238,7 +238,7 @@ public class EggExchangeManager : MonoBehaviour
         // Update wallet immediately in game
         if (wallet != null)
         {
-            wallet.AddEggs(-eggsToExchange);
+            wallet.TrySpendEggs(eggsToExchange);  // ✅ Use this instead
             wallet.Add(fpToAdd);
             Debug.Log($"💰 In-Game Exchange: -{eggsToExchange} eggs, +{fpToAdd} FP");
         }
