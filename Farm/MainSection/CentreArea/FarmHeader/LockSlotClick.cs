@@ -12,6 +12,7 @@ public class LockSlotClick : MonoBehaviour
     [SerializeField] private InventoryItemsBarChanger inventoryBarChanger;
     [SerializeField] private InfoErrorChanger infoErrorChanger;
     [SerializeField] private InventoryLockItemApplier lockItemApplier;
+    [SerializeField] private FarmHeaderManager farmHeaderManager; // ✅ NEW
     
     [Header("UI References")]
     [SerializeField] private TMP_Text messageText;
@@ -42,6 +43,12 @@ public class LockSlotClick : MonoBehaviour
             {
                 lockItemApplier = FindAnyObjectByType<InventoryLockItemApplier>();
             }
+            
+            // ✅ NEW: Auto-find FarmHeaderManager
+            if (farmHeaderManager == null)
+            {
+                farmHeaderManager = FindAnyObjectByType<FarmHeaderManager>();
+            }
         }
         
         // Get button component (check both root and children)
@@ -67,6 +74,17 @@ public class LockSlotClick : MonoBehaviour
     private void OnLockSlotClicked()
     {
         Debug.Log("🔒 Lock slot clicked - Opening farm unlock selection!");
+        
+        // ✅ NEW: Close all centre area panels except farm panel (same as farm slot behavior)
+        if (farmHeaderManager != null)
+        {
+            farmHeaderManager.CloseAllCentreAreaPanels();
+            Debug.Log("✅ Closed all centre area panels except farm panel");
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ FarmHeaderManager reference is missing! Panels may not close properly.");
+        }
         
         // Find UI elements at click time (more reliable)
         FindUIElements();

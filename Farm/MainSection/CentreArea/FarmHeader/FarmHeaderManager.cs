@@ -336,6 +336,16 @@ public class FarmHeaderManager : MonoBehaviour
             Debug.Log("✅ Added LockSlotClick component to lock slot");
         }
         
+        // ✅ NEW: Assign FarmHeaderManager reference
+        var farmHeaderField = typeof(LockSlotClick).GetField("farmHeaderManager", 
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        
+        if (farmHeaderField != null)
+        {
+            farmHeaderField.SetValue(lockClick, this);
+            Debug.Log("✅ Assigned FarmHeaderManager to lock slot");
+        }
+        
         if (inventoryBarChanger != null)
         {
             var field = typeof(LockSlotClick).GetField("inventoryBarChanger", 
@@ -418,7 +428,8 @@ public class FarmHeaderManager : MonoBehaviour
     /// <summary>
     /// Close all panels inside CentreArea except farmPanel
     /// </summary>
-    void CloseAllCentreAreaPanels()
+    // In FarmHeaderManager.cs, change line 424:
+    public void CloseAllCentreAreaPanels() // ✅ Changed from private to public
     {
         if (centreAreaRoot == null)
         {
