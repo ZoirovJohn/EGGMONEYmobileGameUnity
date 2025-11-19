@@ -10,6 +10,7 @@ public class RegisterReferral : MonoBehaviour
     public TMP_InputField referralCodeInput;
     public Button registerButton;
     public TMP_Text infoMessage;
+    public PlayerWallet playerWallet;
 
     [Header("Config")]
     public APIConfig config; // assign in Inspector
@@ -28,6 +29,23 @@ public class RegisterReferral : MonoBehaviour
         {
             Debug.LogError("Referral code input field is not assigned");
             return;
+        }
+
+        // ✅ Check if user location is KR
+        if (playerWallet != null)
+        {
+            string userLocation = playerWallet.Location;
+            
+            if (userLocation == "KR")
+            {
+                ShowMessage("Not allowed, change location!");
+                Debug.LogWarning("❌ Referral registration blocked: User location is KR");
+                return;
+            }
+        }
+        else
+        {
+            Debug.LogError("PlayerWallet is not assigned!");
         }
 
         string code = referralCodeInput.text.Trim();
