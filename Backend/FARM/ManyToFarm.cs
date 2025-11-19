@@ -219,9 +219,15 @@ public class ManyToFarm : MonoBehaviour
         UpdateButtonStates();
         ShowLoading(true);
         
+        // ✅ Log the original product ID
+        Debug.Log($"🔍 Original productId from cellId: '{cellId.productId}'");
+        
         // Map product ID to backend format
         string itemType = MapProductIdToItemType(cellId.productId);
         string tier = MapProductIdToTier(cellId.productId);
+        
+        // ✅ Log what we mapped to
+        Debug.Log($"📋 Mapped to → itemType: '{itemType}', tier: '{tier}'");
         
         if (string.IsNullOrEmpty(itemType))
         {
@@ -232,7 +238,7 @@ public class ManyToFarm : MonoBehaviour
             yield break;
         }
         
-        Debug.Log($"📦 Placing {currentQuantity}x {itemType} ({tier}) in Farm {targetFarmNumber}");
+        Debug.Log($"📦 Placing {currentQuantity}x {itemType} (tier: {tier}) in Farm {targetFarmNumber}");
         
         // Create request body
         var requestBody = new PlaceFarmRequest
@@ -244,7 +250,7 @@ public class ManyToFarm : MonoBehaviour
         };
         
         string jsonBody = JsonUtility.ToJson(requestBody);
-        Debug.Log($"📤 Request body: {jsonBody}");
+        Debug.Log($"📤 Full JSON payload: {jsonBody}");
         
         // Get access token
         string accessToken = AuthStorage.GetAccessToken();
@@ -261,7 +267,10 @@ public class ManyToFarm : MonoBehaviour
         // Prepare request
         byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonBody);
         
-        UnityWebRequest request = new UnityWebRequest(apiConfig.baseUrl + "/farm/place", "POST");
+        string url = apiConfig.baseUrl + "/farm/place";
+        Debug.Log($"🌐 POST to: {url}");
+        
+        UnityWebRequest request = new UnityWebRequest(url, "POST");
         request.uploadHandler = new UploadHandlerRaw(bodyRaw);
         request.downloadHandler = new DownloadHandlerBuffer();
         request.SetRequestHeader("Content-Type", "application/json");
@@ -322,7 +331,12 @@ public class ManyToFarm : MonoBehaviour
             if (response != null)
             {
                 Debug.Log($"✅ Successfully placed {response.placed}x {response.type} in Farm {response.farmNumber}");
-                Debug.Log($"📊 Current nest count: {response.currentNestCount}/{response.maxCapacity}");
+                
+                // Only log nest count if it exists in response
+                if (response.currentNestCount > 0 || response.maxCapacity > 0)
+                {
+                    Debug.Log($"📊 Current nest count: {response.currentNestCount}/{response.maxCapacity}");
+                }
                 
                 // Update local wallet (optimistic update)
                 if (wallet != null)
@@ -467,22 +481,26 @@ public class ManyToFarm : MonoBehaviour
     {
         string normalized = productId.ToLowerInvariant().Replace("_", "").Replace(" ", "");
         
-        // Nest items
-        if (normalized == "nest" || normalized == "supernest")
-        {
-            return "nest";
-        }
+        Debug.Log($"🔍 MapProductIdToItemType: '{productId}' → normalized: '{normalized}'");
         
-        // Hen items (chicks)
-        if (normalized == "whitechick" || normalized == "champchick" || 
-            normalized == "chick" || normalized == "normalchick")
+        // HEN items (chicks that are already hatched hens)
+        if (normalized.Contains("chick") || normalized.Contains("hen"))
         {
+            Debug.Log($"   ✅ Mapped to: 'hen'");
             return "hen";
         }
         
-        // Robot
-        if (normalized == "robot")
+        // NEST items
+        if (normalized.Contains("nest"))
         {
+            Debug.Log($"   ✅ Mapped to: 'nest'");
+            return "nest";
+        }
+        
+        // ROBOT
+        if (normalized.Contains("robot"))
+        {
+            Debug.Log($"   ✅ Mapped to: 'robot'");
             return "robot";
         }
         
@@ -492,21 +510,70 @@ public class ManyToFarm : MonoBehaviour
 
     /// <summary>
     /// Map Unity product IDs to backend tiers
-    /// Backend accepts: "normal" or "premium"
+    /// For HENS: "normal", "champ", "legend", "superlegend" (lowercase!)
+    /// For NESTS: "normal", "premium" (lowercase)
+    /// For ROBOT: null (no tier)
     /// </summary>
     string MapProductIdToTier(string productId)
     {
         string normalized = productId.ToLowerInvariant().Replace("_", "").Replace(" ", "");
         
-        // Premium items (super variants or champ)
-        if (normalized.StartsWith("super") || normalized == "supernest" || 
-            normalized == "champchick" || normalized.Contains("champ"))
+        Debug.Log($"🔍 MapProductIdToTier: '{productId}' → normalized: '{normalized}'");
+        
+        // ✅ HEN TIERS (lowercase - backend stores eggs with lowercase tiers!)
+        if (normalized.Contains("chick") || normalized.Contains("hen"))
         {
-            return "premium";
+            if (normalized.Contains("superlegend"))
+            {
+                Debug.Log($"   ✅ Hen tier: 'superlegend'");
+                return "superlegend";
+            }
+            else if (normalized.Contains("legend"))
+            {
+                Debug.Log($"   ✅ Hen tier: 'legend'");
+                return "legend";
+            }
+            else if (normalized.Contains("champ"))
+            {
+                Debug.Log($"   ✅ Hen tier: 'champ'");
+                return "champ";
+            }
+            else if (normalized.Contains("normal") || normalized.Contains("white"))
+            {
+                Debug.Log($"   ✅ Hen tier: 'normal'");
+                return "normal";
+            }
+            else
+            {
+                Debug.LogWarning($"⚠️ Unknown hen tier for: {productId}, defaulting to normal");
+                return "normal";
+            }
         }
         
-        // Normal items
-        return "normal";
+        // ✅ NEST TIERS (lowercase)
+        if (normalized.Contains("nest"))
+        {
+            if (normalized.Contains("super") || normalized.Contains("premium"))
+            {
+                Debug.Log($"   ✅ Nest tier: 'premium'");
+                return "premium";
+            }
+            else
+            {
+                Debug.Log($"   ✅ Nest tier: 'normal'");
+                return "normal";
+            }
+        }
+        
+        // ✅ ROBOT - no tier needed
+        if (normalized.Contains("robot"))
+        {
+            Debug.Log($"   ✅ Robot: no tier");
+            return null;
+        }
+        
+        Debug.LogWarning($"⚠️ Unknown tier for: {productId}");
+        return null;
     }
 
     void ShowLoading(bool show)
