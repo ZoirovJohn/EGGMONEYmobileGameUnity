@@ -8,14 +8,16 @@ public class InfoErrorChanger : MonoBehaviour
     [SerializeField] private GameObject infoSetItemToFarm;
     [SerializeField] private GameObject errorDefault;
     [SerializeField] private GameObject infoOpenFarm;
-    [SerializeField] private GameObject infoSetItemToCage; // ✅ NEW
+    [SerializeField] private GameObject infoSetItemToCage;
+    [SerializeField] private GameObject infoExchangeFPCoin; // ✅ NEW
 
     [Header("Texts inside Panels")]
     [SerializeField] private TMP_Text errorGoStoreText;
     [SerializeField] private TMP_Text infoSetItemToFarmText;
     [SerializeField] private TMP_Text errorDefaultText;
     [SerializeField] private TMP_Text infoOpenFarmText;
-    [SerializeField] private TMP_Text infoSetItemToCageText; // ✅ NEW
+    [SerializeField] private TMP_Text infoSetItemToCageText;
+    [SerializeField] private TMP_Text infoExchangeFPCoinText; // ✅ NEW (if you need to update text)
 
     private void Start()
     {
@@ -47,8 +49,12 @@ public class InfoErrorChanger : MonoBehaviour
     public void OpenInfoOpenFarm(string message = null)
         => ShowPanel(infoOpenFarm, infoOpenFarmText, message);
 
-    public void OpenInfoSetItemToCage(string message = null) // ✅ NEW
+    public void OpenInfoSetItemToCage(string message = null)
         => ShowPanel(infoSetItemToCage, infoSetItemToCageText, message);
+
+    // ✅ NEW: Open Exchange FP Coin Info
+    public void OpenInfoExchangeFPCoin(string message = null)
+        => ShowPanel(infoExchangeFPCoin, infoExchangeFPCoinText, message);
 
     // ✅ Close All
     public void CloseAllInfoErrorMethod()
@@ -57,6 +63,7 @@ public class InfoErrorChanger : MonoBehaviour
         if (infoSetItemToFarm != null) infoSetItemToFarm.SetActive(false);
         if (errorDefault != null) errorDefault.SetActive(false);
         if (infoOpenFarm != null) infoOpenFarm.SetActive(false);
-        if (infoSetItemToCage != null) infoSetItemToCage.SetActive(false); // ✅ NEW
+        if (infoSetItemToCage != null) infoSetItemToCage.SetActive(false);
+        if (infoExchangeFPCoin != null) infoExchangeFPCoin.SetActive(false); // ✅ NEW
     }
 }

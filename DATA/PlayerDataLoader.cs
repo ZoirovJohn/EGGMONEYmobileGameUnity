@@ -302,7 +302,7 @@ public class PlayerDataLoader : MonoBehaviour
     }
 
     [Serializable]
-    private class BasketResponse
+    public class BasketResponse
     {
         public int eggCount;
     }
