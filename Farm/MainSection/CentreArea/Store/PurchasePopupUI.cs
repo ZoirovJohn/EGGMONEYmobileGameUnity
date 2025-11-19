@@ -121,7 +121,7 @@ public class PurchasePopupUI : MonoBehaviour
 
     void SetQty(int newQty)
     {
-        qty = Mathf.Clamp(newQty, minQty, maxQty); // no affordability clamp
+        qty = Mathf.Clamp(newQty, minQty, maxQty);
         if (qtyInput && qtyInput.text != qty.ToString())
             qtyInput.text = qty.ToString();
 
@@ -159,22 +159,21 @@ public class PurchasePopupUI : MonoBehaviour
         }
         else
         {
-            // ✅ Always allow purchase attempt - let server validate
-            canBuyNow = true;
+            // ✅ Check if user has enough balance
+            bool hasEnough = wallet.Has(total);
+            canBuyNow = hasEnough;
             
             if (messageText)
             {
-                // Show local balance as reference, but don't block
-                bool hasLocalBalance = wallet.Has(total);
-                if (hasLocalBalance)
+                if (hasEnough)
                 {
                     messageText.text  = "Ready to purchase.";
                     messageText.color = new Color(0.16f, 0.6f, 0.2f);
                 }
                 else
                 {
-                    messageText.text  = "Low local balance - server will verify.";
-                    messageText.color = new Color(0.8f, 0.6f, 0.2f); // Orange/warning color
+                    messageText.text  = "Insufficient FP balance.";
+                    messageText.color = new Color(0.85f, 0.2f, 0.2f);
                 }
             }
         }
@@ -190,16 +189,33 @@ public class PurchasePopupUI : MonoBehaviour
 
     void TryBuy()
     {
-        if (!wallet || item == null) return;
+        if (!wallet || item == null)
+        {
+            if (btnBuy) btnBuy.interactable = true;
+            return;
+        }
 
         // overflow-safe total calc
         long totalL = (long)qty * unitPrice;
         int total = totalL > int.MaxValue ? int.MaxValue : (int)totalL;
 
-        // ✅ Don't check local balance - let server decide
-        // The server has the authoritative balance
+        // ✅ Check balance BEFORE calling backend
+        if (!wallet.Has(total))
+        {
+            Debug.LogWarning($"Insufficient balance: need {total} FP, have {wallet.FP} FP");
+            
+            if (messageText)
+            {
+                messageText.text  = "Insufficient FP balance.";
+                messageText.color = new Color(0.85f, 0.2f, 0.2f);
+            }
+            
+            if (btnBuy) btnBuy.interactable = true;
+            RefreshUI();
+            return;
+        }
 
-        // ✅ Call API first before local update
+        // ✅ Balance is sufficient, proceed with API call
         if (marketManager != null)
         {
             PurchaseData purchaseData = MapProductToPurchaseData(productId, qty);
@@ -219,7 +235,7 @@ public class PurchasePopupUI : MonoBehaviour
                     {
                         Debug.Log("Purchase API successful: " + response);
                         
-                        // ✅ Just deduct the price from current balance
+                        // ✅ Deduct the price from balance
                         if (wallet.TrySpend(total))
                         {
                             // Add items to local inventory
