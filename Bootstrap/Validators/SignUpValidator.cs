@@ -90,8 +90,21 @@ public class SignUpValidator : MonoBehaviour
 
         int countryIndex = ddCountry ? ddCountry.value : 0;
         var phone = (inputPhone ? inputPhone.text : "").Trim();
-        if (countryIndex == 0 || string.IsNullOrEmpty(phone)) { SetErr(errorPhone, bgPhone, "Country and phone are required."); ok = false; }
-        else if (!IsDigits(phone)) { SetErr(errorPhone, bgPhone, "Phone must be numbers only."); ok = false; }
+        if (countryIndex == 0 || string.IsNullOrEmpty(phone)) 
+        { 
+            SetErr(errorPhone, bgPhone, "Country and phone are required."); 
+            ok = false; 
+        }
+        else if (!IsDigits(phone)) 
+        { 
+            SetErr(errorPhone, bgPhone, "Phone must be numbers only."); 
+            ok = false; 
+        }
+        else if (phone.Length < 7 || phone.Length > 15) 
+        { 
+            SetErr(errorPhone, bgPhone, "Phone number must be between 7-15 digits."); 
+            ok = false; 
+        }
 
         int locIndex = ddLocation ? ddLocation.value : 0;
         if (locIndex == 0) { SetErr(errorLocation, bgLocation, "Location is required."); ok = false; }
