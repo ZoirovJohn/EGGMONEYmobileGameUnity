@@ -37,7 +37,6 @@ public class CharacterVideoLoader : MonoBehaviour
         if (autoFindVideoPlayers && (videoPlayers == null || videoPlayers.Length == 0))
         {
             videoPlayers = FindObjectsByType<VideoPlayer>(FindObjectsSortMode.None);
-            Debug.Log($"🔍 Auto-found {videoPlayers.Length} Video Players in scene");
         }
         
         // Find PlayerWallet if not assigned
@@ -50,7 +49,6 @@ public class CharacterVideoLoader : MonoBehaviour
         if (playerWallet != null)
         {
             playerWallet.OnProfileChanged += OnPlayerProfileChanged;
-            Debug.Log("📡 Subscribed to PlayerWallet.OnProfileChanged");
         }
         
         // Try to load video immediately (in case data is already loaded)
@@ -71,7 +69,6 @@ public class CharacterVideoLoader : MonoBehaviour
     /// </summary>
     private void OnPlayerProfileChanged()
     {
-        Debug.Log("🔄 PlayerWallet profile changed, reloading video...");
         LoadCharacterVideo();
     }
     
@@ -101,9 +98,6 @@ public class CharacterVideoLoader : MonoBehaviour
         // Get the user's video property (1, 2, 3, or 4)
         int userVideo = playerWallet.Video;
         
-        Debug.Log($"🎬 PlayerWallet.Video = {userVideo}");
-        Debug.Log($"🎬 Loading video {userVideo} to {videoPlayers.Length} Video Players");
-        
         // Select the correct video clip
         VideoClip selectedClip = userVideo switch
         {
@@ -113,8 +107,6 @@ public class CharacterVideoLoader : MonoBehaviour
             4 => video4,
             _ => video1 // Default to video 1 if invalid
         };
-        
-        Debug.Log($"🎥 Selected clip: {(selectedClip != null ? selectedClip.name : "NULL")}");
         
         if (selectedClip == null)
         {
@@ -141,8 +133,6 @@ public class CharacterVideoLoader : MonoBehaviour
             }
         }
         
-        Debug.Log($"✅ Video '{selectedClip.name}' assigned to {successCount} Video Players");
-        
         // Start playing all videos
         if (syncPlayback)
         {
@@ -162,7 +152,6 @@ public class CharacterVideoLoader : MonoBehaviour
                 vp.Play();
             }
         }
-        Debug.Log("▶️ All videos playing");
     }
     
     /// <summary>
@@ -177,7 +166,6 @@ public class CharacterVideoLoader : MonoBehaviour
                 vp.Pause();
             }
         }
-        Debug.Log("⏸️ All videos paused");
     }
     
     /// <summary>
@@ -192,7 +180,6 @@ public class CharacterVideoLoader : MonoBehaviour
                 vp.Stop();
             }
         }
-        Debug.Log("⏹️ All videos stopped");
     }
     
     /// <summary>

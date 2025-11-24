@@ -60,16 +60,12 @@ public class LoginValidator : MonoBehaviour
             loginData,
             onSuccess: (response) =>
             {
-                Debug.Log("✅ Login response: " + response);
-
                 LoginResponse loginData = JsonUtility.FromJson<LoginResponse>(response);
                 AuthStorage.SaveAccessToken(loginData.accessToken);
                 
                 authManager.GetMe(
                     onSuccess: (meResponse) =>
                     {
-                        Debug.Log("✅ Me response: " + meResponse);
-
                         MeResponse userData = JsonUtility.FromJson<MeResponse>(meResponse);
                         
                         PlayerWallet wallet = UnityEngine.Object.FindFirstObjectByType<PlayerWallet>();
@@ -84,8 +80,6 @@ public class LoginValidator : MonoBehaviour
                                 wallet.SetFP(fp);
                             else
                                 wallet.SetFP(0);
-
-                            Debug.Log($"💰 Wallet updated: {userData.nickName}, {userData.userFarms} farms, {userData.userFP} FP, Referral: {userData.referralCode}");
                         }
                         else
                         {
@@ -99,7 +93,6 @@ public class LoginValidator : MonoBehaviour
                         PlayerPrefs.SetString("referralCode", userData.referralCode); // ✅ NEW: Save to PlayerPrefs
                         PlayerPrefs.Save();
                         
-                        Debug.Log("🎮 Loading Farm scene...");
                         SceneManager.LoadScene("Farm");
                     },
                     onError: (err) =>

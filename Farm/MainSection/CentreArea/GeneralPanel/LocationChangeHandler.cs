@@ -84,13 +84,10 @@ public class LocationChangeHandler : MonoBehaviour
         string jsonData = $"{{\"nation\": \"{countryCode}\"}}";
 
         ShowFeedback("Updating location...", true);
-        Debug.Log($"📍 Sending location update: {countryCode}");
-
         authManager.UpdateUser(
             jsonData,
             onSuccess: (response) =>
             {
-                Debug.Log("✅ Location updated successfully: " + response);
                 ShowFeedback($"Location changed to {countryCode}", true);
                 
                 RefreshPlayerData();
@@ -120,8 +117,6 @@ public class LocationChangeHandler : MonoBehaviour
             feedbackText.text = message;
             feedbackText.color = isSuccess ? Color.green : Color.red;
         }
-        
-        Debug.Log(message);
     }
 
     private void RefreshPlayerData()
@@ -129,8 +124,6 @@ public class LocationChangeHandler : MonoBehaviour
         authManager.GetMe(
             onSuccess: (response) =>
             {
-                Debug.Log("✅ Player data refreshed: " + response);
-
                 MeResponse userData = JsonUtility.FromJson<MeResponse>(response);
 
                 if (playerWallet != null)
@@ -144,8 +137,6 @@ public class LocationChangeHandler : MonoBehaviour
                         playerWallet.SetFP(fp);
                     else
                         playerWallet.SetFP(0);
-
-                    Debug.Log($"💰 PlayerWallet updated after location change: {userData.nation}, Referral: {userData.referralCode}");
                 }
                 else
                 {

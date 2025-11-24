@@ -33,8 +33,6 @@ public class PlayerDataLoader : MonoBehaviour
         authManager.GetMe(
             onSuccess: (response) =>
             {
-                Debug.Log("✅ Player data loaded: " + response);
-
                 MeResponse userData = JsonUtility.FromJson<MeResponse>(response);
 
                 if (playerWallet != null)
@@ -49,8 +47,6 @@ public class PlayerDataLoader : MonoBehaviour
                         playerWallet.SetFP(fp);
                     else
                         playerWallet.SetFP(0);
-
-                    Debug.Log($"💰 PlayerWallet updated: {userData.nickName}, {userData.nation}, {userData.userFP} FP, {userData.video} videos, {userData.userFarms} farms, Referral: {userData.referralCode}");
                 }
                 else
                 {
@@ -89,14 +85,11 @@ public class PlayerDataLoader : MonoBehaviour
         basketManager.GetBasket(
             onSuccess: (response) =>
             {
-                Debug.Log("🧺 Basket data loaded: " + response);
-
                 BasketResponse basketData = JsonUtility.FromJson<BasketResponse>(response);
 
                 if (playerWallet != null)
                 {
                     playerWallet.SetEggs(basketData.eggCount);
-                    Debug.Log($"🥚 Eggs in basket: {basketData.eggCount}");
                 }
             },
             onError: (err) =>
@@ -129,13 +122,10 @@ public class PlayerDataLoader : MonoBehaviour
             return;
         }
 
-        Debug.Log($"📡 Loading {farmCount} farms from backend...");
-
         farmAPIManager.LoadAllFarmSummaries(
             farmCount,
             onAllLoaded: (summaries) =>
             {
-                Debug.Log($"✅ All {farmCount} farms loaded successfully!");
                 ConvertAndStoreFarmData(summaries);
             },
             onError: (error) =>
@@ -144,7 +134,6 @@ public class PlayerDataLoader : MonoBehaviour
                 // Fallback to JSON data if available
                 if (farmDatabase.farmDataJSON != null)
                 {
-                    Debug.Log("📂 Falling back to local JSON data");
                     farmDatabase.LoadFromJSON();
                 }
             }
@@ -174,13 +163,10 @@ public class PlayerDataLoader : MonoBehaviour
         // Generate cages from farm data
         farmDatabase.GenerateCagesFromFarmData();
 
-        Debug.Log($"✅ Loaded {farmDatabase.farms.Count} farms into FarmDatabase");
-
         // Refresh UI
         if (farmHeaderManager != null)
         {
             farmHeaderManager.Refresh();
-            Debug.Log("🔄 FarmHeaderManager refreshed");
         }
         else
         {
@@ -234,8 +220,6 @@ public class PlayerDataLoader : MonoBehaviour
         farm.premiumNests = premiumNests;
         farm.normalNests = normalNests;
         
-        Debug.Log($"🪺 Nest breakdown: {premiumNests} premium, {normalNests} normal (Total: {summary.nests.total})");
-        
         // ✅ Robot data from backend
         if (summary.robot != null)
         {
@@ -266,16 +250,6 @@ public class PlayerDataLoader : MonoBehaviour
         {
             farm.farmKeyType = "normal";
         }
-
-        Debug.Log($"🐔 Farm {summary.farm.farmNumber}: " +
-                  $"Nests: {farm.nestsOccupied}/{farm.maxCapacity} ({premiumNests} premium, {normalNests} normal), " +
-                  $"Normal: {farm.normalChicks}, " +
-                  $"Champ: {farm.champChicks}, " +
-                  $"Legend: {farm.legendChicks}, " +
-                  $"SuperLegend: {farm.superLegendChicks}, " +
-                  $"Premium: {farm.isPremium}, " +
-                  $"HasRobot: {farm.hasRobot}, " +
-                  $"RobotActive: {farm.robotActive}");
 
         return farm;
     }

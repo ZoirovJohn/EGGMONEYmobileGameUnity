@@ -51,8 +51,6 @@ public class InfoHatchManager : MonoBehaviour
         }
         else
         {
-            Debug.Log($"✅ InfoHatch Panel assigned: {infoHatchPanel.name}");
-            
             // Make sure it starts disabled
             if (infoHatchPanel.activeSelf)
             {
@@ -78,13 +76,11 @@ public class InfoHatchManager : MonoBehaviour
         RefreshUI();
         
         // Show the panel
-        Debug.Log($"🚪 Opening InfoHatch panel: {infoHatchPanel.name}");
         infoHatchPanel.SetActive(true);
         
         // Bring to front in UI hierarchy
         infoHatchPanel.transform.SetAsLastSibling();
         
-        Debug.Log($"✅ InfoHatch opened: {eggType}, available: {availableEggs}");
     }
 
     void SetupButtons()
@@ -170,7 +166,6 @@ public class InfoHatchManager : MonoBehaviour
         if (infoHatchPanel != null)
         {
             infoHatchPanel.SetActive(false);
-            Debug.Log("❌ Closed InfoHatch panel");
         }
     }
 
@@ -179,8 +174,6 @@ public class InfoHatchManager : MonoBehaviour
     /// </summary>
     public void OnHatchBtnClick()
     {
-        Debug.Log($"🥚 OnHatchBtnClick called! currentQty={currentQty}, availableEggs={availableEggs}, eggType={eggType}");
-        
         if (currentQty <= 0 || currentQty > availableEggs)
         {
             Debug.LogWarning("⚠️ Cannot hatch: invalid quantity");
@@ -206,19 +199,13 @@ public class InfoHatchManager : MonoBehaviour
         
         if (btnOk) btnOk.interactable = false;
         
-        Debug.Log($"🥚 Starting hatch process: {currentQty}x {eggType}");
-        
         hatchAPI.HatchEggs(
             eggType: eggType,
             quantity: currentQty,
             onSuccess: (response) =>
             {
-                Debug.Log($"✅ Hatching complete! Hatched {response.hatched} egg(s)");
-                Debug.Log($"🐣 New chick ID: {response.chick.id}");
-                
                 int newChickCount = wallet.GetItemCount("chick");
                 int newEggCount = wallet.GetItemCount(eggType);
-                Debug.Log($"🎉 You now have {newChickCount} chick(s) and {newEggCount} {GetEggDisplayName(eggType)}");
                 
                 // Close panel
                 if (infoHatchPanel != null)

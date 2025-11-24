@@ -84,8 +84,6 @@ public class InventoryBarFromWallet : MonoBehaviour
         float maxCellSize = availH - 5f;
         if (cellSize > maxCellSize) cellSize = maxCellSize;
 
-        Debug.Log($"📐 Inventory: Viewport {viewportW:F1}x{viewportH:F1}, {visibleCells} cells fit, Cell: {cellSize:F1}x{cellSize:F1}");
-
         // ✅ APPLY cell size (square)
         grid.cellSize = new Vector2(cellSize, cellSize);
         

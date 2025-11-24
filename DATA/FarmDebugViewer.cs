@@ -147,7 +147,6 @@ public class FarmDebugViewer : MonoBehaviour
     public void ForceUpdate()
     {
         UpdateFarmDisplay();
-        Debug.Log("🔄 Farm display updated!");
     }
     
     [ContextMenu("Toggle Cage Details")]
@@ -155,13 +154,11 @@ public class FarmDebugViewer : MonoBehaviour
     {
         showCageDetails = !showCageDetails;
         UpdateFarmDisplay();
-        Debug.Log($"📦 Cage details: {(showCageDetails ? "ON" : "OFF")}");
     }
     
     [ContextMenu("Print Farm Data to Console")]
     public void PrintToConsole()
     {
         UpdateFarmDisplay();
-        Debug.Log(farmDataDisplay);
     }
 }

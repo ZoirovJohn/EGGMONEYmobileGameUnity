@@ -135,8 +135,6 @@ public class StoreCellSizer : MonoBehaviour
         {
             gridLayout.cellSize = newCellSize;
             
-            Debug.Log($"📐 Updated GridLayoutGroup Cell Size: {cellWidth:F1} x {cellHeight:F1} (viewport width: {viewportWidth:F1})");
-            
             // Force layout rebuild
             LayoutRebuilder.ForceRebuildLayoutImmediate(gridLayout.GetComponent<RectTransform>());
         }
@@ -153,7 +151,6 @@ public class StoreCellSizer : MonoBehaviour
     public void ManualUpdate()
     {
         UpdateCellSizes();
-        Debug.Log("🔄 Manual update triggered");
     }
 
     // Call this when new items are added to the store

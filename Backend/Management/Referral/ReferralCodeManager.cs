@@ -45,7 +45,6 @@ public class ReferralCodeManager : MonoBehaviour
             referralCodeText.text = code;
         }
 
-        Debug.Log($"🎫 Referral code displayed: {code}");
     }
 
     private void OnCopyButtonClicked()
@@ -62,8 +61,6 @@ public class ReferralCodeManager : MonoBehaviour
 
         // Copy to clipboard
         GUIUtility.systemCopyBuffer = code;
-
-        Debug.Log($"📋 Copied referral code to clipboard: {code}");
     }
 
     private void OnDestroy()

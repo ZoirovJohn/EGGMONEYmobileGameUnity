@@ -46,12 +46,10 @@ public class InventoryFarmItemApplier : MonoBehaviour
     public void SetPendingItem(string productId)
     {
         pendingProductId = productId;
-        Debug.Log($"📦 Pending item to apply: {productId}");
     }
     
     void OnNoClicked()
     {
-        Debug.Log("❌ User clicked NO - canceling item application");
         pendingProductId = "";
         
         if (infoErrorChanger != null)
@@ -62,8 +60,6 @@ public class InventoryFarmItemApplier : MonoBehaviour
     
     void OnYesClicked()
     {
-        Debug.Log("✅ User clicked YES - attempting to apply item");
-        
         if (string.IsNullOrEmpty(pendingProductId))
         {
             Debug.LogWarning("⚠️ No pending product ID!");
@@ -75,7 +71,6 @@ public class InventoryFarmItemApplier : MonoBehaviour
         if (inventoryBarChanger != null)
         {
             currentFarmId = inventoryBarChanger.GetCurrentFarmId();
-            Debug.Log($"📍 Current Farm ID from InventoryBarChanger: {currentFarmId}");
         }
         
         if (string.IsNullOrEmpty(currentFarmId))
@@ -97,7 +92,6 @@ public class InventoryFarmItemApplier : MonoBehaviour
             if (targetFarm == null)
             {
                 Debug.LogError($"❌ Could not find farm with ID: {currentFarmId}");
-                Debug.Log($"📋 Available farms in database:");
                 foreach (var farm in farmDatabase.farms)
                 {
                     Debug.Log($"   - {farm.farmId} ({farm.farmName})");
@@ -152,11 +146,8 @@ public class InventoryFarmItemApplier : MonoBehaviour
             Debug.LogError($"❌ Failed to consume {pendingProductId}");
             return;
         }
-        Debug.Log($"💰 Removed 1x {pendingProductId} from wallet");
-
         // 2. Apply item to farm
         targetFarm.ApplyItem(pendingProductId);
-        Debug.Log($"✅ Successfully applied {pendingProductId} to {targetFarm.farmName}!");
 
         // 3. ✅ Show success message (keep pendingProductId for now)
         if (infoErrorChanger != null)

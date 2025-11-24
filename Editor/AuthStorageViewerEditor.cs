@@ -22,7 +22,6 @@ public class AuthStorageViewerEditor : Editor
         if (GUILayout.Button("Delete Stored Token"))
         {
             AuthStorage.DeleteAccessToken();
-            Debug.Log("Token deleted.");
         }
     }
 }

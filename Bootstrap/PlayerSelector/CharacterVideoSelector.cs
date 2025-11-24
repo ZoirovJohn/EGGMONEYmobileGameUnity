@@ -19,8 +19,6 @@ public class CharacterVideoSelector : MonoBehaviour
         {
             nextButton.onClick.AddListener(OnNextButtonPressed);
         }
-        
-        Debug.Log("📹 CharacterVideoSelector initialized");
     }
 
     void Update()
@@ -62,8 +60,6 @@ public class CharacterVideoSelector : MonoBehaviour
 
     public void OnNextButtonPressed()
     {
-        Debug.Log($"✅ User selected video: {selectedVideoIndex}");
-        
         // Update video property via API
         UpdateUserVideo(selectedVideoIndex);
     }
@@ -79,8 +75,6 @@ public class CharacterVideoSelector : MonoBehaviour
             jsonData,
             onSuccess: (response) =>
             {
-                Debug.Log($"✅ User updated successfully: {response}");
-                
                 // Parse response to get updated user data
                 UpdateResponse userData = JsonUtility.FromJson<UpdateResponse>(response);
                 
@@ -94,8 +88,6 @@ public class CharacterVideoSelector : MonoBehaviour
                 {
                     wallet.SetVideo(userData.video);
                 }
-                
-                Debug.Log($"💾 Video {userData.video} saved to PlayerWallet and PlayerPrefs");
                 
                 // Load Farm scene
                 SceneManager.LoadScene("Farm");

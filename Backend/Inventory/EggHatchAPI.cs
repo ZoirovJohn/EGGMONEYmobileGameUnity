@@ -64,8 +64,6 @@ public class EggHatchAPI : MonoBehaviour
         // Determine tier based on egg type
         string tier = MapEggTypeToTier(eggType);
         
-        Debug.Log($"🥚 Starting hatch request: {quantity}x {eggType} (tier: {tier})");
-        
         StartCoroutine(HatchEggsCoroutine(tier, quantity, eggType, onSuccess, onError));
     }
 
@@ -108,7 +106,6 @@ public class EggHatchAPI : MonoBehaviour
         };
         
         string jsonBody = JsonUtility.ToJson(requestBody);
-        Debug.Log($"📤 POST {url} - Body: {jsonBody}");
         
         // Create POST request
         using (UnityWebRequest request = new UnityWebRequest(url, "POST"))
@@ -128,7 +125,6 @@ public class EggHatchAPI : MonoBehaviour
             if (request.result == UnityWebRequest.Result.Success)
             {
                 string responseText = request.downloadHandler.text;
-                Debug.Log($"✅ Hatch response: {responseText}");
                 
                 try
                 {
@@ -145,17 +141,12 @@ public class EggHatchAPI : MonoBehaviour
                         
                         if (isSuperEgg)
                         {
-                            Debug.Log($"🎁 Super egg hatched! Reward: {response.reward}");
-                            
                             // ✅ Refresh inventory from backend to get updated data (IMMEDIATE)
                             if (inventoryManager != null)
                             {
-                                Debug.Log($"📦 Refreshing inventory from backend (IMMEDIATE at {hatchTime})...");
-                                
                                 inventoryManager.GetInventory(
                                     onSuccess: (invResponse) =>
                                     {
-                                        Debug.Log($"✅ Inventory refreshed after super egg hatch at {hatchTime}");
                                         onSuccess?.Invoke(response);
                                     },
                                     onError: (err) =>
@@ -179,7 +170,6 @@ public class EggHatchAPI : MonoBehaviour
                         {
                             // Normal or gold egg - update wallet locally (IMMEDIATE)
                             UpdateWalletAfterHatch(eggType, quantity, response);
-                            Debug.Log($"🐣 Successfully hatched {response.hatched} egg(s) at {hatchTime}!");
                             onSuccess?.Invoke(response);
                             
                             // ✅ SCHEDULE INDIVIDUAL DELAYED REFRESH for this specific hatch
@@ -219,8 +209,6 @@ public class EggHatchAPI : MonoBehaviour
         // ✅ Start a NEW delayed refresh (independent of others)
         Coroutine newRefresh = StartCoroutine(DelayedInventoryRefresh(delayedRefreshTime, hatchTime, delayedTime));
         scheduledRefreshes.Add(newRefresh);
-        
-        Debug.Log($"⏱️ Scheduled refresh #{scheduledRefreshes.Count}: Hatched at {hatchTime}, will refresh at {delayedTime}");
     }
 
     /// <summary>
@@ -229,15 +217,11 @@ public class EggHatchAPI : MonoBehaviour
     /// </summary>
     IEnumerator DelayedInventoryRefresh(float delaySeconds, string hatchTime, string delayedTime)
     {
-        Debug.Log($"⏱️ [Hatch {hatchTime}] Waiting {delaySeconds} seconds until {delayedTime}...");
-        
         yield return new WaitForSeconds(delaySeconds);
         
         if (inventoryManager != null)
         {
             string actualTime = DateTime.Now.ToString("HH:mm:ss");
-            Debug.Log($"🔄 [Hatch {hatchTime}] Executing DELAYED refresh now at {actualTime} (expected {delayedTime})...");
-            
             inventoryManager.GetInventory(
                 onSuccess: (response) =>
                 {
@@ -266,8 +250,6 @@ public class EggHatchAPI : MonoBehaviour
         int currentEggs = wallet.GetItemCount(eggType);
         int currentChicks = wallet.GetItemCount("chick");
         
-        Debug.Log($"📊 Before hatch - Eggs: {currentEggs}, Chicks: {currentChicks}");
-        
         // Remove eggs (based on hatched count from server)
         int eggsToRemove = response.hatched;
         if (wallet.TryConsumeItem(eggType, eggsToRemove))
@@ -281,12 +263,10 @@ public class EggHatchAPI : MonoBehaviour
         
         // Add chicks (based on hatched count)
         wallet.AddItem("chick", response.hatched);
-        Debug.Log($"✅ Added {response.hatched} chick(s)");
         
         // Log final state
         int newEggs = wallet.GetItemCount(eggType);
         int newChicks = wallet.GetItemCount("chick");
-        Debug.Log($"📊 After hatch - Eggs: {newEggs}, Chicks: {newChicks}");
     }
 
     // =========================

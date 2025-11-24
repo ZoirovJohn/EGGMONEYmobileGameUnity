@@ -136,8 +136,6 @@ public class SignUpValidator : MonoBehaviour
             data,
             onSuccess: (response) =>
             {
-                Debug.Log("✅ Signup response: " + response);
-
                 SignupResponse signupData = JsonUtility.FromJson<SignupResponse>(response);
 
                 if (!string.IsNullOrEmpty(signupData.accessToken))
@@ -147,8 +145,6 @@ public class SignUpValidator : MonoBehaviour
                     authManager.GetMe(
                         onSuccess: (meResponse) =>
                         {
-                            Debug.Log("✅ Me response: " + meResponse);
-
                             MeResponse userData = JsonUtility.FromJson<MeResponse>(meResponse);
 
                             PlayerWallet wallet = UnityEngine.Object.FindFirstObjectByType<PlayerWallet>();
@@ -164,7 +160,6 @@ public class SignUpValidator : MonoBehaviour
                                 else
                                     wallet.SetFP(0);
 
-                                Debug.Log($"💰 Wallet updated: {userData.nickName}, {userData.userFarms} farms, Referral: {userData.referralCode}");
                             }
 
                             PlayerPrefs.SetString("userId", userData.id);

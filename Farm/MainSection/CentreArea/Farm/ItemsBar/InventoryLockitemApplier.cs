@@ -66,39 +66,31 @@ public class InventoryLockItemApplier : MonoBehaviour
     public void SetPendingItem(string keyId)
     {
         pendingKeyId = keyId;
-        Debug.Log($"🔑 Pending key to use: {keyId}");
     }
     
     void OnNoClicked()
     {
-        Debug.Log("❌ User clicked NO - canceling farm unlock");
         pendingKeyId = "";
         
         // Hide Yes/No buttons
         if (yesButton)
         {
             yesButton.gameObject.SetActive(false);
-            Debug.Log("🙈 Hidden Yes button");
         }
         
         if (noButton)
         {
             noButton.gameObject.SetActive(false);
-            Debug.Log("🙈 Hidden No button");
         }
         
         if (infoErrorChanger != null)
         {
             infoErrorChanger.CloseAllInfoErrorMethod();
         }
-        
-        Debug.Log("🔄 Reset to initial state - buttons hidden");
     }
     
     void OnYesClicked()
     {
-        Debug.Log("✅ User clicked YES - attempting to unlock farm");
-        
         if (string.IsNullOrEmpty(pendingKeyId))
         {
             Debug.LogWarning("⚠️ No pending key ID!");
@@ -152,7 +144,6 @@ public class InventoryLockItemApplier : MonoBehaviour
             Debug.LogError($"❌ Failed to consume key: {pendingKeyId}");
             return;
         }
-        Debug.Log($"🔑 Removed 1x {pendingKeyId} from wallet");
         
         // 5. Create and add new farm data with default values
         FarmData newFarm = CreateNewFarmData(farmIdToUnlock, pendingKeyId);
@@ -162,7 +153,6 @@ public class InventoryLockItemApplier : MonoBehaviour
             farmDatabase.farms.Add(newFarm);
             // Save to persistent storage if you have a save system
             // farmDatabase.SaveFarmsData();
-            Debug.Log($"✅ Created new farm: {newFarm.farmName} ({newFarm.farmId})");
         }
         else
         {
@@ -175,7 +165,6 @@ public class InventoryLockItemApplier : MonoBehaviour
         {
             farmHeaderManager.farmCount++;
             farmHeaderManager.lockCount--;
-            Debug.Log($"📊 Updated counts: {farmHeaderManager.farmCount} farms, {farmHeaderManager.lockCount} locks");
         }
         
         // 7. Start unlock sequence (visual feedback + open farm)
@@ -189,7 +178,6 @@ public class InventoryLockItemApplier : MonoBehaviour
         if (farmDatabase != null && farmDatabase.farms != null)
         {
             newFarmIndex = farmDatabase.farms.Count - 1; // Last farm in the list
-            Debug.Log($"🔓 Unlocking farm {farmId} at index {newFarmIndex}");
         }
         
         // Toggle lock visuals (adjust GameObject names based on your hierarchy)
@@ -203,13 +191,11 @@ public class InventoryLockItemApplier : MonoBehaviour
         if (lockClose)
         {
             lockClose.SetActive(false);
-            Debug.Log($"🔒 Disabled ImageLockClose for {farmId}");
         }
         
         if (lockOpen)
         {
             lockOpen.SetActive(true);
-            Debug.Log($"🔓 Enabled ImageLockOpen for {farmId}");
         }
         
         // Wait 1 second for visual feedback
@@ -225,14 +211,12 @@ public class InventoryLockItemApplier : MonoBehaviour
         if (infoErrorChanger != null)
         {
             infoErrorChanger.CloseAllInfoErrorMethod();
-            Debug.Log("🚪 Closed all info/error panels");
         }
         
         // Refresh FarmHeaderManager to show the new farm slot
         if (farmHeaderManager != null)
         {
             farmHeaderManager.Refresh();
-            Debug.Log("🔄 Refreshed FarmHeaderManager");
         }
         
         // Switch to the newly unlocked farm
@@ -243,7 +227,6 @@ public class InventoryLockItemApplier : MonoBehaviour
             if (barChanger != null)
             {
                 barChanger.DefaultBannerMethod();
-                Debug.Log("🎌 Called DefaultBannerMethod");
             }
             else
             {
@@ -253,7 +236,6 @@ public class InventoryLockItemApplier : MonoBehaviour
             if (farmGridManager != null)
             {
                 farmGridManager.SwitchFarm(newFarmIndex);
-                Debug.Log($"🏡 Switched to newly unlocked farm: {farmId} (index {newFarmIndex})");
             }
             else
             {
@@ -263,7 +245,6 @@ public class InventoryLockItemApplier : MonoBehaviour
             if (farmDatabase != null)
             {
                 farmDatabase.SwitchToFarm(newFarmIndex);
-                Debug.Log($"📂 FarmDatabase switched to index {newFarmIndex}");
             }
         }
         
@@ -315,8 +296,6 @@ public class InventoryLockItemApplier : MonoBehaviour
                 upgradeLevel = 0
             });
         }
-        
-        Debug.Log($"📦 Created farm data: {newFarm.farmName} (Index: {newFarm.farmIndex}, KeyType: {newFarm.farmKeyType}) with 100 empty cages");
         return newFarm;
     }
     
@@ -390,7 +369,6 @@ public class InventoryLockItemApplier : MonoBehaviour
         {
             if (!unlockedFarmIds.Contains(farmId))
             {
-                Debug.Log($"✅ Next available farm: {farmId}");
                 return farmId;
             }
         }

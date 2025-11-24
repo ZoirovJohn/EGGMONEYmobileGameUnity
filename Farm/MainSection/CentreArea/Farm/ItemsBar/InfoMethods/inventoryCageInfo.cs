@@ -80,8 +80,6 @@ public class inventoryCageInfo : MonoBehaviour
         // Get item count from wallet
         int itemCount = wallet.GetItemCount(cellId.productId);
         
-        Debug.Log($"📦 Checking inventory for '{cellId.productId}': {itemCount} available");
-        
         if (itemCount == 0)
         {
             // ✅ Sync with backend to ensure accuracy before showing error
@@ -143,7 +141,6 @@ public class inventoryCageInfo : MonoBehaviour
         if (infoErrorChanger != null)
         {
             infoErrorChanger.OpenErrorGoStore();
-            Debug.Log("🚨 Opened ErrorGoStore - Item not available");
         }
         else
         {
@@ -164,8 +161,6 @@ public class inventoryCageInfo : MonoBehaviour
             {
                 manyToFarm.SetItem(cellId);
             }
-            
-            Debug.Log($"✅ Opened InfoSetItemToCage for '{cellId.productId}'");
         }
     }
 

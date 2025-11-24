@@ -98,8 +98,6 @@ public class EggExchangeManager : MonoBehaviour
             BasketResponse response = JsonUtility.FromJson<BasketResponse>(jsonResponse);
             availableEggs = response.eggCount;
             
-            Debug.Log($"🥚 Fetched basket eggs: {availableEggs}");
-            
             // Open the panel with the data
             if (infoErrorChanger != null)
                 infoErrorChanger.OpenInfoExchangeFPCoin();
@@ -240,7 +238,6 @@ public class EggExchangeManager : MonoBehaviour
         {
             wallet.TrySpendEggs(eggsToExchange);  // ✅ Use this instead
             wallet.Add(fpToAdd);
-            Debug.Log($"💰 In-Game Exchange: -{eggsToExchange} eggs, +{fpToAdd} FP");
         }
 
         // Update available eggs
@@ -288,8 +285,6 @@ public class EggExchangeManager : MonoBehaviour
         };
         
         string jsonData = JsonUtility.ToJson(requestData);
-        
-        Debug.Log($"🔄 Syncing exchange with backend: {eggAmount} eggs");
         
         using (UnityEngine.Networking.UnityWebRequest request = 
                new UnityEngine.Networking.UnityWebRequest(url, "POST"))

@@ -70,8 +70,6 @@ public class FarmAPIManager : MonoBehaviour
         int loadedCount = 0;
         bool hasError = false;
 
-        Debug.Log($"📡 Loading {farmCount} farm summaries from backend...");
-
         for (int i = 0; i < farmCount; i++)
         {
             int farmNumber = i + 1;
@@ -104,7 +102,6 @@ public class FarmAPIManager : MonoBehaviour
 
         if (loadedCount == farmCount)
         {
-            Debug.Log($"🎉 All {farmCount} farms loaded successfully!");
             onAllLoaded?.Invoke(summaries);
         }
     }

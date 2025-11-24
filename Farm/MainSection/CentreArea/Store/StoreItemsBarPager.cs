@@ -61,8 +61,6 @@ public class StoreItemsBarPager : MonoBehaviour
 
         StopAllCoroutines();
         StartCoroutine(LerpTo(target));
-
-        Debug.Log($"Vertical scroll step: {deltaPx}px (dir {dir})");
     }
 
     IEnumerator LerpTo(float target)

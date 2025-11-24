@@ -44,8 +44,6 @@ public class CollectingManager : MonoBehaviour
         if (request.result == UnityWebRequest.Result.Success)
         {
             string response = request.downloadHandler.text;
-            Debug.Log("Collect API Response: " + response);
-
             try
             {
                 CollectResponse collectData = JsonUtility.FromJson<CollectResponse>(response);

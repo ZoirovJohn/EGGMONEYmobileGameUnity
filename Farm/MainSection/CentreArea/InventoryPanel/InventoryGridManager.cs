@@ -14,19 +14,14 @@ public class InventoryGridManager : MonoBehaviour
 
     void Start()
     {
-        Debug.Log("🚀 InventoryGridManager Start() - Beginning initialization");
         StartCoroutine(InitializeAfterFrame());
     }
 
     IEnumerator InitializeAfterFrame()
     {
-        Debug.Log("⏳ Waiting one frame for canvas initialization...");
-        
         // Wait for canvas to fully initialize
         yield return null;
         Canvas.ForceUpdateCanvases();
-        
-        Debug.Log("✅ Canvas updated, starting validation...");
         
         // Validate references
         if (!ValidateReferences())
@@ -35,28 +30,20 @@ public class InventoryGridManager : MonoBehaviour
             yield break;
         }
 
-        Debug.Log($"✅ Grid has {grid.transform.childCount} item cells");
-        
         // Setup grid layout
         SetupGrid();
         
         // ✅ Initial display from wallet
         RefreshInventoryDisplay();
-        
-        Debug.Log("🎉 Inventory grid initialization complete!");
     }
 
     void OnEnable()
     {
-        Debug.Log("🔌 InventoryGridManager OnEnable() called");
-        
         // ✅ Subscribe to wallet events for real-time updates
         if (playerWallet != null)
         {
-            Debug.Log($"✅ Subscribing to PlayerWallet events (Wallet instance: {playerWallet.GetInstanceID()})");
             playerWallet.OnItemChanged += OnWalletItemChanged;
             playerWallet.OnProfileChanged += OnWalletProfileChanged;
-            Debug.Log("✅ Successfully subscribed to PlayerWallet events");
         }
         else
         {
@@ -66,28 +53,23 @@ public class InventoryGridManager : MonoBehaviour
 
     void OnDisable()
     {
-        Debug.Log("🔌 InventoryGridManager OnDisable() called");
-        
         // ✅ Unsubscribe from wallet events
         if (playerWallet != null)
         {
             playerWallet.OnItemChanged -= OnWalletItemChanged;
             playerWallet.OnProfileChanged -= OnWalletProfileChanged;
-            Debug.Log("🔌 Unsubscribed from PlayerWallet events");
         }
     }
 
     // ✅ Called automatically when any item changes in wallet
     void OnWalletItemChanged(string itemId, int newQuantity)
     {
-        Debug.Log($"🔔🔔🔔 [InventoryGridManager] Wallet item changed EVENT RECEIVED: {itemId} = {newQuantity}");
         UpdateSingleItem(itemId, newQuantity);
     }
 
     // ✅ Called when profile changes (fallback - refresh all)
     void OnWalletProfileChanged()
     {
-        Debug.Log("🔔🔔🔔 [InventoryGridManager] Wallet profile changed EVENT RECEIVED - refreshing all items");
         RefreshInventoryDisplay();
     }
 
@@ -100,23 +82,18 @@ public class InventoryGridManager : MonoBehaviour
             return;
         }
 
-        Debug.Log($"🔍 Searching for cell with productId: '{itemId}'");
-        
         bool found = false;
         foreach (Transform child in grid.transform)
         {
             InventoryCellId cellId = child.GetComponent<InventoryCellId>();
             if (cellId != null)
             {
-                Debug.Log($"   📦 Checking cell: '{cellId.productId}' vs '{itemId}'");
-                
                 if (cellId.productId == itemId)
                 {
                     TMP_Text quantityText = child.GetComponentInChildren<TMP_Text>();
                     if (quantityText != null)
                     {
                         quantityText.text = quantity > 0 ? quantity.ToString() : "0";
-                        Debug.Log($"✅✅✅ Updated UI: {itemId} = {quantity} (TEXT CHANGED)");
                         found = true;
                     }
                     else
@@ -151,7 +128,6 @@ public class InventoryGridManager : MonoBehaviour
         // Auto-find wallet if not assigned
         if (playerWallet == null)
         {
-            Debug.Log("🔍 PlayerWallet not assigned, searching...");
             playerWallet = FindAnyObjectByType<PlayerWallet>(FindObjectsInactive.Include);
             
             if (playerWallet == null)
@@ -168,8 +144,6 @@ public class InventoryGridManager : MonoBehaviour
         {
             Debug.Log($"✅ PlayerWallet already assigned: {playerWallet.gameObject.name} (Instance: {playerWallet.GetInstanceID()})");
         }
-
-        Debug.Log($"✅ All references validated");
         return true;
     }
 
@@ -179,8 +153,6 @@ public class InventoryGridManager : MonoBehaviour
         Canvas.ForceUpdateCanvases();
         
         float viewportWidth = viewport.rect.width;
-        
-        Debug.Log($"🔍 Viewport width: {viewportWidth}, Screen.width: {Screen.width}");
         
         // Fallback to screen width if viewport width is invalid
         if (viewportWidth <= 0)
@@ -195,8 +167,6 @@ public class InventoryGridManager : MonoBehaviour
         bool isTablet = (Screen.dpi < 260 && Mathf.Min(Screen.width, Screen.height) >= 900);
 
         int columns = isTablet ? 4 : 3;
-
-        Debug.Log(isTablet ? "📱 Detected Tablet → 4 columns" : "📱 Detected Phone → 3 columns");
 
         // Calculate cell size
         float totalSpacing = spacing * (columns - 1);
@@ -217,8 +187,6 @@ public class InventoryGridManager : MonoBehaviour
         RectTransform gridRect = grid.GetComponent<RectTransform>();
         gridRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, viewportWidth);
         
-        Debug.Log($"📐 Grid setup: {columns} columns, cell size: {cellSize}x{cellSize}, spacing: {spacing}");
-        
         // Force layout rebuild
         Canvas.ForceUpdateCanvases();
         LayoutRebuilder.ForceRebuildLayoutImmediate(grid.GetComponent<RectTransform>());
@@ -232,8 +200,6 @@ public class InventoryGridManager : MonoBehaviour
             Debug.LogWarning("⚠️ Cannot refresh display: missing references");
             return;
         }
-
-        Debug.Log("🔄 Refreshing all inventory items from PlayerWallet...");
 
         int cellCount = 0;
         // Update all inventory cells with current quantities from wallet
@@ -249,13 +215,10 @@ public class InventoryGridManager : MonoBehaviour
                 if (quantityText != null)
                 {
                     quantityText.text = quantity > 0 ? quantity.ToString() : "0";
-                    Debug.Log($"   📦 Cell {cellCount}: {cellId.productId} = {quantity}");
                     cellCount++;
                 }
             }
         }
-        
-        Debug.Log($"✅ Refreshed {cellCount} inventory cells from wallet");
         
         // Force layout update
         Canvas.ForceUpdateCanvases();
@@ -266,7 +229,6 @@ public class InventoryGridManager : MonoBehaviour
     public void OnScreenSizeChanged()
     {
         SetupGrid();
-        Debug.Log("🔄 Inventory grid layout refreshed");
     }
 
     // PUBLIC: Manually refresh grid layout if needed
@@ -278,7 +240,6 @@ public class InventoryGridManager : MonoBehaviour
     // PUBLIC: Manually refresh from wallet (for external calls)
     public void RefreshFromWallet()
     {
-        Debug.Log("🔄 RefreshFromWallet() called externally");
         RefreshInventoryDisplay();
     }
 }

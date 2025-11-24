@@ -79,7 +79,6 @@ public class inventoryFarmInfo : MonoBehaviour
             cellId.productId == "super_red_egg" || 
             cellId.productId == "super_blue_egg")
         {
-            Debug.Log($"⏭️ Skipping farm info for {cellId.productId} - eggs open InfoHatch instead");
             return;
         }
         
@@ -91,8 +90,6 @@ public class inventoryFarmInfo : MonoBehaviour
     {
         // Get item count from wallet (may be stale)
         int itemCount = wallet.GetItemCount(cellId.productId);
-        
-        Debug.Log($"📦 Checking '{cellId.productId}': {itemCount} available locally");
         
         if (itemCount == 0)
         {
@@ -165,7 +162,6 @@ public class inventoryFarmInfo : MonoBehaviour
         if (infoErrorChanger != null)
         {
             infoErrorChanger.OpenErrorGoStore();
-            Debug.Log("🚨 Opened ErrorGoStore - Item not available");
         }
     }
 
@@ -174,13 +170,11 @@ public class inventoryFarmInfo : MonoBehaviour
         if (farmItemApplier != null)
         {
             farmItemApplier.SetPendingItem(cellId.productId);
-            Debug.Log($"📦 Set pending item: {cellId.productId}");
         }
         
         if (infoErrorChanger != null)
         {
             infoErrorChanger.OpenInfoSetItemToFarm();
-            Debug.Log("✅ Opened InfoSetItemToFarm");
         }
     }
 

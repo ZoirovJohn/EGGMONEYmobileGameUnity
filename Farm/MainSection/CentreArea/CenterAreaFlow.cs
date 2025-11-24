@@ -25,7 +25,6 @@ public class CenterAreaFlow : MonoBehaviour
         {
             PlayerPrefs.DeleteKey(PREFS_KEY);
             PlayerPrefs.Save();
-            Debug.Log("[CenterAreaFlow] Reset HideInstructions on Play (Editor)");
         }
     #endif
 
@@ -93,8 +92,6 @@ public class CenterAreaFlow : MonoBehaviour
             return;
         }
 
-        Debug.Log("[CenterAreaFlow] 📦 Loading inventory data from backend...");
-
         inventoryManager.GetInventory(
             onSuccess: (response) =>
             {
@@ -112,8 +109,6 @@ public class CenterAreaFlow : MonoBehaviour
         if (loadingAnimHolder) loadingAnimHolder.SetActive(false);
 
         bool skip = PlayerPrefs.GetInt(PREFS_KEY, 0) == 1;
-        Debug.Log($"[CenterAreaFlow] ShowInstructionsIfNeeded skip={skip}");
-
         if (skip)
         {
             OpenFarm(); // already opted out → skip overlay
@@ -122,7 +117,6 @@ public class CenterAreaFlow : MonoBehaviour
         {
             if (farmPanel) farmPanel.SetActive(false);
             if (instructionsPanel) instructionsPanel.SetActive(true);
-            Debug.Log("[CenterAreaFlow] Instructions shown");
         }
     }
 
@@ -133,7 +127,6 @@ public class CenterAreaFlow : MonoBehaviour
 
         PlayerPrefs.SetInt(PREFS_KEY, 1);
         PlayerPrefs.Save();
-        Debug.Log("[CenterAreaFlow] Skip enabled → saving & opening Farm");
 
         instructionsPanel.SetActive(false);
         OpenFarm();
@@ -142,6 +135,5 @@ public class CenterAreaFlow : MonoBehaviour
     private void OpenFarm()
     {
         if (farmPanel) farmPanel.SetActive(true);
-        Debug.Log("[CenterAreaFlow] Farm shown");
     }
 }

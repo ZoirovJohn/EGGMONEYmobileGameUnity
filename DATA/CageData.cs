@@ -115,7 +115,6 @@ public class FarmData
         {
             farmKeyType = productId;
             isPremium = normalized.Contains("premium");
-            Debug.Log($"🔑 Applied farm key to {farmName}, new type: {farmKeyType}");
         }
         // Apply robot
         else if (normalized == "robot" || normalized == "farmmanagementrobot")
@@ -123,13 +122,11 @@ public class FarmData
             robotType = "robot";
             hasRobot = true;
             robotActive = true;
-            Debug.Log($"🤖 Applied robot to {farmName}");
         }
         // Apply battery
         else if (normalized == "battery" || normalized == "superbattery")
         {
             batteryType = productId;
-            Debug.Log($"🔋 Applied {productId} to {farmName}");
         }
         else
         {
@@ -147,8 +144,6 @@ public class FarmData
         
         // Keep backend data intact
         // (isPremium, hasRobot, etc. come from backend)
-        
-        Debug.Log($"🔄 Reset applied items for {farmName}");
     }
     
     #endregion

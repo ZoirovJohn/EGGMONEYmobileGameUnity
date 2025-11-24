@@ -97,7 +97,6 @@ public class ManyToFarm : MonoBehaviour
         if (farmDatabase != null)
         {
             targetFarmNumber = farmDatabase.currentFarmIndex + 1; // Convert 0-based to 1-based
-            Debug.Log($"🎯 Target farm auto-set to: Farm {targetFarmNumber}");
         }
     }
 
@@ -226,9 +225,6 @@ public class ManyToFarm : MonoBehaviour
         string itemType = MapProductIdToItemType(cellId.productId);
         string tier = MapProductIdToTier(cellId.productId);
         
-        // ✅ Log what we mapped to
-        Debug.Log($"📋 Mapped to → itemType: '{itemType}', tier: '{tier}'");
-        
         if (string.IsNullOrEmpty(itemType))
         {
             Debug.LogError($"❌ Invalid item type: {cellId.productId}");
@@ -237,8 +233,6 @@ public class ManyToFarm : MonoBehaviour
             ShowLoading(false);
             yield break;
         }
-        
-        Debug.Log($"📦 Placing {currentQuantity}x {itemType} (tier: {tier}) in Farm {targetFarmNumber}");
         
         // Create request body
         var requestBody = new PlaceFarmRequest
@@ -250,7 +244,6 @@ public class ManyToFarm : MonoBehaviour
         };
         
         string jsonBody = JsonUtility.ToJson(requestBody);
-        Debug.Log($"📤 Full JSON payload: {jsonBody}");
         
         // Get access token
         string accessToken = AuthStorage.GetAccessToken();
@@ -268,7 +261,6 @@ public class ManyToFarm : MonoBehaviour
         byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonBody);
         
         string url = apiConfig.baseUrl + "/farm/place";
-        Debug.Log($"🌐 POST to: {url}");
         
         UnityWebRequest request = new UnityWebRequest(url, "POST");
         request.uploadHandler = new UploadHandlerRaw(bodyRaw);
@@ -284,7 +276,6 @@ public class ManyToFarm : MonoBehaviour
         if (request.result == UnityWebRequest.Result.Success)
         {
             string responseText = request.downloadHandler.text;
-            Debug.Log($"✅ Response: {responseText}");
             
             HandlePlacementSuccess(responseText);
             onSuccess?.Invoke(responseText);
@@ -324,14 +315,10 @@ public class ManyToFarm : MonoBehaviour
     {
         try
         {
-            Debug.Log($"📥 Raw response: {responseJson}");
-            
             var response = JsonUtility.FromJson<PlaceFarmResponse>(responseJson);
             
             if (response != null)
             {
-                Debug.Log($"✅ Successfully placed {response.placed}x {response.type} in Farm {response.farmNumber}");
-                
                 // Only log nest count if it exists in response
                 if (response.currentNestCount > 0 || response.maxCapacity > 0)
                 {
@@ -363,8 +350,6 @@ public class ManyToFarm : MonoBehaviour
 
     IEnumerator RefreshFarmData()
     {
-        Debug.Log("🔄 Refreshing farm data from backend...");
-        
         // Step 1: Refresh inventory
         if (inventoryManager != null)
         {
@@ -373,7 +358,6 @@ public class ManyToFarm : MonoBehaviour
             inventoryManager.GetInventory(
                 onSuccess: (response) => {
                     inventoryRefreshed = true;
-                    Debug.Log("✅ Inventory refreshed");
                 },
                 onError: (error) => {
                     inventoryRefreshed = true;
@@ -412,10 +396,6 @@ public class ManyToFarm : MonoBehaviour
                     );
                     
                     farmRefreshed = true;
-                    Debug.Log($"✅ Farm {targetFarmNumber} data updated from backend");
-                    Debug.Log($"   Total Nests: {summary.nests.total}");
-                    Debug.Log($"   Occupied: {summary.nests.occupied}");
-                    Debug.Log($"   Hens: Normal={summary.henStats.byKind.Normal}, Champ={summary.henStats.byKind.Champ}, Legend={summary.henStats.byKind.Legend}, SuperLegend={summary.henStats.byKind.SuperLegend}");
                 },
                 onError: (error) => {
                     farmRefreshed = true;
@@ -438,16 +418,12 @@ public class ManyToFarm : MonoBehaviour
         {
             int farmIndex = targetFarmNumber - 1;
             farmGridManager.RefreshFarmDisplay(farmIndex);
-            Debug.Log($"🔄 Refreshed Farm {targetFarmNumber} grid display");
         }
         
         if (farmHeaderManager != null)
         {
             farmHeaderManager.UpdateAllFarmSlotVisuals();
-            Debug.Log("🔄 Refreshed farm header visuals");
         }
-        
-        Debug.Log("✅ Farm data refresh complete");
     }
 
     bool ValidateReferences()
@@ -481,26 +457,21 @@ public class ManyToFarm : MonoBehaviour
     {
         string normalized = productId.ToLowerInvariant().Replace("_", "").Replace(" ", "");
         
-        Debug.Log($"🔍 MapProductIdToItemType: '{productId}' → normalized: '{normalized}'");
-        
         // HEN items (chicks that are already hatched hens)
         if (normalized.Contains("chick") || normalized.Contains("hen"))
         {
-            Debug.Log($"   ✅ Mapped to: 'hen'");
             return "hen";
         }
         
         // NEST items
         if (normalized.Contains("nest"))
         {
-            Debug.Log($"   ✅ Mapped to: 'nest'");
             return "nest";
         }
         
         // ROBOT
         if (normalized.Contains("robot"))
         {
-            Debug.Log($"   ✅ Mapped to: 'robot'");
             return "robot";
         }
         
@@ -520,32 +491,25 @@ public class ManyToFarm : MonoBehaviour
     {
         string normalized = productId.ToLowerInvariant().Replace("_", "").Replace(" ", "");
         
-        Debug.Log($"🔍 MapProductIdToTier input: '{productId}'");
-        Debug.Log($"🔍 Normalized: '{normalized}'");
-        
         // ✅ HEN TIERS (lowercase - backend expects these exact values!)
         if (normalized.Contains("chick") || normalized.Contains("hen"))
         {
             // Check in order of specificity (most specific first)
             if (normalized.Contains("superlegend") || normalized.Contains("super"))
             {
-                Debug.Log($"   ✅ Returning hen tier: 'superlegend'");
                 return "superlegend";
             }
             else if (normalized.Contains("legend"))
             {
-                Debug.Log($"   ✅ Returning hen tier: 'legend'");
                 return "legend";
             }
             // ✅ FIXED: Map "champ" to "gold" for backend (backend stores it as "gold")
             else if (normalized.Contains("champ") || normalized.Contains("gold"))
             {
-                Debug.Log($"   ✅ Returning hen tier: 'gold' (backend expects 'gold' not 'champ')");
                 return "gold";
             }
             else if (normalized.Contains("normal") || normalized.Contains("white") || normalized.Contains("basic"))
             {
-                Debug.Log($"   ✅ Returning hen tier: 'normal'");
                 return "normal";
             }
             else
@@ -560,18 +524,15 @@ public class ManyToFarm : MonoBehaviour
         {
             if (normalized.Contains("premium") || normalized.Contains("super"))
             {
-                Debug.Log($"   ✅ Returning nest tier: 'premium'");
                 return "premium";
             }
             // Don't map "gold" nests - backend might expect "gold" for nests
             else if (normalized.Contains("gold"))
             {
-                Debug.Log($"   ⚠️ Gold nest detected - returning 'premium' (verify if backend expects 'gold' or 'premium')");
                 return "premium"; // Change to "gold" if backend expects it
             }
             else
             {
-                Debug.Log($"   ✅ Returning nest tier: 'normal'");
                 return "normal";
             }
         }
@@ -579,7 +540,6 @@ public class ManyToFarm : MonoBehaviour
         // ✅ ROBOT - no tier needed
         if (normalized.Contains("robot"))
         {
-            Debug.Log($"   ✅ Robot item: returning null (no tier)");
             return null;
         }
         
@@ -601,7 +561,6 @@ public class ManyToFarm : MonoBehaviour
     public void SetTargetFarm(int farmNumber)
     {
         targetFarmNumber = farmNumber;
-        Debug.Log($"🎯 Target farm set to: Farm {targetFarmNumber}");
     }
 
     /// <summary>
@@ -613,7 +572,6 @@ public class ManyToFarm : MonoBehaviour
         
         if (cellId != null)
         {
-            Debug.Log($"📦 Item set to: {cellId.productId}");
             SetQuantity(1); // Reset to 1 when new item selected
         }
     }

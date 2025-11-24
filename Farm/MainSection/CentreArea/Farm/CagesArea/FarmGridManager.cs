@@ -18,36 +18,28 @@ public class FarmGridManager : MonoBehaviour
 
     void Start()
     {
-        Debug.Log("🚀 FarmGridManager Start() - Beginning initialization");
         StartCoroutine(InitializeAfterFrame());
     }
 
     IEnumerator InitializeAfterFrame()
     {
-        Debug.Log("⏳ Waiting one frame for canvas initialization...");
-        
         // Wait for canvas to fully initialize
         yield return null;
         Canvas.ForceUpdateCanvases();
         
-        Debug.Log("✅ Canvas updated, starting validation...");
-        
         // Validate references
         if (!ValidateReferences())
         {
-            Debug.LogError("❌ Reference validation failed!");
             yield break;
         }
 
         // ✅ FIXED: Check if backend data is already loaded
         if (farmDatabase.farms == null || farmDatabase.farms.Count == 0)
         {
-            Debug.Log("📂 No backend data found, loading from JSON as fallback...");
             farmDatabase.LoadFromJSON();
             
             if (farmDatabase.farms == null || farmDatabase.farms.Count == 0)
             {
-                Debug.LogError("❌ No farms loaded! Check JSON file assignment.");
                 yield break;
             }
         }
@@ -55,8 +47,6 @@ public class FarmGridManager : MonoBehaviour
         {
             Debug.Log($"✅ Backend data already loaded: {farmDatabase.farms.Count} farms available");
         }
-
-        Debug.Log($"✅ Using {farmDatabase.farms.Count} farms from database");
 
         // Set to Farm 1 (index 0) by default
         farmDatabase.currentFarmIndex = 0;
@@ -66,49 +56,35 @@ public class FarmGridManager : MonoBehaviour
         
         if (currentCages == null || currentCages.Count == 0)
         {
-            Debug.LogError("❌ No cages generated!");
             yield break;
         }
-
-        Debug.Log($"✅ Farm 1 has {currentCages.Count} cages - About to setup grid");
-        
         // Setup and build
         SetupGrid();
         
-        Debug.Log("📦 Grid setup complete - About to build cages");
-        
         BuildCages();
-        
-        Debug.Log("🎉 Initialization complete!");
     }
 
     bool ValidateReferences()
     {
         if (grid == null)
         {
-            Debug.LogError("❌ GridLayoutGroup is NULL! Assign it in Inspector!");
             return false;
         }
         
         if (viewport == null)
         {
-            Debug.LogError("❌ Viewport is NULL! Assign it in Inspector!");
             return false;
         }
         
         if (cagePrefab == null)
         {
-            Debug.LogError("❌ CagePrefab is NULL! Assign it in Inspector!");
             return false;
         }
         
         if (farmDatabase == null)
         {
-            Debug.LogError("❌ FarmDatabase not assigned!");
             return false;
         }
-
-        Debug.Log($"✅ All references assigned");
         return true;
     }
 
@@ -119,12 +95,9 @@ public class FarmGridManager : MonoBehaviour
         
         float viewportWidth = viewport.rect.width;
         
-        Debug.Log($"🔍 Viewport width: {viewportWidth}, Screen.width: {Screen.width}");
-        
         // Fallback to screen width if viewport width is invalid
         if (viewportWidth <= 0)
         {
-            Debug.LogWarning("⚠️ Viewport width invalid, using Screen.width as fallback");
             viewportWidth = Screen.width;
         }
         
@@ -151,42 +124,30 @@ public class FarmGridManager : MonoBehaviour
         // Set grid width
         RectTransform gridRect = grid.GetComponent<RectTransform>();
         gridRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, viewportWidth);
-        
-        Debug.Log($"📐 Grid setup: {columns} columns, cell size: {cellSize}x{cellSize}, spacing: {spacing}");
     }
 
     void BuildCages()
     {
-        Debug.Log($"🔨 BuildCages() START - Current cage count: {currentCages?.Count ?? 0}");
-        
         if (grid == null)
         {
-            Debug.LogError("❌ Grid is NULL in BuildCages!");
             return;
         }
         
         if (cagePrefab == null)
         {
-            Debug.LogError("❌ CagePrefab is NULL in BuildCages!");
             return;
         }
         
-        Debug.Log($"✅ Grid and prefab references valid");
-        
         // Clear existing cages
         int childCount = grid.transform.childCount;
-        Debug.Log($"🧹 Clearing {childCount} existing children from grid...");
         
         for (int i = childCount - 1; i >= 0; i--)
         {
             DestroyImmediate(grid.transform.GetChild(i).gameObject);
         }
 
-        Debug.Log($"✅ Grid cleared, child count now: {grid.transform.childCount}");
-
         if (currentCages == null || currentCages.Count == 0)
         {
-            Debug.LogWarning("⚠️ No cages to display!");
             return;
         }
 
@@ -194,8 +155,6 @@ public class FarmGridManager : MonoBehaviour
         int cagesWithNests = 0;
         int totalChampChicks = 0;
         int totalNormalChicks = 0;
-
-        Debug.Log($"🏗️ Starting to instantiate {currentCages.Count} cages...");
 
         // Build all cages
         for (int i = 0; i < currentCages.Count; i++)
@@ -206,7 +165,6 @@ public class FarmGridManager : MonoBehaviour
             
             if (cage == null)
             {
-                Debug.LogError($"❌ Failed to instantiate cage {i}!");
                 continue;
             }
             
@@ -230,15 +188,9 @@ public class FarmGridManager : MonoBehaviour
             }
         }
 
-        Debug.Log($"✅ Built {currentCages.Count} cages for Farm {farmDatabase.currentFarmIndex + 1}");
-        Debug.Log($"   📊 Cages with nests: {cagesWithNests}, Champ: {totalChampChicks}, Normal: {totalNormalChicks}");
-        Debug.Log($"   📦 Grid now has {grid.transform.childCount} children");
-        
         // Force layout rebuild
         Canvas.ForceUpdateCanvases();
         LayoutRebuilder.ForceRebuildLayoutImmediate(grid.GetComponent<RectTransform>());
-        
-        Debug.Log($"🎉 BuildCages() COMPLETE");
     }
 
     void ApplyCageDisplay(Transform cageRoot, CageData data)
@@ -327,31 +279,23 @@ public class FarmGridManager : MonoBehaviour
         if (inventoryBarChanger != null)
         {
             inventoryBarChanger.InventoryCageBarMethod();
-            Debug.Log($"🎨 UI Updated: Cage items bar opened via InventoryBarChanger");
         }
         else
         {
             Debug.LogWarning("⚠️ InventoryBarChanger not assigned!");
         }
-        
-        Debug.Log($"📦 Opened cage {index + 1}: Nests={data.nestsOccupied}, Normal={data.normalChicks}, Champ={data.champChicks}");
     }
 
     // Load specific farm cages
     private void LoadFarmCages(int farmIndex)
     {
-        Debug.Log($"📥 Loading cages for Farm {farmIndex + 1}...");
-        
         FarmData farm = farmDatabase.GetFarmByIndex(farmIndex);
         if (farm != null && farm.cages != null && farm.cages.Count > 0)
         {
             currentCages = farm.cages;
-            Debug.Log($"✅ Loaded {currentCages.Count} cages from Farm {farmIndex + 1}");
-            Debug.Log($"   - Nests: {farm.nestsOccupied}, Normal: {farm.normalChicks}, Champ: {farm.champChicks}");
         }
         else
         {
-            Debug.LogError($"❌ Failed to load Farm {farmIndex + 1} or farm has no cages!");
             currentCages = new List<CageData>();
         }
     }
@@ -359,13 +303,11 @@ public class FarmGridManager : MonoBehaviour
     // PUBLIC: Called from FarmHeaderManager when farm clicked
     public void SwitchFarm(int farmIndex)
     {
-        Debug.Log($"🔄 Switching to Farm {farmIndex + 1}...");
         
         // ✅ Close any open info/error panels when switching farms
         if (infoErrorChanger != null)
         {
             infoErrorChanger.CloseAllInfoErrorMethod();
-            Debug.Log("🔄 Closed all info/error panels on farm switch");
         }
         else
         {
@@ -377,8 +319,6 @@ public class FarmGridManager : MonoBehaviour
         
         SetupGrid(); // Recalculate grid if needed
         BuildCages();
-        
-        Debug.Log($"✅ Successfully switched to Farm {farmIndex + 1}");
     }
 
     // PUBLIC: Refresh current farm (for backend updates)
@@ -405,7 +345,6 @@ public class FarmGridManager : MonoBehaviour
     {
         if (farmDatabase == null || farmDatabase.farms == null)
         {
-            Debug.LogError("❌ FarmDatabase or farms list is null!");
             return null;
         }
 
@@ -413,8 +352,6 @@ public class FarmGridManager : MonoBehaviour
         
         if (farm == null)
         {
-            Debug.LogError($"❌ Farm not found with ID: {farmId}");
-            Debug.Log("📋 Available farms:");
             foreach (var f in farmDatabase.farms)
             {
                 Debug.Log($"   - {f.farmId} ({f.farmName})");
@@ -434,26 +371,21 @@ public class FarmGridManager : MonoBehaviour
         
         if (farm == null)
         {
-            Debug.LogError($"❌ Cannot apply item - farm not found: {farmId}");
             return false;
         }
         
         // Check if item can be applied
         if (!farm.CanApplyItem(itemId))
         {
-            Debug.LogWarning($"⚠️ Cannot apply {itemId} to {farm.farmName} - already applied or incompatible");
             return false;
         }
         
         // Apply the item
         farm.ApplyItem(itemId);
         
-        Debug.Log($"✅ Successfully applied {itemId} to {farm.farmName}");
-        
         // If this is the currently displayed farm, refresh the display
         if (farmDatabase.currentFarmIndex == farm.farmIndex)
         {
-            Debug.Log($"🔄 Refreshing display for current farm");
             RefreshCurrentFarmDisplay();
         }
         
@@ -468,8 +400,6 @@ public class FarmGridManager : MonoBehaviour
     {
         int currentIndex = farmDatabase.currentFarmIndex;
         
-        Debug.Log($"🔄 Refreshing display for Farm {currentIndex + 1}");
-        
         // Reload cages from database
         LoadFarmCages(currentIndex);
         
@@ -481,7 +411,6 @@ public class FarmGridManager : MonoBehaviour
         if (headerManager != null)
         {
             headerManager.Refresh();
-            Debug.Log("🔄 FarmHeaderManager refreshed");
         }
     }
 
@@ -492,7 +421,6 @@ public class FarmGridManager : MonoBehaviour
     {
         if (farmIndex < 0 || farmIndex >= farmDatabase.farms.Count)
         {
-            Debug.LogError($"❌ Invalid farm index: {farmIndex}");
             return;
         }
         

@@ -40,7 +40,6 @@ public class CleanupManager : MonoBehaviour
         if (request.result == UnityWebRequest.Result.Success)
         {
             string response = request.downloadHandler.text;
-            Debug.Log("Clean API Response: " + response);
 
             try
             {

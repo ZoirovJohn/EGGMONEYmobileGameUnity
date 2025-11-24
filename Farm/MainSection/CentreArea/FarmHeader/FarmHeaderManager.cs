@@ -62,8 +62,6 @@ public class FarmHeaderManager : MonoBehaviour
 
     void Start()
     {
-        Debug.Log("🚀 FarmHeaderManager Start()");
-        
         leftButton.onClick.AddListener(OnLeftClick);
         rightButton.onClick.AddListener(OnRightClick);
 
@@ -115,8 +113,6 @@ public class FarmHeaderManager : MonoBehaviour
             
             // Always show 7 locks next to user's farms
             lockCount = 7;
-            
-            Debug.Log($"📊 Loaded from PlayerWallet: {farmCount} farms, {lockCount} locks");
             return;
         }
         
@@ -132,8 +128,6 @@ public class FarmHeaderManager : MonoBehaviour
         
         // Calculate locked farms
         lockCount = Mathf.Max(0, maxTotalFarms - farmCount);
-        
-        Debug.Log($"📊 Loaded from database: {farmCount} farms unlocked, {lockCount} locks remaining (Total: {maxTotalFarms})");
     }
 
     void Update()
@@ -172,17 +166,14 @@ public class FarmHeaderManager : MonoBehaviour
         if (screenWidth >= tabletMinWidth)
         {
             currentVisibleItems = visibleItemsTablet;
-            Debug.Log($"Tablet mode: {screenWidth}px - showing {currentVisibleItems} items");
         }
         else if (screenWidth <= narrowMaxWidth)
         {
             currentVisibleItems = visibleItemsNarrow;
-            Debug.Log($"Narrow phone mode: {screenWidth}px - showing {currentVisibleItems} items");
         }
         else
         {
             currentVisibleItems = visibleItemsPhone;
-            Debug.Log($"Phone mode: {screenWidth}px - showing {currentVisibleItems} items");
         }
     }
 
@@ -230,8 +221,6 @@ public class FarmHeaderManager : MonoBehaviour
 
         LayoutRebuilder.ForceRebuildLayoutImmediate(content);
         
-        Debug.Log($"✅ Created {farmCount} farm slots and {lockCount} lock slots");
-        
         // Set initial selection to Farm 1
         UpdateFarmSelection(0);
         
@@ -265,7 +254,6 @@ public class FarmHeaderManager : MonoBehaviour
         if (visual != null)
         {
             visual.UpdateVisual(farm);
-            Debug.Log($"🎨 Updated visual for {farm.farmName}");
         }
         else
         {
@@ -282,8 +270,6 @@ public class FarmHeaderManager : MonoBehaviour
         {
             UpdateFarmSlotVisual(i);
         }
-        
-        Debug.Log($"🎨 Updated visuals for all {farmSlots.Count} farm slots");
     }
 
     void CreateFarmSlot(GameObject prefab, float width, float height, int farmIndex)
@@ -312,7 +298,6 @@ public class FarmHeaderManager : MonoBehaviour
             int capturedIndex = farmIndex;
             btn.onClick.RemoveAllListeners();
             btn.onClick.AddListener(() => OnFarmClicked(capturedIndex));
-            Debug.Log($"✅ Added onClick to Farm {capturedIndex + 1} button (found in children)");
         }
         else
         {
@@ -346,7 +331,6 @@ public class FarmHeaderManager : MonoBehaviour
         if (lockClick == null)
         {
             lockClick = obj.AddComponent<LockSlotClick>();
-            Debug.Log("✅ Added LockSlotClick component to lock slot");
         }
         
         // ✅ Assign FarmHeaderManager reference
@@ -356,7 +340,6 @@ public class FarmHeaderManager : MonoBehaviour
         if (farmHeaderField != null)
         {
             farmHeaderField.SetValue(lockClick, this);
-            Debug.Log("✅ Assigned FarmHeaderManager to lock slot");
         }
         
         if (inventoryBarChanger != null)
@@ -367,7 +350,6 @@ public class FarmHeaderManager : MonoBehaviour
             if (field != null)
             {
                 field.SetValue(lockClick, inventoryBarChanger);
-                Debug.Log("✅ Assigned InventoryItemsBarChanger to lock slot");
             }
         }
 
@@ -469,16 +451,11 @@ public class FarmHeaderManager : MonoBehaviour
         if (footerPanelSwitcher != null)
         {
             footerPanelSwitcher.ClearFooterSelection(closePanels: false);
-            Debug.Log("🎨 Cleared footer button backgrounds");
         }
-        
-        Debug.Log("🚪 Closed all CentreArea panels except farm panel");
     }
 
     void OnFarmClicked(int farmIndex)
     {
-        Debug.Log($"🖱️ Farm {farmIndex + 1} button clicked!");
-        
         CloseAllCentreAreaPanels();
         
         selectedFarmIndex = farmIndex;
@@ -487,8 +464,6 @@ public class FarmHeaderManager : MonoBehaviour
         
         if (clickedFarm != null)
         {
-            Debug.Log($"📍 Farm ID: {clickedFarm.farmId}");
-            
             if (string.IsNullOrEmpty(clickedFarm.farmId))
             {
                 Debug.LogError("❌ FARM ID IS EMPTY! Check your JSON file and reload FarmDatabase!");
@@ -527,8 +502,6 @@ public class FarmHeaderManager : MonoBehaviour
         {
             Debug.LogError("❌ FarmGridManager is null!");
         }
-        
-        Debug.Log($"✅ Farm {farmIndex + 1} selected and loaded!");
     }
 
     void UpdateFarmSelection(int farmIndex)
@@ -559,7 +532,5 @@ public class FarmHeaderManager : MonoBehaviour
                 Debug.LogWarning($"⚠️ Farm slot {i + 1} has no Image component on root!");
             }
         }
-        
-        Debug.Log($"🎨 Updated visual selection to Farm {farmIndex + 1}");
     }
 }

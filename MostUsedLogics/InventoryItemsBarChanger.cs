@@ -20,8 +20,6 @@ public class InventoryItemsBarChanger : MonoBehaviour
     {
         // Store the farm ID
         currentFarmId = farmId;
-        Debug.Log($"📦 InventoryItemsBarChanger: Stored farmId = {farmId}");
-        
         // Close all others
         CloseAllBars();
         
@@ -29,7 +27,6 @@ public class InventoryItemsBarChanger : MonoBehaviour
         if (inventoryFarmBar != null)
         {
             inventoryFarmBar.SetActive(true);
-            Debug.Log($"✅ Opened InventoryFarmBar for farmId: {farmId}");
         }
         else
         {
@@ -62,7 +59,6 @@ public class InventoryItemsBarChanger : MonoBehaviour
         if (inventoryLockBar != null)
         {
             inventoryLockBar.SetActive(true);
-            Debug.Log("✅ Opened InventoryLockBar");
         }
         else
         {
@@ -110,7 +106,6 @@ public class InventoryItemsBarChanger : MonoBehaviour
     // Get current farm ID - CRITICAL METHOD FOR ITEM APPLICATION
     public string GetCurrentFarmId()
     {
-        Debug.Log($"📍 InventoryItemsBarChanger: GetCurrentFarmId() returning: {currentFarmId}");
         return currentFarmId;
     }
 }

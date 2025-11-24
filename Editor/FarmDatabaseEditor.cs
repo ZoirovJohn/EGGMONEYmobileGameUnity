@@ -16,7 +16,6 @@ public class FarmDatabaseEditor : Editor
         {
             database.LoadFromJSON();
             EditorUtility.SetDirty(database);
-            Debug.Log("✅ FarmDatabase reloaded from JSON!");
         }
         
         GUILayout.Space(5);

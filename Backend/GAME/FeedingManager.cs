@@ -44,8 +44,6 @@ public class FeedingManager : MonoBehaviour
         if (request.result == UnityWebRequest.Result.Success)
         {
             string response = request.downloadHandler.text;
-            Debug.Log("Feed API Response: " + response);
-
             try
             {
                 FeedResponse feedData = JsonUtility.FromJson<FeedResponse>(response);

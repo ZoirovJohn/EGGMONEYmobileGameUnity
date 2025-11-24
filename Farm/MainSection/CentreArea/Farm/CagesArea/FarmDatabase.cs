@@ -37,7 +37,6 @@ public class FarmDatabase : ScriptableObject
                     if (string.IsNullOrEmpty(farms[i].farmId))
                     {
                         farms[i].farmId = $"farm_{(i + 1):D3}"; // farm_001, farm_002, etc.
-                        Debug.Log($"🔧 Auto-generated farmId: {farms[i].farmId} for {farms[i].farmName}");
                     }
                 }
                 
@@ -46,10 +45,8 @@ public class FarmDatabase : ScriptableObject
                 {
                     farm.ResetAppliedItems();
                 }
-                Debug.Log($"✅ Reset applied items for all {farms.Count} farms (JSON fallback)");
                 
                 GenerateCagesFromFarmData();
-                Debug.Log($"✅ Loaded {farms.Count} farms from JSON file (fallback)");
             }
         }
         catch (System.Exception e)
@@ -97,9 +94,6 @@ public class FarmDatabase : ScriptableObject
 
     private void DistributeFarmDataToCages(FarmData farm)
     {
-        Debug.Log($"🔧 Distributing data for {farm.farmName}:");
-        Debug.Log($"   Total Nests: {farm.nestsOccupied}, Champ: {farm.champChicks}, Normal: {farm.normalChicks}, Legend: {farm.legendChicks}, SuperLegend: {farm.superLegendChicks}");
-
         // Create a list to track which cages have nests
         List<int> cagesWithNests = new List<int>();
         
@@ -109,8 +103,6 @@ public class FarmDatabase : ScriptableObject
             farm.cages[i].nestsOccupied = 1; // Each cage gets 1 nest
             cagesWithNests.Add(i);
         }
-
-        Debug.Log($"   ✓ Distributed {farm.nestsOccupied} nests to first {farm.nestsOccupied} cages");
 
         // Step 2: Distribute chicks by priority (SuperLegend > Legend > Champ > Normal)
         int currentIndex = 0;
@@ -124,7 +116,6 @@ public class FarmDatabase : ScriptableObject
             farm.cages[cageIndex].remainingTime = Random.Range(30f, 300f);
             currentIndex++;
         }
-        Debug.Log($"   ✓ Distributed {farm.superLegendChicks} SuperLegend chicks");
         
         // Legend chicks
         for (int i = 0; i < farm.legendChicks && currentIndex < cagesWithNests.Count; i++)
@@ -135,7 +126,6 @@ public class FarmDatabase : ScriptableObject
             farm.cages[cageIndex].remainingTime = Random.Range(30f, 300f);
             currentIndex++;
         }
-        Debug.Log($"   ✓ Distributed {farm.legendChicks} Legend chicks");
         
         // Champ chicks
         for (int i = 0; i < farm.champChicks && currentIndex < cagesWithNests.Count; i++)
@@ -146,7 +136,6 @@ public class FarmDatabase : ScriptableObject
             farm.cages[cageIndex].remainingTime = Random.Range(30f, 300f);
             currentIndex++;
         }
-        Debug.Log($"   ✓ Distributed {farm.champChicks} Champ chicks");
         
         // Normal chicks last
         for (int i = 0; i < farm.normalChicks && currentIndex < cagesWithNests.Count; i++)
@@ -157,7 +146,6 @@ public class FarmDatabase : ScriptableObject
             farm.cages[cageIndex].remainingTime = Random.Range(30f, 300f);
             currentIndex++;
         }
-        Debug.Log($"   ✓ Distributed {farm.normalChicks} Normal chicks");
         
         // Verify distribution
         int actualNests = 0;
@@ -175,7 +163,6 @@ public class FarmDatabase : ScriptableObject
             if (cage.normalChicks > 0) actualNormals++;
         }
         
-        Debug.Log($"   ✅ Verification - Nests: {actualNests}, SuperLegends: {actualSuperLegends}, Legends: {actualLegends}, Champs: {actualChamps}, Normals: {actualNormals}");
     }
 
     #region BACKEND INTEGRATION
@@ -192,7 +179,6 @@ public class FarmDatabase : ScriptableObject
             {
                 farms = wrapper.farms;
                 GenerateCagesFromFarmData();
-                Debug.Log($"✅ Loaded {farms.Count} farms from backend");
             }
         }
         catch (System.Exception e)
@@ -235,8 +221,6 @@ public class FarmDatabase : ScriptableObject
             }
             
             DistributeFarmDataToCages(farms[farmIndex]);
-            
-            Debug.Log($"✅ Updated Farm {farmIndex + 1} from backend");
         }
     }
 

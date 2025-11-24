@@ -31,7 +31,6 @@ public class GameAudioManager : MonoBehaviour
             // IMPORTANT: Copy clips from the new scene instance before destroying
             if (bgmClips != null && bgmClips.Length > 0)
             {
-                Debug.Log("Copying audio clips from duplicate instance");
                 Instance.bgmClips = bgmClips;
                 Instance.buttonClickClip = buttonClickClip;
                 
@@ -81,7 +80,6 @@ public class GameAudioManager : MonoBehaviour
 
         if (bgmClips != null && bgmClips.Length > 0 && !musicSource.isPlaying)
         {
-            Debug.Log("🎵 Starting BGM with " + bgmClips.Length + " tracks");
             PlayNextTrack();
         }
     }
@@ -101,8 +99,6 @@ public class GameAudioManager : MonoBehaviour
         musicSource.clip = bgmClips[currentTrackIndex];
         musicSource.loop = false;
         musicSource.Play();
-        Debug.Log($"Playing track {currentTrackIndex}: {bgmClips[currentTrackIndex].name}");
-
         currentTrackIndex = (currentTrackIndex + 1) % bgmClips.Length;
     }
 

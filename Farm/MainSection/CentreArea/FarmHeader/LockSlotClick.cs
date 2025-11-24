@@ -63,7 +63,6 @@ public class LockSlotClick : MonoBehaviour
         {
             button.onClick.RemoveAllListeners();
             button.onClick.AddListener(OnLockSlotClicked);
-            Debug.Log("✅ LockSlotClick: Added onClick listener to lock slot");
         }
         else
         {
@@ -73,13 +72,10 @@ public class LockSlotClick : MonoBehaviour
     
     private void OnLockSlotClicked()
     {
-        Debug.Log("🔒 Lock slot clicked - Opening farm unlock selection!");
-        
         // ✅ NEW: Close all centre area panels except farm panel (same as farm slot behavior)
         if (farmHeaderManager != null)
         {
             farmHeaderManager.CloseAllCentreAreaPanels();
-            Debug.Log("✅ Closed all centre area panels except farm panel");
         }
         else
         {
@@ -93,14 +89,12 @@ public class LockSlotClick : MonoBehaviour
         if (lockItemApplier != null)
         {
             lockItemApplier.SetPendingItem("");
-            Debug.Log("🔑 Cleared pending key");
         }
         
         // Open the inventory lock bar
         if (inventoryBarChanger != null)
         {
             inventoryBarChanger.InventoryLockBarMethod();
-            Debug.Log("✅ Opened InventoryLockBar");
         }
         else
         {
@@ -112,7 +106,6 @@ public class LockSlotClick : MonoBehaviour
         if (infoErrorChanger != null)
         {
             infoErrorChanger.OpenInfoOpenFarm();
-            Debug.Log("✅ Opened InfoOpenFarm panel");
         }
         else
         {
@@ -135,7 +128,6 @@ public class LockSlotClick : MonoBehaviour
         if (messageText != null)
         {
             messageText.text = "Would you want to open a new farm?\nPlease select farm key first!";
-            Debug.Log("📝 Updated message text (waiting for key selection)");
         }
         else
         {
@@ -150,7 +142,6 @@ public class LockSlotClick : MonoBehaviour
                 {
                     messageText = txt;
                     messageText.text = "Would you want to open a new farm?\nPlease select farm key first!";
-                    Debug.Log($"✅ Found message text on: {txt.gameObject.name}");
                     break;
                 }
             }
@@ -160,7 +151,6 @@ public class LockSlotClick : MonoBehaviour
         if (yesButton != null)
         {
             yesButton.gameObject.SetActive(false);
-            Debug.Log("🙈 Hidden Yes button (waiting for key selection)");
         }
         else
         {
@@ -170,7 +160,6 @@ public class LockSlotClick : MonoBehaviour
         if (noButton != null)
         {
             noButton.gameObject.SetActive(false);
-            Debug.Log("🙈 Hidden No button (waiting for key selection)");
         }
         else
         {
@@ -200,7 +189,6 @@ public class LockSlotClick : MonoBehaviour
                             !txt.gameObject.name.ToLower().Contains("button"))
                         {
                             messageText = txt;
-                            Debug.Log($"✅ Found message text: {txt.gameObject.name}");
                             break;
                         }
                     }
@@ -209,7 +197,6 @@ public class LockSlotClick : MonoBehaviour
                     if (messageText == null)
                     {
                         messageText = texts[0];
-                        Debug.Log($"✅ Using first text component: {texts[0].gameObject.name}");
                     }
                 }
             }
@@ -227,7 +214,6 @@ public class LockSlotClick : MonoBehaviour
             if (yesObj != null)
             {
                 yesButton = yesObj.GetComponent<Button>();
-                Debug.Log($"✅ Found Yes button: {yesObj.name}");
             }
         }
         
@@ -243,7 +229,6 @@ public class LockSlotClick : MonoBehaviour
             if (noObj != null)
             {
                 noButton = noObj.GetComponent<Button>();
-                Debug.Log($"✅ Found No button: {noObj.name}");
             }
         }
     }

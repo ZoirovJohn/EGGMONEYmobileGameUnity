@@ -156,7 +156,6 @@ public class InventoryLockInfo : MonoBehaviour
         if (lockItemApplier != null)
         {
             lockItemApplier.SetPendingItem(keyId);
-            Debug.Log($"🔑 Set pending key: {keyId}");
         }
         else
         {
@@ -167,7 +166,6 @@ public class InventoryLockInfo : MonoBehaviour
         if (infoMessageText != null)
         {
             infoMessageText.text = "Would you want to open a new farm?";
-            Debug.Log("📝 Updated message to confirmation (key selected)");
         }
         else
         {
@@ -177,7 +175,6 @@ public class InventoryLockInfo : MonoBehaviour
         if (yesButton != null)
         {
             yesButton.gameObject.SetActive(true);
-            Debug.Log("👁️ Showed Yes button (key selected)");
         }
         else
         {
@@ -187,14 +184,11 @@ public class InventoryLockInfo : MonoBehaviour
         if (noButton != null)
         {
             noButton.gameObject.SetActive(true);
-            Debug.Log("👁️ Showed No button (key selected)");
         }
         else
         {
             Debug.LogWarning("⚠️ No button reference not found!");
         }
-        
-        Debug.Log("✅ Ready for user confirmation");
     }
 
     void ShowLoading(bool show)
@@ -240,7 +234,6 @@ public class InventoryLockInfo : MonoBehaviour
                         !txt.gameObject.name.ToLower().Contains("button"))
                     {
                         infoMessageText = txt;
-                        Debug.Log($"✅ Found info text: {txt.gameObject.name}");
                         break;
                     }
                 }
@@ -248,7 +241,6 @@ public class InventoryLockInfo : MonoBehaviour
                 if (infoMessageText == null && texts.Length > 0)
                 {
                     infoMessageText = texts[0];
-                    Debug.Log($"✅ Using first text: {texts[0].gameObject.name}");
                 }
             }
         }
@@ -264,7 +256,6 @@ public class InventoryLockInfo : MonoBehaviour
             if (yesObj != null)
             {
                 yesButton = yesObj.GetComponent<Button>();
-                Debug.Log($"✅ Found Yes button: {yesObj.name}");
             }
         }
         
@@ -279,7 +270,6 @@ public class InventoryLockInfo : MonoBehaviour
             if (noObj != null)
             {
                 noButton = noObj.GetComponent<Button>();
-                Debug.Log($"✅ Found No button: {noObj.name}");
             }
         }
     }

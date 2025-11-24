@@ -100,8 +100,6 @@ public class InventoryManager : MonoBehaviour
                                        !string.IsNullOrEmpty(item.hen.stage) && 
                                        !string.IsNullOrEmpty(item.hen.kind);
                     
-                    Debug.Log($"🔍 Processing item: {item.itemType}, tier: {item.tier}, quantity: {item.quantity}, status: {item.status}, hen: {(hasValidHen ? "YES" : "NO")}");
-                    
                     if (hasValidHen)
                     {
                         // It's a hatched egg with a chicken
@@ -124,8 +122,6 @@ public class InventoryManager : MonoBehaviour
                         {
                             inventoryCounts[productId] = item.quantity;
                         }
-                        
-                        Debug.Log($"✅ Aggregated: {productId} = {inventoryCounts[productId]}");
                     }
                     else
                     {
@@ -138,10 +134,7 @@ public class InventoryManager : MonoBehaviour
             foreach (var kvp in inventoryCounts)
             {
                 SetPlayerWalletItem(kvp.Key, kvp.Value);
-                Debug.Log($"💰 SET in wallet: {kvp.Key} = {kvp.Value}");
             }
-
-            Debug.Log("✅ Inventory updated successfully from backend!");
         }
         catch (Exception ex)
         {
@@ -206,13 +199,11 @@ public class InventoryManager : MonoBehaviour
                 {
                     // Need to add more
                     playerWallet.AddItem(productId, difference);
-                    Debug.Log($"➕ Added {difference}x {productId}");
                 }
                 else if (difference < 0)
                 {
                     // Need to remove some
                     playerWallet.TryConsumeItem(productId, -difference);
-                    Debug.Log($"➖ Removed {-difference}x {productId}");
                 }
                 // else: difference == 0, already correct amount
                 break;

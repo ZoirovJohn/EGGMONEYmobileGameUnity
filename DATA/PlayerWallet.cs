@@ -108,7 +108,6 @@ public class PlayerWallet : MonoBehaviour
     {
         if (amount <= 0 || amount > fp) return false;
         fp -= amount;
-        Debug.Log($"💸 TrySpend: Spent {amount} FP, new balance: {fp}");
         OnFPChanged?.Invoke(fp);
         return true;
     }
@@ -117,7 +116,6 @@ public class PlayerWallet : MonoBehaviour
     {
         if (amount <= 0) return;
         fp += amount;
-        Debug.Log($"💰 Add: Added {amount} FP, new balance: {fp}");
         OnFPChanged?.Invoke(fp);
     }
 
@@ -126,7 +124,6 @@ public class PlayerWallet : MonoBehaviour
         newFP = Mathf.Max(0, newFP);
         if (fp == newFP) return;
         fp = newFP;
-        Debug.Log($"💰 SetFP: Set to {fp} FP");
         OnFPChanged?.Invoke(fp);
     }
 
@@ -210,7 +207,6 @@ public class PlayerWallet : MonoBehaviour
         newUserFarms = Mathf.Max(0, newUserFarms);
         if (userFarms == newUserFarms) return;
         userFarms = newUserFarms;
-        Debug.Log($"🚜 SetUserFarms: Set to {userFarms} farms");
         OnProfileChanged?.Invoke();
     }
 
@@ -219,7 +215,6 @@ public class PlayerWallet : MonoBehaviour
     {
         if (string.IsNullOrEmpty(code) || referralCode == code) return;
         referralCode = code;
-        Debug.Log($"🎫 SetReferralCode: Set to {referralCode}");
         OnProfileChanged?.Invoke();
     }
 
@@ -247,7 +242,6 @@ public class PlayerWallet : MonoBehaviour
         v = Mathf.Max(0, v); 
         if (chick == v) return; 
         chick = v;
-        Debug.Log($"🐣 SetChick: {v} (Firing OnItemChanged)");
         OnItemChanged?.Invoke("chick", v); 
         OnProfileChanged?.Invoke(); 
     }
@@ -257,7 +251,6 @@ public class PlayerWallet : MonoBehaviour
         v = Mathf.Max(0, v); 
         if (whiteChick == v) return; 
         whiteChick = v;
-        Debug.Log($"🐔 SetWhiteChick: {v} (Firing OnItemChanged)");
         OnItemChanged?.Invoke("whiteChick", v); 
         OnProfileChanged?.Invoke(); 
     }
@@ -267,7 +260,6 @@ public class PlayerWallet : MonoBehaviour
         v = Mathf.Max(0, v); 
         if (champChick == v) return; 
         champChick = v;
-        Debug.Log($"🏆 SetChampChick: {v} (Firing OnItemChanged)");
         OnItemChanged?.Invoke("champChick", v); 
         OnProfileChanged?.Invoke(); 
     }
@@ -277,7 +269,6 @@ public class PlayerWallet : MonoBehaviour
         v = Mathf.Max(0, v); 
         if (silverEgg == v) return; 
         silverEgg = v;
-        Debug.Log($"🥚 SetSilverEgg: {v} (Firing OnItemChanged)");
         OnItemChanged?.Invoke("silver_egg", v); 
         OnProfileChanged?.Invoke(); 
     }
@@ -287,7 +278,6 @@ public class PlayerWallet : MonoBehaviour
         v = Mathf.Max(0, v); 
         if (goldEgg == v) return; 
         goldEgg = v;
-        Debug.Log($"🌟 SetGoldEgg: {v} (Firing OnItemChanged)");
         OnItemChanged?.Invoke("gold_egg", v); 
         OnProfileChanged?.Invoke(); 
     }
@@ -297,7 +287,6 @@ public class PlayerWallet : MonoBehaviour
         v = Mathf.Max(0, v); 
         if (superFarmKey == v) return; 
         superFarmKey = v;
-        Debug.Log($"🔑 SetSuperFarmKey: {v} (Firing OnItemChanged)");
         OnItemChanged?.Invoke("super_farm_key", v); 
         OnProfileChanged?.Invoke(); 
     }
@@ -336,7 +325,6 @@ public class PlayerWallet : MonoBehaviour
         if (amount <= 0) return;
         var key = MapId(id);
         int v = Mathf.Max(0, GetItemCount(id) + amount);
-        Debug.Log($"📦 AddItem: {id} +{amount} → {v} (Calling SetItemCount)");
         SetItemCount(key, v);
     }
 
@@ -346,7 +334,6 @@ public class PlayerWallet : MonoBehaviour
         var key = MapId(id);
         int cur = GetItemCount(id);
         if (cur < amount) return false;
-        Debug.Log($"📤 TryConsumeItem: {id} -{amount} → {cur - amount} (Calling SetItemCount)");
         SetItemCount(key, cur - amount);
         return true;
     }
@@ -427,7 +414,6 @@ public class PlayerWallet : MonoBehaviour
 
     void RaiseItem(string id, int value)
     {
-        Debug.Log($"🔔 RaiseItem: Firing OnItemChanged for '{id}' = {value} (Listeners: {(OnItemChanged?.GetInvocationList().Length ?? 0)})");
         OnItemChanged?.Invoke(id, value);
     }
 

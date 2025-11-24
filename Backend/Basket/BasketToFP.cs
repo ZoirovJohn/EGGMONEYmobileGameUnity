@@ -87,9 +87,6 @@ public class BasketToFP : MonoBehaviour
             // Update wallet immediately
             wallet.AddEggs(-eggAmount);
             wallet.Add(fpToAdd);
-            
-            Debug.Log($"💰 Wallet updated: -{eggAmount} eggs, +{fpToAdd} FP");
-            Debug.Log($"📊 New balance: {wallet.Eggs} eggs, {wallet.FP} FP");
         }
 
         // Build the URL
@@ -101,9 +98,6 @@ public class BasketToFP : MonoBehaviour
             eggs = eggAmount
         };
         string jsonData = JsonUtility.ToJson(requestBody);
-
-        Debug.Log($"🥚 Calling backend to exchange {eggAmount} eggs...");
-        Debug.Log($"📤 Request: {jsonData}");
 
         // Create UnityWebRequest
         using (UnityWebRequest request = new UnityWebRequest(url, "POST"))
@@ -123,8 +117,6 @@ public class BasketToFP : MonoBehaviour
             if (request.result == UnityWebRequest.Result.Success)
             {
                 string responseText = request.downloadHandler.text;
-                Debug.Log($"✅ Backend confirmed exchange! Response: {responseText}");
-
                 try
                 {
                     BasketToFPResponse response = JsonUtility.FromJson<BasketToFPResponse>(responseText);
