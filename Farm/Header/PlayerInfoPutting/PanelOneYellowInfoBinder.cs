@@ -8,8 +8,8 @@ public class PanelOneYellowInfoBinder : MonoBehaviour
     public PlayerWallet wallet;
 
     [Header("Optional item IDs")]
-    public string whiteChickId = "white_chick";
-    public string champChickId = "champ_chick";
+    public string whiteChickId = "whiteChick";
+    public string champChickId = "champChick";
 
     [Header("Outputs (TMP only)")]
     public TMP_Text friendsNumTMP;

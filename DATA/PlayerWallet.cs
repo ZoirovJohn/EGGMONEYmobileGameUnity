@@ -404,8 +404,8 @@ public class PlayerWallet : MonoBehaviour
             case Item.SuperBlueEgg: superBlueEgg = value; RaiseItem("super_blue_egg", value); break;
             case Item.SuperRedEgg: superRedEgg = value; RaiseItem("super_red_egg", value); break;
             case Item.Chick: chick = value; RaiseItem("chick", value); break;
-            case Item.WhiteChick: whiteChick = value; RaiseItem("white_chick", value); break;
-            case Item.ChampChick: champChick = value; RaiseItem("champ_chick", value); break;
+            case Item.WhiteChick: whiteChick = value; RaiseItem("whiteChick", value); break;
+            case Item.ChampChick: champChick = value; RaiseItem("champChick", value); break;
             case Item.SuperFarmKey: superFarmKey = value; RaiseItem("super_farm_key", value); break;
             default: return;
         }
