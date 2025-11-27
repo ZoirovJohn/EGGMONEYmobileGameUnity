@@ -9,7 +9,8 @@
       "batteryType": "none",
       "nestsOccupied": 20,
       "normalChicks": 10,
-      "champChicks": 5
+      "champChicks": 5,
+      "eggsReady": 8
     },
     {
       "farmId": "farm_002",
@@ -20,7 +21,8 @@
       "batteryType": "none",
       "nestsOccupied": 15,
       "normalChicks": 8,
-      "champChicks": 3
+      "champChicks": 3,
+      "eggsReady": 8
     },
     {
       "farmId": "farm_003",
@@ -31,7 +33,8 @@
       "batteryType": "none",
       "nestsOccupied": 8,
       "normalChicks": 4,
-      "champChicks": 1
+      "champChicks": 1,
+      "eggsReady": 8
     }
   ]
 }

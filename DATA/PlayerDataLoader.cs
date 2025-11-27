@@ -148,8 +148,15 @@ public class PlayerDataLoader : MonoBehaviour
             FarmSummary summary = summaries[i];
             FarmData farmData = ConvertSummaryToFarmData(summary, i);
             farmDatabase.farms.Add(farmData);
+            
+            // ✅ NEW: Set nest details BEFORE generating cages
+            if (summary.nests != null && summary.nests.details != null)
+            {
+                farmDatabase.SetFarmNestDetails(i, summary.nests.details);
+            }
         }
 
+        // Now generate cages (will use the nest details we just set)
         farmDatabase.GenerateCagesFromFarmData();
 
         if (farmHeaderManager != null)
