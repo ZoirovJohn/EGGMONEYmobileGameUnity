@@ -60,10 +60,7 @@ public class PlayerDataLoader : MonoBehaviour
                 PlayerPrefs.SetString("referralCode", userData.referralCode);
                 PlayerPrefs.Save();
 
-                // ✅ Load basket data
                 LoadBasketData();
-                
-                // ✅ Load farm data from backend
                 LoadFarmData(userData.userFarms);
             },
             onError: (err) =>
@@ -99,9 +96,6 @@ public class PlayerDataLoader : MonoBehaviour
         );
     }
 
-    /// <summary>
-    /// ✅ Load all farm data from backend
-    /// </summary>
     private void LoadFarmData(int farmCount)
     {
         if (farmCount <= 0)
@@ -131,7 +125,6 @@ public class PlayerDataLoader : MonoBehaviour
             onError: (error) =>
             {
                 Debug.LogError($"❌ Failed to load farm data: {error}");
-                // Fallback to JSON data if available
                 if (farmDatabase.farmDataJSON != null)
                 {
                     farmDatabase.LoadFromJSON();
@@ -140,9 +133,6 @@ public class PlayerDataLoader : MonoBehaviour
         );
     }
 
-    /// <summary>
-    /// Convert backend farm summaries to FarmData and store in database
-    /// </summary>
     private void ConvertAndStoreFarmData(FarmSummary[] summaries)
     {
         if (summaries == null || summaries.Length == 0)
@@ -160,10 +150,8 @@ public class PlayerDataLoader : MonoBehaviour
             farmDatabase.farms.Add(farmData);
         }
 
-        // Generate cages from farm data
         farmDatabase.GenerateCagesFromFarmData();
 
-        // Refresh UI
         if (farmHeaderManager != null)
         {
             farmHeaderManager.Refresh();
@@ -174,35 +162,24 @@ public class PlayerDataLoader : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// ✅ FIXED: Convert a single FarmSummary to FarmData with correct nest count
-    /// </summary>
     private FarmData ConvertSummaryToFarmData(FarmSummary summary, int index)
     {
         FarmData farm = new FarmData
         {
             farmIndex = index,
-            farmId = $"farm_{(index + 1):D3}", // farm_001, farm_002, etc.
+            farmId = $"farm_{(index + 1):D3}",
             farmName = $"Farm {summary.farm.farmNumber}",
-            
-            // ✅ Backend farm data
             isPremium = summary.farm.isPremium,
             maxCapacity = summary.farm.maxCapacity,
-            
-            // ✅✅ FIXED: Use summary.nests.total instead of occupied
-            // This gives the TOTAL number of nests (10), not just occupied ones (2)
-            nestsOccupied = summary.nests.total,  // ✅ CORRECT!
-            
+            nestsOccupied = summary.nests.total,
             cages = new System.Collections.Generic.List<CageData>()
         };
 
-        // ✅ Count chicks by kind from backend hen stats
         farm.normalChicks = summary.henStats.byKind.Normal;
         farm.champChicks = summary.henStats.byKind.Champ;
         farm.legendChicks = summary.henStats.byKind.Legend;
         farm.superLegendChicks = summary.henStats.byKind.SuperLegend;
         
-        // ✅ Count premium and normal nests
         int premiumNests = 0;
         int normalNests = 0;
         
@@ -214,20 +191,25 @@ public class PlayerDataLoader : MonoBehaviour
                     premiumNests++;
                 else
                     normalNests++;
+                
+                // ✅ NEW: Process egg ready status from backend
+                if (nest.hen != null && nest.hen.hasEggReady)
+                {
+                    // Store this information for later use in cage distribution
+                    // We'll handle this in the cage creation
+                }
             }
         }
         
         farm.premiumNests = premiumNests;
         farm.normalNests = normalNests;
         
-        // ✅ Robot data from backend
         if (summary.robot != null)
         {
             farm.hasRobot = !string.IsNullOrEmpty(summary.robot.id);
             farm.robotActive = summary.robot.isActive;
             farm.robotPoweredUntil = summary.robot.poweredUntil ?? "";
             
-            // Update robotType for compatibility
             if (farm.hasRobot)
             {
                 farm.robotType = "robot";
@@ -241,7 +223,6 @@ public class PlayerDataLoader : MonoBehaviour
             farm.robotType = "none";
         }
 
-        // ✅ Set farmKeyType based on isPremium
         if (farm.isPremium)
         {
             farm.farmKeyType = "premiumfarmkey";

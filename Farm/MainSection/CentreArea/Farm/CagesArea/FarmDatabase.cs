@@ -11,16 +11,15 @@ public class FarmDatabase : ScriptableObject
     
     [HideInInspector]
     public List<FarmData> farms = new List<FarmData>();
+    
+    // ✅ NEW: Store nest details from backend for proper egg ready mapping
+    private Dictionary<int, List<NestDetail>> farmNestDetails = new Dictionary<int, List<NestDetail>>();
 
-    /// <summary>
-    /// ✅ UPDATED: Only load from JSON if no backend data exists (fallback)
-    /// </summary>
-    [ContextMenu("Load Data from JSON")]
     public void LoadFromJSON()
     {
         if (farmDataJSON == null)
         {
-            Debug.LogError("❌ No JSON file assigned! Please assign farmDataJSON in Inspector.");
+            Debug.LogError("❌ No JSON file assigned!");
             return;
         }
 
@@ -31,16 +30,14 @@ public class FarmDatabase : ScriptableObject
             {
                 farms = wrapper.farms;
                 
-                // ⭐ AUTO-GENERATE FARM IDs IF MISSING ⭐
                 for (int i = 0; i < farms.Count; i++)
                 {
                     if (string.IsNullOrEmpty(farms[i].farmId))
                     {
-                        farms[i].farmId = $"farm_{(i + 1):D3}"; // farm_001, farm_002, etc.
+                        farms[i].farmId = $"farm_{(i + 1):D3}";
                     }
                 }
                 
-                // ⭐ RESET APPLIED ITEMS ONLY FOR JSON DATA ⭐
                 foreach (var farm in farms)
                 {
                     farm.ResetAppliedItems();
@@ -56,16 +53,26 @@ public class FarmDatabase : ScriptableObject
     }
 
     /// <summary>
-    /// ✅ NEW: Generate cages WITHOUT resetting applied items (for backend data)
+    /// ✅ UPDATED: Store nest details before generating cages
     /// </summary>
+    public void SetFarmNestDetails(int farmIndex, List<NestDetail> nestDetails)
+    {
+        if (!farmNestDetails.ContainsKey(farmIndex))
+        {
+            farmNestDetails.Add(farmIndex, nestDetails);
+        }
+        else
+        {
+            farmNestDetails[farmIndex] = nestDetails;
+        }
+    }
+
     public void GenerateCagesFromFarmData()
     {
         foreach (var farm in farms)
         {
-            // ✅ Only clear and regenerate cages, don't touch applied items
             farm.cages.Clear();
             
-            // Create 100 empty cages
             for (int i = 0; i < 100; i++)
             {
                 CageData cage = new CageData
@@ -79,13 +86,13 @@ public class FarmDatabase : ScriptableObject
                     legendChicks = 0,
                     superLegendChicks = 0,
                     hasEgg = false,
+                    eggReady = false, // ✅ NEW: Initialize as false
                     remainingTime = 0f,
                     upgradeLevel = 0
                 };
                 farm.cages.Add(cage);
             }
             
-            // Distribute the farm's data across cages
             DistributeFarmDataToCages(farm);
         }
         
@@ -94,17 +101,23 @@ public class FarmDatabase : ScriptableObject
 
     private void DistributeFarmDataToCages(FarmData farm)
     {
-        // Create a list to track which cages have nests
         List<int> cagesWithNests = new List<int>();
         
-        // Step 1: Distribute nests - ONLY nestsOccupied amount (not all 100)
+        // Step 1: Distribute nests
         for (int i = 0; i < farm.nestsOccupied && i < 100; i++)
         {
-            farm.cages[i].nestsOccupied = 1; // Each cage gets 1 nest
+            farm.cages[i].nestsOccupied = 1;
             cagesWithNests.Add(i);
         }
 
-        // Step 2: Distribute chicks by priority (SuperLegend > Legend > Champ > Normal)
+        // ✅ Step 2: Get nest details for this farm if available
+        List<NestDetail> nestDetails = null;
+        if (farmNestDetails.ContainsKey(farm.farmIndex))
+        {
+            nestDetails = farmNestDetails[farm.farmIndex];
+        }
+
+        // Step 3: Distribute chicks and set egg ready status
         int currentIndex = 0;
         
         // SuperLegend chicks first
@@ -112,7 +125,26 @@ public class FarmDatabase : ScriptableObject
         {
             int cageIndex = cagesWithNests[currentIndex];
             farm.cages[cageIndex].superLegendChicks = 1;
-            farm.cages[cageIndex].hasEgg = Random.value > 0.5f;
+            
+            // ✅ Set egg ready status from backend data if available
+            if (nestDetails != null && currentIndex < nestDetails.Count)
+            {
+                var nest = nestDetails[currentIndex];
+                if (nest.hen != null)
+                {
+                    farm.cages[cageIndex].eggReady = nest.hen.hasEggReady;
+                    farm.cages[cageIndex].hasEgg = nest.hen.hasEggReady; // ✅ Set hasEgg based on backend
+                }
+                else
+                {
+                    farm.cages[cageIndex].hasEgg = false; // No hen = no egg
+                }
+            }
+            else
+            {
+                farm.cages[cageIndex].hasEgg = Random.value > 0.5f; // Fallback if no backend data
+            }
+            
             farm.cages[cageIndex].remainingTime = Random.Range(30f, 300f);
             currentIndex++;
         }
@@ -122,7 +154,26 @@ public class FarmDatabase : ScriptableObject
         {
             int cageIndex = cagesWithNests[currentIndex];
             farm.cages[cageIndex].legendChicks = 1;
-            farm.cages[cageIndex].hasEgg = Random.value > 0.5f;
+            
+            // ✅ Set egg ready status from backend data
+            if (nestDetails != null && currentIndex < nestDetails.Count)
+            {
+                var nest = nestDetails[currentIndex];
+                if (nest.hen != null)
+                {
+                    farm.cages[cageIndex].eggReady = nest.hen.hasEggReady;
+                    farm.cages[cageIndex].hasEgg = nest.hen.hasEggReady; // ✅ Set hasEgg based on backend
+                }
+                else
+                {
+                    farm.cages[cageIndex].hasEgg = false;
+                }
+            }
+            else
+            {
+                farm.cages[cageIndex].hasEgg = Random.value > 0.5f;
+            }
+            
             farm.cages[cageIndex].remainingTime = Random.Range(30f, 300f);
             currentIndex++;
         }
@@ -132,7 +183,26 @@ public class FarmDatabase : ScriptableObject
         {
             int cageIndex = cagesWithNests[currentIndex];
             farm.cages[cageIndex].champChicks = 1;
-            farm.cages[cageIndex].hasEgg = Random.value > 0.5f;
+            
+            // ✅ Set egg ready status from backend data
+            if (nestDetails != null && currentIndex < nestDetails.Count)
+            {
+                var nest = nestDetails[currentIndex];
+                if (nest.hen != null)
+                {
+                    farm.cages[cageIndex].eggReady = nest.hen.hasEggReady;
+                    farm.cages[cageIndex].hasEgg = nest.hen.hasEggReady; // ✅ Set hasEgg based on backend
+                }
+                else
+                {
+                    farm.cages[cageIndex].hasEgg = false;
+                }
+            }
+            else
+            {
+                farm.cages[cageIndex].hasEgg = Random.value > 0.5f;
+            }
+            
             farm.cages[cageIndex].remainingTime = Random.Range(30f, 300f);
             currentIndex++;
         }
@@ -142,33 +212,35 @@ public class FarmDatabase : ScriptableObject
         {
             int cageIndex = cagesWithNests[currentIndex];
             farm.cages[cageIndex].normalChicks = 1;
-            farm.cages[cageIndex].hasEgg = Random.value > 0.5f;
+            
+            // ✅ Set egg ready status from backend data
+            if (nestDetails != null && currentIndex < nestDetails.Count)
+            {
+                var nest = nestDetails[currentIndex];
+                if (nest.hen != null)
+                {
+                    farm.cages[cageIndex].eggReady = nest.hen.hasEggReady;
+                    farm.cages[cageIndex].hasEgg = nest.hen.hasEggReady; // ✅ Set hasEgg based on backend
+                }
+                else
+                {
+                    farm.cages[cageIndex].hasEgg = false;
+                }
+            }
+            else
+            {
+                farm.cages[cageIndex].hasEgg = Random.value > 0.5f;
+            }
+            
             farm.cages[cageIndex].remainingTime = Random.Range(30f, 300f);
             currentIndex++;
         }
-        
-        // Verify distribution
-        int actualNests = 0;
-        int actualSuperLegends = 0;
-        int actualLegends = 0;
-        int actualChamps = 0;
-        int actualNormals = 0;
-        
-        foreach (var cage in farm.cages)
-        {
-            if (cage.nestsOccupied > 0) actualNests++;
-            if (cage.superLegendChicks > 0) actualSuperLegends++;
-            if (cage.legendChicks > 0) actualLegends++;
-            if (cage.champChicks > 0) actualChamps++;
-            if (cage.normalChicks > 0) actualNormals++;
-        }
-        
     }
 
     #region BACKEND INTEGRATION
 
     /// <summary>
-    /// ✅ Load farms from backend JSON string
+    /// Load farms from backend JSON string
     /// </summary>
     public void LoadFromBackend(string jsonData)
     {
@@ -188,7 +260,7 @@ public class FarmDatabase : ScriptableObject
     }
 
     /// <summary>
-    /// ✅ Update a single farm from backend data
+    /// Update a single farm from backend data
     /// </summary>
     public void UpdateFarmFromBackend(int farmIndex, int nests, int champChicks, int normalChicks, int legendChicks = 0, int superLegendChicks = 0)
     {
@@ -215,6 +287,7 @@ public class FarmDatabase : ScriptableObject
                     legendChicks = 0,
                     superLegendChicks = 0,
                     hasEgg = false,
+                    eggReady = false,
                     remainingTime = 0f,
                     upgradeLevel = 0
                 });
@@ -231,12 +304,6 @@ public class FarmDatabase : ScriptableObject
     {
         FarmDatabaseWrapper wrapper = new FarmDatabaseWrapper { farms = farms };
         return JsonUtility.ToJson(wrapper, true);
-    }
-
-    [System.Serializable]
-    private class FarmDatabaseWrapper
-    {
-        public List<FarmData> farms;
     }
 
     #endregion
@@ -268,13 +335,11 @@ public class FarmDatabase : ScriptableObject
 
     #endregion
 
-    #region FARM SWITCHING
-
     public void SwitchToFarm(int targetFarmIndex)
     {
         if (farms == null || farms.Count == 0)
         {
-            Debug.LogError("❌ Farm list is empty! Load data first.");
+            Debug.LogError("❌ Farm list is empty!");
             return;
         }
 
@@ -285,23 +350,12 @@ public class FarmDatabase : ScriptableObject
         }
 
         currentFarmIndex = targetFarmIndex;
-        Debug.Log($"✅ Successfully switched to farm: {currentFarmIndex}");
+        Debug.Log($"✅ Switched to farm: {currentFarmIndex}");
     }
 
-    #endregion
-
-    /// <summary>
-    /// Generate default data - only used as fallback
-    /// </summary>
-    public void GenerateDefaultData()
+    [System.Serializable]
+    private class FarmDatabaseWrapper
     {
-        if (farmDataJSON != null)
-        {
-            LoadFromJSON();
-        }
-        else
-        {
-            Debug.LogWarning("⚠️ No JSON file assigned. Please assign farmDataJSON and call 'Load Data from JSON'");
-        }
+        public List<FarmData> farms;
     }
 }
