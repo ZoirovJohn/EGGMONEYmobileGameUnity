@@ -110,14 +110,32 @@ public class FarmDatabase : ScriptableObject
             cagesWithNests.Add(i);
         }
 
-        // ✅ Step 2: Get nest details for this farm if available
-        List<NestDetail> nestDetails = null;
+        // ✅ Step 2: Count how many eggs we should have from the nest details (if available)
+        int totalEggsReady = 0;
+        
         if (farmNestDetails.ContainsKey(farm.farmIndex))
         {
-            nestDetails = farmNestDetails[farm.farmIndex];
+            List<NestDetail> nestDetails = farmNestDetails[farm.farmIndex];
+            
+            // Count eggs from backend nest details
+            foreach (var nest in nestDetails)
+            {
+                if (nest.hen != null && nest.hen.hasEggReady)
+                {
+                    totalEggsReady++;
+                }
+            }
+            
+            Debug.Log($"✅ Farm {farm.farmIndex}: {totalEggsReady} eggs ready from backend");
+        }
+        else
+        {
+            // Fallback: if no backend data, randomly assign ~50% eggs
+            totalEggsReady = Mathf.RoundToInt(cagesWithNests.Count * 0.5f);
+            Debug.LogWarning($"⚠️ No nest details for farm {farm.farmIndex}, using fallback: {totalEggsReady} eggs");
         }
 
-        // Step 3: Distribute chicks and set egg ready status
+        // Step 3: Distribute chicks
         int currentIndex = 0;
         
         // SuperLegend chicks first
@@ -126,23 +144,16 @@ public class FarmDatabase : ScriptableObject
             int cageIndex = cagesWithNests[currentIndex];
             farm.cages[cageIndex].superLegendChicks = 1;
             
-            // ✅ Set egg ready status from backend data if available
-            if (nestDetails != null && currentIndex < nestDetails.Count)
+            // ✅ First X cages get eggs, rest get clocks
+            if (currentIndex < totalEggsReady)
             {
-                var nest = nestDetails[currentIndex];
-                if (nest.hen != null)
-                {
-                    farm.cages[cageIndex].eggReady = nest.hen.hasEggReady;
-                    farm.cages[cageIndex].hasEgg = nest.hen.hasEggReady; // ✅ Set hasEgg based on backend
-                }
-                else
-                {
-                    farm.cages[cageIndex].hasEgg = false; // No hen = no egg
-                }
+                farm.cages[cageIndex].hasEgg = true;
+                farm.cages[cageIndex].eggReady = true;
             }
             else
             {
-                farm.cages[cageIndex].hasEgg = Random.value > 0.5f; // Fallback if no backend data
+                farm.cages[cageIndex].hasEgg = false;
+                farm.cages[cageIndex].eggReady = false;
             }
             
             farm.cages[cageIndex].remainingTime = Random.Range(30f, 300f);
@@ -155,23 +166,15 @@ public class FarmDatabase : ScriptableObject
             int cageIndex = cagesWithNests[currentIndex];
             farm.cages[cageIndex].legendChicks = 1;
             
-            // ✅ Set egg ready status from backend data
-            if (nestDetails != null && currentIndex < nestDetails.Count)
+            if (currentIndex < totalEggsReady)
             {
-                var nest = nestDetails[currentIndex];
-                if (nest.hen != null)
-                {
-                    farm.cages[cageIndex].eggReady = nest.hen.hasEggReady;
-                    farm.cages[cageIndex].hasEgg = nest.hen.hasEggReady; // ✅ Set hasEgg based on backend
-                }
-                else
-                {
-                    farm.cages[cageIndex].hasEgg = false;
-                }
+                farm.cages[cageIndex].hasEgg = true;
+                farm.cages[cageIndex].eggReady = true;
             }
             else
             {
-                farm.cages[cageIndex].hasEgg = Random.value > 0.5f;
+                farm.cages[cageIndex].hasEgg = false;
+                farm.cages[cageIndex].eggReady = false;
             }
             
             farm.cages[cageIndex].remainingTime = Random.Range(30f, 300f);
@@ -184,23 +187,15 @@ public class FarmDatabase : ScriptableObject
             int cageIndex = cagesWithNests[currentIndex];
             farm.cages[cageIndex].champChicks = 1;
             
-            // ✅ Set egg ready status from backend data
-            if (nestDetails != null && currentIndex < nestDetails.Count)
+            if (currentIndex < totalEggsReady)
             {
-                var nest = nestDetails[currentIndex];
-                if (nest.hen != null)
-                {
-                    farm.cages[cageIndex].eggReady = nest.hen.hasEggReady;
-                    farm.cages[cageIndex].hasEgg = nest.hen.hasEggReady; // ✅ Set hasEgg based on backend
-                }
-                else
-                {
-                    farm.cages[cageIndex].hasEgg = false;
-                }
+                farm.cages[cageIndex].hasEgg = true;
+                farm.cages[cageIndex].eggReady = true;
             }
             else
             {
-                farm.cages[cageIndex].hasEgg = Random.value > 0.5f;
+                farm.cages[cageIndex].hasEgg = false;
+                farm.cages[cageIndex].eggReady = false;
             }
             
             farm.cages[cageIndex].remainingTime = Random.Range(30f, 300f);
@@ -213,23 +208,15 @@ public class FarmDatabase : ScriptableObject
             int cageIndex = cagesWithNests[currentIndex];
             farm.cages[cageIndex].normalChicks = 1;
             
-            // ✅ Set egg ready status from backend data
-            if (nestDetails != null && currentIndex < nestDetails.Count)
+            if (currentIndex < totalEggsReady)
             {
-                var nest = nestDetails[currentIndex];
-                if (nest.hen != null)
-                {
-                    farm.cages[cageIndex].eggReady = nest.hen.hasEggReady;
-                    farm.cages[cageIndex].hasEgg = nest.hen.hasEggReady; // ✅ Set hasEgg based on backend
-                }
-                else
-                {
-                    farm.cages[cageIndex].hasEgg = false;
-                }
+                farm.cages[cageIndex].hasEgg = true;
+                farm.cages[cageIndex].eggReady = true;
             }
             else
             {
-                farm.cages[cageIndex].hasEgg = Random.value > 0.5f;
+                farm.cages[cageIndex].hasEgg = false;
+                farm.cages[cageIndex].eggReady = false;
             }
             
             farm.cages[cageIndex].remainingTime = Random.Range(30f, 300f);

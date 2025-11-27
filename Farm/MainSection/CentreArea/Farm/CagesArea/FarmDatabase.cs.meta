@@ -1,2 +1,12 @@
 fileFormatVersion: 2
 guid: 8fd62b0741ae848d881e5fa7bdb1fd9a
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - farmDataJSON: {fileID: 4900000, guid: 1b3e75357311e4f58abdd012cf49d356, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
