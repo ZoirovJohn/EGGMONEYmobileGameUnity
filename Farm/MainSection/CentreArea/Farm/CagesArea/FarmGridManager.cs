@@ -410,7 +410,7 @@ public class FarmGridManager : MonoBehaviour
         FarmHeaderManager headerManager = FindAnyObjectByType<FarmHeaderManager>();
         if (headerManager != null)
         {
-            headerManager.Refresh();
+            headerManager.UpdateAllFarmSlotVisuals();
         }
     }
 
