@@ -93,11 +93,7 @@ public class ManyToFarm : MonoBehaviour
             }
         }
         
-        // ✅ Get target farm from currently opened/selected farm
-        if (farmDatabase != null)
-        {
-            targetFarmNumber = farmDatabase.currentFarmIndex + 1; // Convert 0-based to 1-based
-        }
+        // ✅ REMOVED: Don't set targetFarmNumber here - get it dynamically when clicking Put
     }
 
     void AdjustQuantity(int delta)
@@ -182,6 +178,18 @@ public class ManyToFarm : MonoBehaviour
         if (!cellId || string.IsNullOrEmpty(cellId.productId))
         {
             Debug.LogError("❌ No item selected!");
+            return;
+        }
+        
+        // ✅ GET CURRENT FARM DYNAMICALLY (always up-to-date)
+        if (farmDatabase != null)
+        {
+            targetFarmNumber = farmDatabase.currentFarmIndex + 1; // Convert 0-based to 1-based
+            Debug.Log($"🎯 Placing items in Farm {targetFarmNumber}");
+        }
+        else
+        {
+            Debug.LogError("❌ FarmDatabase not found!");
             return;
         }
         
