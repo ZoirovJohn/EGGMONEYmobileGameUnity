@@ -10,7 +10,7 @@ public class inventoryCageInfo : MonoBehaviour
     [SerializeField] InfoErrorChanger infoErrorChanger;
     [SerializeField] InventoryManager inventoryManager;
     
-    [Header("Error Message")]
+    [Header("Error Message")] 
     [SerializeField] TMP_Text errorMessageText;
     
     [Header("Optional - Auto Find")]
@@ -18,6 +18,10 @@ public class inventoryCageInfo : MonoBehaviour
 
     [Header("Loading State")]
     [SerializeField] GameObject loadingIndicator;
+
+    [Header("Cage Panels")]
+    [SerializeField] GameObject bigCageInside1;
+    [SerializeField] GameObject bigCageInside2;
 
     void Awake()
     {
@@ -151,6 +155,16 @@ public class inventoryCageInfo : MonoBehaviour
     // In ShowSetItemPanel():
     void ShowSetItemPanel()
     {
+        // Copy the active state from bigCageInside1 to bigCageInside2
+        CopyChildrenActiveStates(bigCageInside1, bigCageInside2);
+        
+        // Close bigCageInside1 and open bigCageInside2
+        if (bigCageInside1 != null)
+            bigCageInside1.SetActive(false);
+        
+        if (bigCageInside2 != null)
+            bigCageInside2.SetActive(true);
+        
         if (infoErrorChanger != null)
         {
             infoErrorChanger.OpenInfoSetItemToCage();
@@ -160,6 +174,36 @@ public class inventoryCageInfo : MonoBehaviour
             if (manyToFarm != null)
             {
                 manyToFarm.SetItem(cellId);
+            }
+        }
+    }
+
+    // Copy active states from bigCageInside1 children to bigCageInside2 children
+    void CopyChildrenActiveStates(GameObject source, GameObject target)
+    {
+        if (source == null || target == null)
+            return;
+
+        // Get all children from both parents
+        Transform[] sourceChildren = source.GetComponentsInChildren<Transform>(true);
+        Transform[] targetChildren = target.GetComponentsInChildren<Transform>(true);
+
+        // Create a mapping by name
+        foreach (Transform sourceChild in sourceChildren)
+        {
+            if (sourceChild == source.transform) continue; // Skip parent itself
+
+            // Find matching child in target by name
+            foreach (Transform targetChild in targetChildren)
+            {
+                if (targetChild == target.transform) continue; // Skip parent itself
+
+                if (sourceChild.name == targetChild.name)
+                {
+                    // Copy active state
+                    targetChild.gameObject.SetActive(sourceChild.gameObject.activeSelf);
+                    break;
+                }
             }
         }
     }
