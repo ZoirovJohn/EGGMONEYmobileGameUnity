@@ -155,8 +155,14 @@ public class inventoryCageInfo : MonoBehaviour
     // In ShowSetItemPanel():
     void ShowSetItemPanel()
     {
-        // Copy the active state from bigCageInside1 to bigCageInside2
-        CopyChildrenActiveStates(bigCageInside1, bigCageInside2);
+        // ✅ FIXED: Only copy if bigCageInside2 is NOT already active
+        bool bigCageInside2WasActive = bigCageInside2 != null && bigCageInside2.activeSelf;
+        
+        if (!bigCageInside2WasActive)
+        {
+            // Copy the active state from bigCageInside1 to bigCageInside2
+            CopyChildrenActiveStates(bigCageInside1, bigCageInside2);
+        }
         
         // Close bigCageInside1 and open bigCageInside2
         if (bigCageInside1 != null)

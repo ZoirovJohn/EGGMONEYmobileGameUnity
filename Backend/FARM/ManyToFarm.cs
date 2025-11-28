@@ -27,6 +27,9 @@ public class ManyToFarm : MonoBehaviour
     [SerializeField] FarmHeaderManager farmHeaderManager;
     [SerializeField] InfoErrorChanger infoErrorChanger;
     
+    [Header("Cage Panels")]
+    [SerializeField] GameObject bigCageInside2;
+    
     [Header("Auto Find")]
     [SerializeField] bool autoFind = true;
     
@@ -288,6 +291,9 @@ public class ManyToFarm : MonoBehaviour
             HandlePlacementSuccess(responseText);
             onSuccess?.Invoke(responseText);
             
+            // ✅ Update visual in BigCageInside2
+            UpdateBigCageInside2Visual();
+            
             // Wait a frame before refreshing
             yield return null;
             
@@ -354,6 +360,68 @@ public class ManyToFarm : MonoBehaviour
     void HandlePlacementError(string error)
     {
         Debug.LogError($"❌ Failed to place items: {error}");
+    }
+
+    // ✅ UPDATED: Update BigCageInside2 visual to show the added item
+    void UpdateBigCageInside2Visual()
+    {
+        if (bigCageInside2 == null || cellId == null)
+            return;
+
+        string productId = cellId.productId.ToLower();
+
+        // Check if it's a nest
+        if (productId.Contains("nest"))
+        {
+            // Show nest
+            Transform nest = bigCageInside2.transform.Find("Nest");
+            if (nest != null)
+            {
+                nest.gameObject.SetActive(true);
+                Debug.Log("✅ Activated Nest in BigCageInside2");
+            }
+        }
+        // Check if it's a hen/chick
+        else if (productId.Contains("chick") || productId.Contains("hen"))
+        {
+            string chickType = null;
+            
+            if (productId.Contains("champ") || productId.Contains("gold"))
+            {
+                chickType = "ChampChick";
+            }
+            else if (productId.Contains("white") || productId.Contains("normal"))
+            {
+                chickType = "WhiteChick";
+            }
+
+            if (!string.IsNullOrEmpty(chickType))
+            {
+                // Show the chick
+                Transform chick = bigCageInside2.transform.Find(chickType);
+                if (chick != null)
+                {
+                    chick.gameObject.SetActive(true);
+                    Debug.Log($"✅ Activated {chickType} in BigCageInside2");
+                }
+
+                // Also show Clock since hen was added
+                Transform clock = bigCageInside2.transform.Find("Clock");
+                if (clock != null)
+                {
+                    clock.gameObject.SetActive(true);
+                    Debug.Log("✅ Activated Clock in BigCageInside2");
+                }
+
+                // Show LifeTime as well
+                Transform lifeTime = bigCageInside2.transform.Find("LifeTime");
+                if (lifeTime != null)
+                {
+                    lifeTime.gameObject.SetActive(true);
+                    Debug.Log("✅ Activated LifeTime in BigCageInside2");
+                }
+            }
+        }
     }
 
     IEnumerator RefreshFarmData()
