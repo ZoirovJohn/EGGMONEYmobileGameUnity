@@ -6,7 +6,7 @@ public class SimonGameButtonSound : MonoBehaviour
     private Button button;
 
     [Header("Button Sound")]
-    public AudioClip buttonClip; // assign the unique clip for this button
+    public AudioClip buttonClip;
 
     private void Awake()
     {

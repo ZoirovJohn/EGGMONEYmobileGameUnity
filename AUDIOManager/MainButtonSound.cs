@@ -14,7 +14,6 @@ public class MainButtonSound : MonoBehaviour
         }
     }
 
-    // This runs when the button is clicked
     private void OnButtonClick()
     {
         if (GameAudioManager.Instance != null)

@@ -2,5 +2,5 @@ using UnityEngine;
 
 public class AuthStorageViewer : MonoBehaviour
 {
-    // Nothing needed here
+    // Just empty class to allow viewing AuthStorage in the Inspector
 }

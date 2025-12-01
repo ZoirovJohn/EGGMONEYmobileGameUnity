@@ -5,10 +5,8 @@ public class LogoutHandler : MonoBehaviour
 {
     public void OnLogoutPressed()
     {
-        // Remove access token
         AuthStorage.DeleteAccessToken();
         
-        // Optional: Clear PlayerPrefs data
         PlayerPrefs.DeleteKey("userId");
         PlayerPrefs.DeleteKey("email");
         PlayerPrefs.DeleteKey("nickname");
@@ -16,7 +14,6 @@ public class LogoutHandler : MonoBehaviour
         
         Debug.Log("Logged out successfully");
         
-        // Go to Bootstrap scene
         SceneManager.LoadScene("Bootstrap");
     }
 }

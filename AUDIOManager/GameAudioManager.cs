@@ -28,13 +28,11 @@ public class GameAudioManager : MonoBehaviour
         }
         else
         {
-            // IMPORTANT: Copy clips from the new scene instance before destroying
             if (bgmClips != null && bgmClips.Length > 0)
             {
                 Instance.bgmClips = bgmClips;
                 Instance.buttonClickClip = buttonClickClip;
                 
-                // Restart music with new clips if not playing
                 if (!Instance.musicSource.isPlaying)
                 {
                     Instance.currentTrackIndex = 0;
@@ -67,7 +65,6 @@ public class GameAudioManager : MonoBehaviour
 
     private void Start()
     {
-        // Only start if this is the singleton instance
         if (Instance == this)
         {
             StartCoroutine(StartMusicDelayed());
@@ -102,7 +99,6 @@ public class GameAudioManager : MonoBehaviour
         currentTrackIndex = (currentTrackIndex + 1) % bgmClips.Length;
     }
 
-    // Rest of your methods remain the same...
     public void PlaySFX(AudioClip clip)
     {
         if (clip != null && sfxSource != null)

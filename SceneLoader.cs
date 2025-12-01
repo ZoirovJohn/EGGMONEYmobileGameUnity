@@ -7,7 +7,6 @@ public class SceneLoader : MonoBehaviour
   {
       if (AuthStorage.IsTokenValid())
       {
-          // User is already logged in → open Farm
           LoadFarm();
       }
   }

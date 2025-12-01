@@ -8,7 +8,6 @@ public static class AuthStorage
 
     private static readonly TimeSpan tokenLifetime = TimeSpan.FromDays(3);
 
-    // Save token with expiry date
     public static void SaveAccessToken(string token)
     {
         PlayerPrefs.SetString(AccessTokenKey, token);
@@ -17,7 +16,6 @@ public static class AuthStorage
         PlayerPrefs.Save();
     }
 
-    // Get token, return null if expired
     public static string GetAccessToken()
     {
         if (!PlayerPrefs.HasKey(AccessTokenKey) || !PlayerPrefs.HasKey(ExpiryKey))
@@ -38,7 +36,6 @@ public static class AuthStorage
         return token;
     }
 
-    // Delete token
     public static void DeleteAccessToken()
     {
         PlayerPrefs.DeleteKey(AccessTokenKey);
@@ -46,7 +43,6 @@ public static class AuthStorage
         PlayerPrefs.Save();
     }
 
-    // Check if token is still valid
     public static bool IsTokenValid()
     {
         return !string.IsNullOrEmpty(GetAccessToken());

@@ -23,8 +23,8 @@ public class FarmHeaderManager : MonoBehaviour
     public int maxTotalFarms = 8;
 
     [Header("Backend Integration")]
-    public PlayerWallet playerWallet; // ✅ NEW: Load farm count from wallet
-
+    public PlayerWallet playerWallet;
+    
     [Header("Database")]
     public FarmDatabase farmDatabase;
     public FarmGridManager farmGridManager;

@@ -6,7 +6,7 @@ using System;
 public class BasketManager : MonoBehaviour
 {
     [Header("Config")]
-    public APIConfig config; // assign in Inspector
+    public APIConfig config; 
 
     // =====================
     // GET BASKET (Fetch Eggs in Basket)
@@ -18,7 +18,6 @@ public class BasketManager : MonoBehaviour
 
     private IEnumerator GetBasketCoroutine(Action<string> onSuccess, Action<string> onError)
     {
-        // Get the access token
         string accessToken = AuthStorage.GetAccessToken();
         
         if (string.IsNullOrEmpty(accessToken))
@@ -29,7 +28,6 @@ public class BasketManager : MonoBehaviour
 
         UnityWebRequest request = UnityWebRequest.Get(config.baseUrl + "/basket");
         
-        // ✅ Add Bearer token authorization
         request.SetRequestHeader("Authorization", "Bearer " + accessToken);
         request.SetRequestHeader("Content-Type", "application/json");
 

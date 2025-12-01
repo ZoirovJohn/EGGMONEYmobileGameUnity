@@ -10,13 +10,12 @@ public class BasketToFP : MonoBehaviour
     [SerializeField] private InfoErrorChanger infoErrorChanger;
 
     [Header("Config")]
-    [SerializeField] private APIConfig config; // Assign in Inspector
+    [SerializeField] private APIConfig config; 
 
     [Header("Exchange Rate")]
     [SerializeField] private int fpPerEgg = 400; // 1 egg = 400 FP
 
     /// <summary>
-    /// Exchange eggs from basket to FP
     /// </summary>
     /// <param name="eggAmount">Number of eggs to exchange</param>
     /// <param name="onSuccess">Callback on success</param>
@@ -34,7 +33,6 @@ public class BasketToFP : MonoBehaviour
             return;
         }
 
-        // Check if player has enough eggs
         if (wallet != null)
         {
             if (wallet.Eggs < eggAmount)
@@ -59,7 +57,6 @@ public class BasketToFP : MonoBehaviour
 
     private IEnumerator ExchangeBasketToFPCoroutine(int eggAmount, Action<BasketToFPResponse> onSuccess, Action<string> onError)
     {
-        // Get the access token
         string accessToken = AuthStorage.GetAccessToken();
         
         if (string.IsNullOrEmpty(accessToken))
@@ -74,7 +71,6 @@ public class BasketToFP : MonoBehaviour
             yield break;
         }
 
-        // ✅ UPDATE WALLET FIRST (Optimistic update)
         int previousEggs = 0;
         int previousFP = 0;
         int fpToAdd = eggAmount * fpPerEgg;
@@ -84,36 +80,29 @@ public class BasketToFP : MonoBehaviour
             previousEggs = wallet.Eggs;
             previousFP = wallet.FP;
             
-            // Update wallet immediately
             wallet.AddEggs(-eggAmount);
             wallet.Add(fpToAdd);
         }
 
-        // Build the URL
         string url = config.baseUrl + "/economy/basket-to-fp";
 
-        // Create request body
         BasketToFPRequest requestBody = new BasketToFPRequest
         {
             eggs = eggAmount
         };
         string jsonData = JsonUtility.ToJson(requestBody);
 
-        // Create UnityWebRequest
         using (UnityWebRequest request = new UnityWebRequest(url, "POST"))
         {
             byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonData);
             request.uploadHandler = new UploadHandlerRaw(bodyRaw);
             request.downloadHandler = new DownloadHandlerBuffer();
             
-            // Set headers
             request.SetRequestHeader("Authorization", "Bearer " + accessToken);
             request.SetRequestHeader("Content-Type", "application/json");
 
-            // Send request
             yield return request.SendWebRequest();
 
-            // Handle response
             if (request.result == UnityWebRequest.Result.Success)
             {
                 string responseText = request.downloadHandler.text;
@@ -121,7 +110,6 @@ public class BasketToFP : MonoBehaviour
                 {
                     BasketToFPResponse response = JsonUtility.FromJson<BasketToFPResponse>(responseText);
 
-                    // Show success message
                     if (infoErrorChanger != null)
                     {
                         infoErrorChanger.OpenErrorDefault($"Success! Exchanged {eggAmount} eggs for {fpToAdd:N0} FP");
@@ -135,7 +123,6 @@ public class BasketToFP : MonoBehaviour
                     string error = $"Failed to parse response: {e.Message}";
                     Debug.LogError($"❌ {error}");
                     
-                    // Backend succeeded but we couldn't parse - don't rollback wallet
                     onError?.Invoke(error);
                 }
             }
@@ -178,7 +165,6 @@ public class BasketToFP : MonoBehaviour
         );
     }
 
-    // Example usage from a button or other script:
     public void ExchangeOneEgg()
     {
         QuickExchange(1);
@@ -206,12 +192,9 @@ public class BasketToFPRequest
 [System.Serializable]
 public class BasketToFPResponse
 {
-    // Add any fields that your backend returns
-    // For example:
+    // Fields that the backend returns
     public bool success;
     public int fpAdded;
     public int eggsUsed;
     public string message;
-    
-    // If your backend returns different fields, adjust accordingly
 }

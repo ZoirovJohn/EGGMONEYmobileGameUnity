@@ -6,7 +6,7 @@ using System;
 public class AuthManager : MonoBehaviour
 {
     [Header("Config")]
-    public APIConfig config; // assign in Inspector
+    public APIConfig config; 
 
     // =====================
     // SIGNUP
@@ -71,7 +71,6 @@ public class AuthManager : MonoBehaviour
 
     private IEnumerator GetMeCoroutine(Action<string> onSuccess, Action<string> onError)
     {
-        // Get the access token
         string accessToken = AuthStorage.GetAccessToken();
         
         if (string.IsNullOrEmpty(accessToken))
@@ -82,7 +81,6 @@ public class AuthManager : MonoBehaviour
 
         UnityWebRequest request = UnityWebRequest.Get(config.baseUrl + "/auth/me");
         
-        // ✅ Add Bearer token authorization
         request.SetRequestHeader("Authorization", "Bearer " + accessToken);
         request.SetRequestHeader("Content-Type", "application/json");
 
@@ -104,7 +102,6 @@ public class AuthManager : MonoBehaviour
 
     private IEnumerator UpdateUserCoroutine(string jsonData, Action<string> onSuccess, Action<string> onError)
     {
-        // Get the access token
         string accessToken = AuthStorage.GetAccessToken();
         
         if (string.IsNullOrEmpty(accessToken))
