@@ -6,11 +6,11 @@ using TMPro;
 public class PurchasePopupUI : MonoBehaviour
 {
     [Header("DB source")]
-    [SerializeField] StoreDB store;        // drag StorePanel (with StoreDB)
-    [SerializeField] string productId;     // nest, silver_egg, food, gold_egg, vitamin, battery, robot, super_blue_egg, super_red_egg, farmKey
+    [SerializeField] StoreDB store;
+    [SerializeField] string productId;
 
     [Header("UI refs")]
-    [SerializeField] TMP_Text unitPriceText;   // Window/PriceText
+    [SerializeField] TMP_Text unitPriceText;
     [SerializeField] TMP_InputField qtyInput;
     [SerializeField] TMP_Text totalText;
     [SerializeField] TMP_Text messageText;
@@ -34,34 +34,38 @@ public class PurchasePopupUI : MonoBehaviour
     int unitPrice = 0;
     int qty = 1;
     bool purchasable = false;
+    bool updatingQtyFromCode = false; // ✅ Flag to prevent recursion
 
-    // temp message coroutine handle
     Coroutine tempMsgCo;
 
     void Awake()
     {
-        if (btnMinus) btnMinus.onClick.AddListener(() => SetQty(qty - 1));
-        if (btnPlus)  btnPlus .onClick.AddListener(() => SetQty(qty + 1));
-
-        // Ensure no prefab-wired actions linger
-        if (btnBuy)    btnBuy.onClick.RemoveAllListeners();
-        if (btnCancel) btnCancel.onClick.RemoveAllListeners();
-
         if (qtyInput)
         {
-            qtyInput.onValueChanged.AddListener(OnQtyTyped); // live typing
-            qtyInput.onEndEdit.AddListener(OnQtyTyped);      // commit on enter/focus loss
+            qtyInput.onValueChanged.AddListener(OnQtyTyped);
+            qtyInput.onEndEdit.AddListener(OnQtyTyped);
         }
     }
 
     void OnEnable()
     {
-        // Resolve refs
         if (!store)  store  = StoreDB.Instance;
         if (!wallet) wallet = FindAnyObjectByType<PlayerWallet>(FindObjectsInactive.Include);
         if (!marketManager) marketManager = FindAnyObjectByType<MarketManager>(FindObjectsInactive.Include);
 
-        // Reset button listeners every time the popup opens
+        // Clear ALL button listeners first
+        if (btnMinus)
+        {
+            btnMinus.onClick.RemoveAllListeners();
+            Debug.Log("➖ Minus button listener cleared and being set up");
+        }
+        
+        if (btnPlus)
+        {
+            btnPlus.onClick.RemoveAllListeners();
+            Debug.Log("➕ Plus button listener cleared and being set up");
+        }
+
         if (btnBuy)    btnBuy.onClick.RemoveAllListeners();
         if (btnCancel) btnCancel.onClick.RemoveAllListeners();
 
@@ -83,27 +87,35 @@ public class PurchasePopupUI : MonoBehaviour
             return;
         }
 
-        // Compute purchasable state
         unitPrice   = Mathf.Max(0, item.priceFP);
         purchasable = item.canBuy && unitPrice > 0;
 
-        // Price label
         if (unitPriceText)
             unitPriceText.text = $"Price : {(unitPrice > 0 ? $"{unitPrice:N0} FP" : "None")}";
 
-        // Default buttons visible state before affordability check
         if (btnBuy)    btnBuy.gameObject.SetActive(true);
         if (btnCancel) btnCancel.gameObject.SetActive(false);
 
-        // Set initial qty (affordability handled in RefreshUI)
         SetQty(Mathf.Clamp(1, minQty, maxQty));
 
-        // Wire actions AFTER initial RefreshUI so state is correct
+        // Set up button listeners AFTER initial quantity is set
+        if (btnMinus)
+        {
+            btnMinus.onClick.AddListener(OnMinusClicked);
+            Debug.Log("➖ Minus button listener added");
+        }
+        
+        if (btnPlus)
+        {
+            btnPlus.onClick.AddListener(OnPlusClicked);
+            Debug.Log("➕ Plus button listener added");
+        }
+
         if (btnBuy)
         {
             btnBuy.onClick.AddListener(() =>
             {
-                if (!btnBuy.interactable) return; // simple debounce
+                if (!btnBuy.interactable) return;
                 btnBuy.interactable = false;
                 TryBuy();
             });
@@ -115,28 +127,62 @@ public class PurchasePopupUI : MonoBehaviour
 
     void OnQtyTyped(string s)
     {
+        // ✅ Ignore if we're updating from code (button clicks)
+        if (updatingQtyFromCode) return;
+
         if (int.TryParse(s, out var v)) SetQty(v);
         else RefreshUI();
+    }
+
+    void OnMinusClicked()
+    {
+        Debug.Log($"➖ MINUS BUTTON CLICKED! Current qty: {qty}, new will be: {qty - 1}");
+        SetQty(qty - 1);
+    }
+
+    void OnPlusClicked()
+    {
+        Debug.Log($"➕ PLUS BUTTON CLICKED! Current qty: {qty}, new will be: {qty + 1}");
+        SetQty(qty + 1);
     }
 
     void SetQty(int newQty)
     {
         qty = Mathf.Clamp(newQty, minQty, maxQty);
+        
+        // ✅ Set flag to prevent OnQtyTyped from triggering
+        updatingQtyFromCode = true;
+        
         if (qtyInput && qtyInput.text != qty.ToString())
             qtyInput.text = qty.ToString();
+        
+        updatingQtyFromCode = false;
 
         RefreshUI();
     }
 
     void RefreshUI()
     {
-        // overflow-safe total calc
         long totalL = (long)qty * unitPrice;
         int total = totalL > int.MaxValue ? int.MaxValue : (int)totalL;
 
         if (totalText) totalText.text = $"Total : {total:N0} FP";
 
         bool canBuyNow;
+
+        if (btnMinus)
+        {
+            bool minusEnabled = qty > minQty;
+            btnMinus.interactable = minusEnabled;
+            Debug.Log($"➖ Minus button interactable: {minusEnabled}, qty: {qty}, minQty: {minQty}");
+        }
+        
+        if (btnPlus)
+        {
+            bool plusEnabled = qty < maxQty;
+            btnPlus.interactable = plusEnabled;
+            Debug.Log($"➕ Plus button interactable: {plusEnabled}, qty: {qty}, maxQty: {maxQty}");
+        }
 
         if (!purchasable)
         {
@@ -149,7 +195,6 @@ public class PurchasePopupUI : MonoBehaviour
         }
         else if (!wallet)
         {
-            // No wallet -> can't buy
             canBuyNow = false;
             if (messageText)
             {
@@ -159,7 +204,6 @@ public class PurchasePopupUI : MonoBehaviour
         }
         else
         {
-            // ✅ Check if user has enough balance
             bool hasEnough = wallet.Has(total);
             canBuyNow = hasEnough;
             
@@ -178,11 +222,6 @@ public class PurchasePopupUI : MonoBehaviour
             }
         }
 
-        // +/- only respect min/max
-        if (btnMinus) btnMinus.interactable = qty > minQty;
-        if (btnPlus)  btnPlus .interactable = qty < maxQty;
-
-        // Toggle which button is visible
         if (btnBuy)    btnBuy.gameObject.SetActive(canBuyNow);
         if (btnCancel) btnCancel.gameObject.SetActive(!canBuyNow);
     }
@@ -195,11 +234,9 @@ public class PurchasePopupUI : MonoBehaviour
             return;
         }
 
-        // overflow-safe total calc
         long totalL = (long)qty * unitPrice;
         int total = totalL > int.MaxValue ? int.MaxValue : (int)totalL;
 
-        // ✅ Check balance BEFORE calling backend
         if (!wallet.Has(total))
         {
             Debug.LogWarning($"Insufficient balance: need {total} FP, have {wallet.FP} FP");
@@ -215,14 +252,12 @@ public class PurchasePopupUI : MonoBehaviour
             return;
         }
 
-        // ✅ Balance is sufficient, proceed with API call
         if (marketManager != null)
         {
             PurchaseData purchaseData = MapProductToPurchaseData(productId, qty);
             
             if (purchaseData != null)
             {
-                // Show "Processing..." message
                 if (messageText)
                 {
                     messageText.text  = "Processing purchase...";
@@ -235,13 +270,10 @@ public class PurchasePopupUI : MonoBehaviour
                     {
                         Debug.Log("Purchase API successful: " + response);
                         
-                        // ✅ Deduct the price from balance
                         if (wallet.TrySpend(total))
                         {
-                            // Add items to local inventory
                             wallet.AddItem(productId, qty);
 
-                            // Show success message
                             if (tempMsgCo != null) { StopCoroutine(tempMsgCo); tempMsgCo = null; }
                             tempMsgCo = StartCoroutine(FlashMessage(
                                 $"Purchased {qty}x {productId}!",
@@ -258,7 +290,6 @@ public class PurchasePopupUI : MonoBehaviour
                         
                         if (messageText)
                         {
-                            // Check if it's an insufficient balance error
                             if (err.Contains("insufficient") || err.Contains("balance") || err.Contains("enough"))
                             {
                                 messageText.text  = "Insufficient balance on server.";
@@ -288,41 +319,30 @@ public class PurchasePopupUI : MonoBehaviour
         }
     }
 
-    // ✅ Map productId to API format
     PurchaseData MapProductToPurchaseData(string productId, int quantity)
     {
         switch (productId)
         {
             case "silver_egg":
                 return new PurchaseData(ItemType.egg, EggTier.normal, quantity);
-            
             case "gold_egg":
                 return new PurchaseData(ItemType.egg, EggTier.gold, quantity);
-            
             case "super_blue_egg":
                 return new PurchaseData(ItemType.egg, EggTier.blue, quantity);
-            
             case "super_red_egg":
                 return new PurchaseData(ItemType.egg, EggTier.red, quantity);
-            
             case "nest":
                 return new PurchaseData(ItemType.nest, quantity);
-            
             case "food":
                 return new PurchaseData(ItemType.food, quantity);
-            
             case "vitamin":
                 return new PurchaseData(ItemType.vitamin, quantity);
-            
             case "battery":
                 return new PurchaseData(ItemType.battery, quantity);
-            
             case "farmKey":
                 return new PurchaseData(ItemType.farmKey, quantity);
-            
             case "robot":
                 return new PurchaseData(ItemType.robot, quantity);
-            
             default:
                 Debug.LogWarning($"Unknown productId: {productId}");
                 return null;
@@ -333,27 +353,22 @@ public class PurchasePopupUI : MonoBehaviour
     {
         if (!messageText) yield break;
 
-        // Save current state
         string prevText = messageText.text;
         Color  prevCol  = messageText.color;
 
-        // Show temporary message
         messageText.text  = text;
         messageText.color = color;
 
         yield return new WaitForSecondsRealtime(seconds);
 
-        // Restore previous message
         if (messageText)
         {
             messageText.text  = prevText;
             messageText.color = prevCol;
         }
 
-        // Re-evaluate UI in case wallet/qty changed during the toast
         RefreshUI();
     }
 
-    // Intentionally a NO-OP so even if wired in Inspector, nothing happens.
     public void Close() { /* do nothing */ }
 }
