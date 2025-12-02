@@ -4,7 +4,6 @@ using UnityEngine.UI;
 public class CenterAreaFlow : MonoBehaviour
 {
     [Header("Refs")]
-    public GameObject loadingAnimHolder;   // LoadingAnimHolder
     public GameObject instructionsPanel;   // Instructions overlay (start inactive)
     public GameObject farmPanel;           // Farm panel (start inactive)
     public Toggle dontShowAgainToggle;     // "Don't show again" (default OFF)
@@ -39,7 +38,6 @@ public class CenterAreaFlow : MonoBehaviour
     private void Start()
     {
         // Start state
-        if (loadingAnimHolder) loadingAnimHolder.SetActive(true);
         if (instructionsPanel) instructionsPanel.SetActive(false);
         if (farmPanel)         farmPanel.SetActive(false);
 
@@ -58,8 +56,8 @@ public class CenterAreaFlow : MonoBehaviour
         // ✅ Load inventory data from backend
         StartCoroutine(LoadInventoryDataDelayed());
 
-        // After 5s, decide what to show
-        Invoke(nameof(ShowInstructionsIfNeeded), 5f);
+        // Show instructions immediately (no delay)
+        ShowInstructionsIfNeeded();
 
         // When user turns the toggle ON, persist + close + open farm
         if (dontShowAgainToggle)
@@ -106,8 +104,6 @@ public class CenterAreaFlow : MonoBehaviour
 
     private void ShowInstructionsIfNeeded()
     {
-        if (loadingAnimHolder) loadingAnimHolder.SetActive(false);
-
         bool skip = PlayerPrefs.GetInt(PREFS_KEY, 0) == 1;
         if (skip)
         {
