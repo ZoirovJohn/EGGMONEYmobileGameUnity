@@ -173,7 +173,10 @@ public class inventoryFarmInfo : MonoBehaviour
             // Show cage panel for vitamins
             if (infoErrorChanger != null)
             {
-                infoErrorChanger.OpenInfoSetItemToCage();
+                string vitaminName = cellId.productId == "vitamin" ? "Vitamin" : "Super Vitamin";
+                string vitaminMessage = $"How many {vitaminName} do you want to put for hens?";
+                
+                infoErrorChanger.OpenInfoSetItemToCage(vitaminMessage);
             }
         }
         else

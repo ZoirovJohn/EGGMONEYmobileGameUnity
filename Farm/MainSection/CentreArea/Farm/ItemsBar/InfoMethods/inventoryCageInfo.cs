@@ -173,7 +173,10 @@ public class inventoryCageInfo : MonoBehaviour
         
         if (infoErrorChanger != null)
         {
-            infoErrorChanger.OpenInfoSetItemToCage();
+            // ✅ Use the productId directly as itemName
+            string message = $"How many {cellId.productId} do you want to put to the cage?";
+            
+            infoErrorChanger.OpenInfoSetItemToCage(message);
             
             // Pass the selected item to ManyToFarm
             ManyToFarm manyToFarm = FindAnyObjectByType<ManyToFarm>();
