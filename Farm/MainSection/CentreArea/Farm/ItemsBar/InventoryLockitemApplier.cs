@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
+using TMPro;
 
 public class InventoryLockItemApplier : MonoBehaviour
 {
@@ -10,6 +10,8 @@ public class InventoryLockItemApplier : MonoBehaviour
     [SerializeField] private InfoErrorChanger infoErrorChanger;
     [SerializeField] private FarmGridManager farmGridManager;
     [SerializeField] private FarmHeaderManager farmHeaderManager;
+    [SerializeField] private UseFarmKeyManager useFarmKeyManager;
+    [SerializeField] private InventoryManager inventoryManager;
     
     [Header("Buttons")]
     [SerializeField] private Button yesButton;
@@ -38,6 +40,12 @@ public class InventoryLockItemApplier : MonoBehaviour
             
             if (!farmHeaderManager)
                 farmHeaderManager = FindAnyObjectByType<FarmHeaderManager>();
+            
+            if (!useFarmKeyManager)
+                useFarmKeyManager = FindAnyObjectByType<UseFarmKeyManager>();
+            
+            if (!inventoryManager)
+                inventoryManager = FindAnyObjectByType<InventoryManager>();
             
             // Auto-find buttons if not assigned
             if (!yesButton)
@@ -97,7 +105,7 @@ public class InventoryLockItemApplier : MonoBehaviour
             return;
         }
         
-        // 1. Check if player has the key
+        // 1. Check if player has the key locally
         if (wallet == null || wallet.GetItemCount(pendingKeyId) <= 0)
         {
             Debug.LogWarning($"⚠️ Player doesn't have key: {pendingKeyId}");
@@ -136,16 +144,72 @@ public class InventoryLockItemApplier : MonoBehaviour
             }
         }
         
-        // All checks passed - unlock the farm!
-        
-        // 4. Remove key from wallet
-        if (!wallet.TryConsumeItem(pendingKeyId, 1))
+        // ✅ NEW: Call backend to use farm key, then refresh inventory
+        if (useFarmKeyManager != null)
         {
-            Debug.LogError($"❌ Failed to consume key: {pendingKeyId}");
-            return;
+            Debug.Log($"🔑 Calling backend to use key: {pendingKeyId}");
+            
+            useFarmKeyManager.UseFarmKey(
+                pendingKeyId,
+                onSuccess: (response) =>
+                {
+                    Debug.Log($"✅ Backend: Farm key used successfully!");
+                    
+                    // ✅ Refresh inventory to sync with backend
+                    if (inventoryManager != null)
+                    {
+                        inventoryManager.GetInventory(
+                            onSuccess: (invResponse) =>
+                            {
+                                Debug.Log("✅ Inventory refreshed after using farm key");
+                                
+                                // Now proceed with local unlock
+                                ProceedWithFarmUnlock(farmIdToUnlock);
+                            },
+                            onError: (invError) =>
+                            {
+                                Debug.LogError($"❌ Failed to refresh inventory: {invError}");
+                                
+                                // Still proceed with unlock even if inventory refresh fails
+                                ProceedWithFarmUnlock(farmIdToUnlock);
+                            }
+                        );
+                    }
+                    else
+                    {
+                        Debug.LogWarning("⚠️ InventoryManager not found, skipping inventory refresh");
+                        ProceedWithFarmUnlock(farmIdToUnlock);
+                    }
+                },
+                onError: (error) =>
+                {
+                    Debug.LogError($"❌ Backend error when using farm key: {error}");
+                    
+                    if (infoErrorChanger != null)
+                    {
+                        infoErrorChanger.OpenErrorDefault("Failed to unlock farm. Please try again.");
+                    }
+                }
+            );
         }
-        
-        // 5. Create and add new farm data with default values
+        else
+        {
+            Debug.LogWarning("⚠️ UseFarmKeyManager not found! Proceeding with local unlock only.");
+            
+            // Fallback: proceed without backend call (old behavior)
+            if (!wallet.TryConsumeItem(pendingKeyId, 1))
+            {
+                Debug.LogError($"❌ Failed to consume key: {pendingKeyId}");
+                return;
+            }
+            
+            ProceedWithFarmUnlock(farmIdToUnlock);
+        }
+    }
+    
+    void ProceedWithFarmUnlock(string farmIdToUnlock)
+    {
+        // Create and add new farm data with default values
         FarmData newFarm = CreateNewFarmData(farmIdToUnlock, pendingKeyId);
         
         if (farmDatabase != null)
@@ -160,18 +224,18 @@ public class InventoryLockItemApplier : MonoBehaviour
             return;
         }
         
-        // 6. Update farm counts in FarmHeaderManager
+        // Update farm counts in FarmHeaderManager
         if (farmHeaderManager != null)
         {
             farmHeaderManager.farmCount++;
             farmHeaderManager.lockCount--;
         }
         
-        // 7. Start unlock sequence (visual feedback + open farm)
+        // Start unlock sequence (visual feedback + open farm)
         StartCoroutine(UnlockFarmSequence(farmIdToUnlock));
     }
     
-    IEnumerator UnlockFarmSequence(string farmId)
+    System.Collections.IEnumerator UnlockFarmSequence(string farmId)
     {
         // Get the NEW farm index (it's the last one since we just added it)
         int newFarmIndex = -1;
