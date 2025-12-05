@@ -9,7 +9,8 @@ public class InfoErrorChanger : MonoBehaviour
     [SerializeField] private GameObject errorDefault;
     [SerializeField] private GameObject infoOpenFarm;
     [SerializeField] private GameObject infoSetItemToCage;
-    [SerializeField] private GameObject infoExchangeFPCoin; // ✅ NEW
+    [SerializeField] private GameObject infoExchangeFPCoin;
+    [SerializeField] private GameObject infoSetVitaminToFarm; // ✅ NEW
 
     [Header("Texts inside Panels")]
     [SerializeField] private TMP_Text errorGoStoreText;
@@ -17,7 +18,8 @@ public class InfoErrorChanger : MonoBehaviour
     [SerializeField] private TMP_Text errorDefaultText;
     [SerializeField] private TMP_Text infoOpenFarmText;
     [SerializeField] private TMP_Text infoSetItemToCageText;
-    [SerializeField] private TMP_Text infoExchangeFPCoinText; // ✅ NEW (if you need to update text)
+    [SerializeField] private TMP_Text infoExchangeFPCoinText;
+    [SerializeField] private TMP_Text infoSetVitaminToFarmText; // ✅ NEW
 
     private void Start()
     {
@@ -52,9 +54,12 @@ public class InfoErrorChanger : MonoBehaviour
     public void OpenInfoSetItemToCage(string message = null)
         => ShowPanel(infoSetItemToCage, infoSetItemToCageText, message);
 
-    // ✅ NEW: Open Exchange FP Coin Info
     public void OpenInfoExchangeFPCoin(string message = null)
         => ShowPanel(infoExchangeFPCoin, infoExchangeFPCoinText, message);
+
+    // ✅ NEW: Open Vitamin to Farm Info
+    public void OpenInfoSetVitaminToFarm(string message = null)
+        => ShowPanel(infoSetVitaminToFarm, infoSetVitaminToFarmText, message);
 
     // ✅ Close All
     public void CloseAllInfoErrorMethod()
@@ -64,6 +69,7 @@ public class InfoErrorChanger : MonoBehaviour
         if (errorDefault != null) errorDefault.SetActive(false);
         if (infoOpenFarm != null) infoOpenFarm.SetActive(false);
         if (infoSetItemToCage != null) infoSetItemToCage.SetActive(false);
-        if (infoExchangeFPCoin != null) infoExchangeFPCoin.SetActive(false); // ✅ NEW
+        if (infoExchangeFPCoin != null) infoExchangeFPCoin.SetActive(false);
+        if (infoSetVitaminToFarm != null) infoSetVitaminToFarm.SetActive(false); // ✅ NEW
     }
 }

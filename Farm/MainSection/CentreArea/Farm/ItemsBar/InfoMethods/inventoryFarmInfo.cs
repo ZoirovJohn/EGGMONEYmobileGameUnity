@@ -10,6 +10,7 @@ public class inventoryFarmInfo : MonoBehaviour
     [SerializeField] InfoErrorChanger infoErrorChanger;
     [SerializeField] InventoryFarmItemApplier farmItemApplier;
     [SerializeField] InventoryManager inventoryManager;
+    [SerializeField] VitaminAllManager vitaminAllManager;
     
     [Header("Error Message")]
     [SerializeField] TMP_Text errorMessageText;
@@ -19,6 +20,14 @@ public class inventoryFarmInfo : MonoBehaviour
     
     [Header("Loading State")]
     [SerializeField] GameObject loadingIndicator;
+
+    [Header("Vitamin Panel References")]
+    [SerializeField] Button putVitaminButton;
+    [SerializeField] TMP_Text vitaminCountText;
+
+    // ✅ NEW: Static variable shared across all instances
+    private static string currentVitaminType = "";
+    private static inventoryFarmInfo activeInstance = null;
 
     void Awake()
     {
@@ -39,6 +48,9 @@ public class inventoryFarmInfo : MonoBehaviour
             if (!inventoryManager)
                 inventoryManager = FindAnyObjectByType<InventoryManager>();
             
+            if (!vitaminAllManager)
+                vitaminAllManager = FindAnyObjectByType<VitaminAllManager>();
+            
             if (!errorMessageText)
             {
                 GameObject errorPanel = GameObject.Find("ErrorGoToStore");
@@ -57,6 +69,13 @@ public class inventoryFarmInfo : MonoBehaviour
         {
             btn.onClick.AddListener(inventoryFarmInfoMethod);
         }
+
+        // ✅ Only ONE instance should hook up the button
+        if (putVitaminButton != null)
+        {
+            putVitaminButton.onClick.RemoveAllListeners();
+            putVitaminButton.onClick.AddListener(OnPutVitaminButtonClicked);
+        }
     }
 
     public void inventoryFarmInfoMethod()
@@ -73,7 +92,6 @@ public class inventoryFarmInfo : MonoBehaviour
             return;
         }
         
-        // ✅ SKIP EGGS - they should open InfoHatch, not InfoSetItemToFarm
         if (cellId.productId == "silver_egg" || 
             cellId.productId == "gold_egg" || 
             cellId.productId == "super_red_egg" || 
@@ -82,18 +100,15 @@ public class inventoryFarmInfo : MonoBehaviour
             return;
         }
         
-        // ✅ Sync with backend first, then check
         CheckItemAvailability();
     }
 
     void CheckItemAvailability()
     {
-        // Get item count from wallet (may be stale)
         int itemCount = wallet.GetItemCount(cellId.productId);
         
         if (itemCount == 0)
         {
-            // ✅ Sync with backend to ensure accuracy
             if (inventoryManager != null)
             {
                 ShowLoading(true);
@@ -103,7 +118,6 @@ public class inventoryFarmInfo : MonoBehaviour
                     {
                         ShowLoading(false);
                         
-                        // Recheck after sync
                         int updatedCount = wallet.GetItemCount(cellId.productId);
                         
                         if (updatedCount == 0)
@@ -130,10 +144,8 @@ public class inventoryFarmInfo : MonoBehaviour
         }
         else
         {
-            // Has items locally, show correct panel
             ShowCorrectPanel();
             
-            // Background sync (don't block user)
             if (inventoryManager != null)
             {
                 inventoryManager.GetInventory(
@@ -167,21 +179,30 @@ public class inventoryFarmInfo : MonoBehaviour
 
     void ShowCorrectPanel()
     {
-        // ✅ Check if item is vitamin or super_vitamin
         if (cellId.productId == "vitamin" || cellId.productId == "super_vitamin")
         {
-            // Show cage panel for vitamins
+            // ✅ STORE the vitamin type (static, shared across all instances)
+            currentVitaminType = cellId.productId;
+            activeInstance = this;
+            
+            Debug.Log($"✅ Stored vitamin type: {currentVitaminType}");
+            
             if (infoErrorChanger != null)
             {
                 string vitaminName = cellId.productId == "vitamin" ? "Vitamin" : "Super Vitamin";
-                string vitaminMessage = $"How many {vitaminName} do you want to put for hens?";
+                string message = $"How many {vitaminName} do you want to put for hens?";
                 
-                infoErrorChanger.OpenInfoSetItemToCage(vitaminMessage);
+                infoErrorChanger.OpenInfoSetVitaminToFarm(message);
+                
+                if (vitaminCountText != null && wallet != null)
+                {
+                    int vitaminCount = wallet.GetItemCount(cellId.productId);
+                    vitaminCountText.text = vitaminCount.ToString();
+                }
             }
         }
         else
         {
-            // Show farm panel for other items (robot, battery, etc.)
             if (farmItemApplier != null)
             {
                 farmItemApplier.SetPendingItem(cellId.productId);
@@ -192,6 +213,96 @@ public class inventoryFarmInfo : MonoBehaviour
                 infoErrorChanger.OpenInfoSetItemToFarm();
             }
         }
+    }
+
+    void OnPutVitaminButtonClicked()
+    {
+        Debug.Log($"🔵 Button clicked! Current vitamin type: {currentVitaminType}");
+        
+        if (string.IsNullOrEmpty(currentVitaminType))
+        {
+            Debug.LogWarning("⚠️ No vitamin type stored!");
+            return;
+        }
+
+        if (currentVitaminType != "vitamin" && currentVitaminType != "super_vitamin")
+        {
+            Debug.LogWarning("⚠️ Stored item is not a vitamin!");
+            return;
+        }
+
+        if (activeInstance == null)
+        {
+            Debug.LogError("❌ No active instance!");
+            return;
+        }
+
+        if (activeInstance.vitaminAllManager == null)
+        {
+            Debug.LogError("❌ VitaminAllManager not found!");
+            if (activeInstance.infoErrorChanger != null)
+            {
+                activeInstance.infoErrorChanger.OpenErrorDefault("System error: VitaminAllManager not found");
+            }
+            return;
+        }
+
+        // ✅ FIXED: Get FarmDatabase from VitaminAllManager's public field
+        FarmDatabase farmDatabase = activeInstance.vitaminAllManager.GetComponent<VitaminAllManager>()?.GetFarmDatabase();
+        
+        // ✅ If that doesn't work, try finding it
+        if (farmDatabase == null)
+        {
+            farmDatabase = FindAnyObjectByType<FarmDatabase>(FindObjectsInactive.Include);
+        }
+        
+        if (farmDatabase == null)
+        {
+            Debug.LogError("❌ FarmDatabase not found in scene!");
+            if (activeInstance.infoErrorChanger != null)
+            {
+                activeInstance.infoErrorChanger.OpenErrorDefault("System error: FarmDatabase not found");
+            }
+            return;
+        }
+
+        int currentFarmIndex = farmDatabase.currentFarmIndex;
+        
+        activeInstance.ShowLoading(true);
+
+        activeInstance.vitaminAllManager.ApplyVitaminToAllByIndex(
+            farmIndex: currentFarmIndex,
+            vitaminType: currentVitaminType,
+            onSuccess: (response) =>
+            {
+                activeInstance.ShowLoading(false);
+                
+                VitaminAllManager.VitaminAllResponse data = JsonUtility.FromJson<VitaminAllManager.VitaminAllResponse>(response);
+                
+                Debug.Log($"✅ Applied to {data.hensAffected} hens! Used {data.vitaminsUsed} vitamins");
+                
+                if (activeInstance.infoErrorChanger != null)
+                {
+                    activeInstance.infoErrorChanger.CloseAllInfoErrorMethod();
+                }
+                
+                activeInstance.RefreshInventoryAfterUse();
+                
+                currentVitaminType = "";
+                activeInstance = null;
+            },
+            onError: (error) =>
+            {
+                activeInstance.ShowLoading(false);
+                
+                Debug.LogError($"❌ Failed to apply vitamins: {error}");
+                
+                if (activeInstance.infoErrorChanger != null)
+                {
+                    activeInstance.infoErrorChanger.OpenErrorDefault($"Failed to apply vitamins: {error}");
+                }
+            }
+        );
     }
 
     void ShowLoading(bool show)
@@ -212,6 +323,23 @@ public class inventoryFarmInfo : MonoBehaviour
             case "vitamin": return "Vitamin";
             case "super_vitamin": return "Super Vitamin";
             default: return "this item";
+        }
+    }
+
+    void RefreshInventoryAfterUse()
+    {
+        if (inventoryManager != null)
+        {
+            inventoryManager.GetInventory(
+                onSuccess: (response) =>
+                {
+                    Debug.Log("✅ Inventory refreshed after vitamin use");
+                },
+                onError: (err) =>
+                {
+                    Debug.LogError($"Failed to refresh inventory: {err}");
+                }
+            );
         }
     }
 }
