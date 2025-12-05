@@ -112,7 +112,7 @@ public class inventoryFarmInfo : MonoBehaviour
                         }
                         else
                         {
-                            ShowSetItemPanel();
+                            ShowCorrectPanel();
                         }
                     },
                     onError: (err) =>
@@ -130,8 +130,8 @@ public class inventoryFarmInfo : MonoBehaviour
         }
         else
         {
-            // Has items locally, but still sync in background
-            ShowSetItemPanel();
+            // Has items locally, show correct panel
+            ShowCorrectPanel();
             
             // Background sync (don't block user)
             if (inventoryManager != null)
@@ -165,16 +165,29 @@ public class inventoryFarmInfo : MonoBehaviour
         }
     }
 
-    void ShowSetItemPanel()
+    void ShowCorrectPanel()
     {
-        if (farmItemApplier != null)
+        // ✅ Check if item is vitamin or super_vitamin
+        if (cellId.productId == "vitamin" || cellId.productId == "super_vitamin")
         {
-            farmItemApplier.SetPendingItem(cellId.productId);
+            // Show cage panel for vitamins
+            if (infoErrorChanger != null)
+            {
+                infoErrorChanger.OpenInfoSetItemToCage();
+            }
         }
-        
-        if (infoErrorChanger != null)
+        else
         {
-            infoErrorChanger.OpenInfoSetItemToFarm();
+            // Show farm panel for other items (robot, battery, etc.)
+            if (farmItemApplier != null)
+            {
+                farmItemApplier.SetPendingItem(cellId.productId);
+            }
+            
+            if (infoErrorChanger != null)
+            {
+                infoErrorChanger.OpenInfoSetItemToFarm();
+            }
         }
     }
 
@@ -193,6 +206,8 @@ public class inventoryFarmInfo : MonoBehaviour
             case "robot": return "Robot";
             case "battery": return "Battery";
             case "super_battery": return "Super Battery";
+            case "vitamin": return "Vitamin";
+            case "super_vitamin": return "Super Vitamin";
             default: return "this item";
         }
     }
