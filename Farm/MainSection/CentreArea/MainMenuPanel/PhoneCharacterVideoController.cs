@@ -33,8 +33,8 @@ public class PhoneCharacterVideoController : MonoBehaviour
     
     private void Awake()
     {
-        // Create a RenderTexture for the video (1:1 aspect ratio for square videos)
-        renderTexture = new RenderTexture(1080, 1080, 24);
+        // Create a RenderTexture for the video (3:4 aspect ratio for square videos)
+        renderTexture = new RenderTexture(1080, 1440, 24);
         centerVideoPlayer.targetTexture = renderTexture;
         centerVideoRawImage.texture = renderTexture;
         
