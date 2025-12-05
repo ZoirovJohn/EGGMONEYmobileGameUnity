@@ -139,6 +139,7 @@ public class InventoryLockInfo : MonoBehaviour
         
         if (infoErrorChanger != null)
         {
+            // ✅ Close all panels first, then open error
             infoErrorChanger.CloseAllInfoErrorMethod();
             infoErrorChanger.OpenErrorGoStore();
             Debug.Log("🚨 Opened ErrorGoStore - No key available");
@@ -153,6 +154,13 @@ public class InventoryLockInfo : MonoBehaviour
     {
         FindUIElements();
         
+        // ✅ IMPORTANT: Close ALL panels first (including ErrorGoStore)
+        if (infoErrorChanger != null)
+        {
+            infoErrorChanger.CloseAllInfoErrorMethod();
+            Debug.Log("✅ Closed all panels before opening InfoOpenFarm");
+        }
+        
         if (lockItemApplier != null)
         {
             lockItemApplier.SetPendingItem(keyId);
@@ -162,6 +170,24 @@ public class InventoryLockInfo : MonoBehaviour
             Debug.LogWarning("⚠️ InventoryLockItemApplier is not assigned!");
             return;
         }
+        
+        // ✅ Now open InfoOpenFarm
+        if (infoErrorChanger != null)
+        {
+            infoErrorChanger.OpenInfoOpenFarm();
+            Debug.Log("✅ Opened InfoOpenFarm");
+        }
+        
+        // Wait a frame for panel to activate, then set message
+        StartCoroutine(SetMessageAfterPanelOpens(keyId));
+    }
+
+    System.Collections.IEnumerator SetMessageAfterPanelOpens(string keyId)
+    {
+        yield return null; // Wait one frame
+        
+        // Find UI elements again after panel opens
+        FindUIElements();
         
         if (infoMessageText != null)
         {
