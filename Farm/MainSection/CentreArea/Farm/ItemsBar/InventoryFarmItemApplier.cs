@@ -27,11 +27,19 @@ public class InventoryFarmItemApplier : MonoBehaviour
     [Header("Loading")]
     [SerializeField] private GameObject loadingIndicator;
     
-    [Header("Status Images in Info Panel")]
+    [Header("Status Images - Robot")]
     [SerializeField] private GameObject robotExistImage;
     [SerializeField] private GameObject robotNotExistImage;
-    [SerializeField] private GameObject batteryExistImage;
-    [SerializeField] private GameObject batteryNotExistImage;
+    
+    [Header("Status Images - Battery (1-4)")]
+    [SerializeField] private GameObject battery1ExistImage;
+    [SerializeField] private GameObject battery1NotExistImage;
+    [SerializeField] private GameObject battery2ExistImage;
+    [SerializeField] private GameObject battery2NotExistImage;
+    [SerializeField] private GameObject battery3ExistImage;
+    [SerializeField] private GameObject battery3NotExistImage;
+    [SerializeField] private GameObject battery4ExistImage;
+    [SerializeField] private GameObject battery4NotExistImage;
     
     private string pendingProductId = "";
     private bool isProcessing = false;
@@ -103,22 +111,40 @@ public class InventoryFarmItemApplier : MonoBehaviour
                 if (!robotNotExistImage) robotNotExistImage = FindChildByName(infoPanel.transform, "Robot_NotExist");
             }
             
-            // Find battery images
-            if (!batteryExistImage)
+            // Find battery images (1-4)
+            string[] batteryNames = { "Battery1", "Battery2", "Battery3", "Battery4" };
+            GameObject[] existImages = { battery1ExistImage, battery2ExistImage, battery3ExistImage, battery4ExistImage };
+            GameObject[] notExistImages = { battery1NotExistImage, battery2NotExistImage, battery3NotExistImage, battery4NotExistImage };
+            
+            for (int i = 0; i < 4; i++)
             {
-                batteryExistImage = FindChildByName(infoPanel.transform, "BatteryExist");
-                if (!batteryExistImage) batteryExistImage = FindChildByName(infoPanel.transform, "ImageBatteryExist");
-                if (!batteryExistImage) batteryExistImage = FindChildByName(infoPanel.transform, "Battery_Exist");
+                if (existImages[i] == null)
+                {
+                    existImages[i] = FindChildByName(infoPanel.transform, $"{batteryNames[i]}Exist");
+                    if (!existImages[i]) existImages[i] = FindChildByName(infoPanel.transform, $"Image{batteryNames[i]}Exist");
+                    if (!existImages[i]) existImages[i] = FindChildByName(infoPanel.transform, $"{batteryNames[i]}_Exist");
+                }
+                
+                if (notExistImages[i] == null)
+                {
+                    notExistImages[i] = FindChildByName(infoPanel.transform, $"{batteryNames[i]}NotExist");
+                    if (!notExistImages[i]) notExistImages[i] = FindChildByName(infoPanel.transform, $"Image{batteryNames[i]}NotExist");
+                    if (!notExistImages[i]) notExistImages[i] = FindChildByName(infoPanel.transform, $"{batteryNames[i]}_NotExist");
+                }
             }
             
-            if (!batteryNotExistImage)
-            {
-                batteryNotExistImage = FindChildByName(infoPanel.transform, "BatteryNotExist");
-                if (!batteryNotExistImage) batteryNotExistImage = FindChildByName(infoPanel.transform, "ImageBatteryNotExist");
-                if (!batteryNotExistImage) batteryNotExistImage = FindChildByName(infoPanel.transform, "Battery_NotExist");
-            }
+            battery1ExistImage = existImages[0];
+            battery2ExistImage = existImages[1];
+            battery3ExistImage = existImages[2];
+            battery4ExistImage = existImages[3];
             
-            Debug.Log($"✅ Status images found: Robot Exist={robotExistImage != null}, Robot NotExist={robotNotExistImage != null}, Battery Exist={batteryExistImage != null}, Battery NotExist={batteryNotExistImage != null}");
+            battery1NotExistImage = notExistImages[0];
+            battery2NotExistImage = notExistImages[1];
+            battery3NotExistImage = notExistImages[2];
+            battery4NotExistImage = notExistImages[3];
+            
+            Debug.Log($"✅ Status images found: Robot Exist={robotExistImage != null}, Robot NotExist={robotNotExistImage != null}");
+            Debug.Log($"✅ Battery images found: B1={battery1ExistImage != null}, B2={battery2ExistImage != null}, B3={battery3ExistImage != null}, B4={battery4ExistImage != null}");
         }
     }
     
@@ -137,17 +163,146 @@ public class InventoryFarmItemApplier : MonoBehaviour
     }
     
     /// <summary>
-    /// ✅ PUBLIC method so inventoryFarmInfo can call it when opening the panel
+    /// ✅ PUBLIC method to update status images from backend data
     /// </summary>
     public void UpdateStatusImages()
     {
-        if (farmDatabase == null)
+        if (farmDatabase == null || farmAPIManager == null)
         {
-            Debug.LogWarning("⚠️ FarmDatabase not found, cannot update status images");
+            Debug.LogWarning("⚠️ Missing references, cannot update status images");
             return;
         }
         
-        // Get current farm data using index
+        int currentFarmIndex = farmDatabase.currentFarmIndex;
+        int farmNumber = currentFarmIndex + 1;
+        
+        // ✅ Fetch farm summary from backend to get real robot/battery status
+        farmAPIManager.GetFarmSummary(
+            farmNumber,
+            onSuccess: (summary) =>
+            {
+                UpdateStatusImagesFromSummary(summary);
+            },
+            onError: (error) =>
+            {
+                Debug.LogError($"❌ Failed to fetch farm summary: {error}");
+                // Fallback to local data
+                UpdateStatusImagesFromLocal();
+            }
+        );
+    }
+    
+    /// <summary>
+    /// ✅ Update images based on backend farm summary
+    /// </summary>
+    void UpdateStatusImagesFromSummary(FarmSummary summary)
+    {
+        // Check if robot exists
+        bool hasRobot = summary.robot != null && !string.IsNullOrEmpty(summary.robot.id);
+        
+        // Update robot images
+        if (robotExistImage != null)
+            robotExistImage.SetActive(hasRobot);
+        
+        if (robotNotExistImage != null)
+            robotNotExistImage.SetActive(!hasRobot);
+        
+        Debug.Log($"🤖 Robot: {(hasRobot ? "EXISTS" : "NOT EXISTS")}");
+        
+        // Calculate battery level (1-4) based on poweredUntil
+        int batteryLevel = 0;
+        
+        if (hasRobot && summary.robot.isActive && !string.IsNullOrEmpty(summary.robot.poweredUntil))
+        {
+            batteryLevel = CalculateBatteryLevel(summary.robot.poweredUntil);
+            Debug.Log($"🔋 Battery Level: {batteryLevel}/4 (Powered until: {summary.robot.poweredUntil})");
+        }
+        
+        // Update battery images (1-4)
+        UpdateBatteryImages(batteryLevel);
+    }
+    
+    /// <summary>
+    /// ✅ Calculate battery level (0-4) based on days remaining
+    /// 7 days max = 4 batteries
+    /// </summary>
+    int CalculateBatteryLevel(string poweredUntilStr)
+    {
+        try
+        {
+            // Parse the date (format: "2025-12-15T05:43:54.378Z")
+            DateTime poweredUntil = DateTime.Parse(poweredUntilStr, null, System.Globalization.DateTimeStyles.RoundtripKind);
+            DateTime now = DateTime.UtcNow;
+            
+            // Calculate days remaining
+            TimeSpan remaining = poweredUntil - now;
+            double daysRemaining = remaining.TotalDays;
+            
+            Debug.Log($"📅 Days remaining: {daysRemaining:F2}");
+            
+            // Convert to battery level (1-4)
+            // 7 days = 4 batteries, each battery = ~1.75 days
+            if (daysRemaining <= 0)
+                return 0;
+            else if (daysRemaining < 2)
+                return 1;
+            else if (daysRemaining < 4)
+                return 2;
+            else if (daysRemaining < 6)
+                return 3;
+            else
+                return 4;
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"❌ Failed to parse poweredUntil date: {e.Message}");
+            return 0;
+        }
+    }
+    
+    /// <summary>
+    /// ✅ Update battery images based on level (0-4)
+    /// </summary>
+    void UpdateBatteryImages(int level)
+    {
+        // Battery 1
+        if (battery1ExistImage != null)
+            battery1ExistImage.SetActive(level >= 1);
+        if (battery1NotExistImage != null)
+            battery1NotExistImage.SetActive(level < 1);
+        
+        // Battery 2
+        if (battery2ExistImage != null)
+            battery2ExistImage.SetActive(level >= 2);
+        if (battery2NotExistImage != null)
+            battery2NotExistImage.SetActive(level < 2);
+        
+        // Battery 3
+        if (battery3ExistImage != null)
+            battery3ExistImage.SetActive(level >= 3);
+        if (battery3NotExistImage != null)
+            battery3NotExistImage.SetActive(level < 3);
+        
+        // Battery 4
+        if (battery4ExistImage != null)
+            battery4ExistImage.SetActive(level >= 4);
+        if (battery4NotExistImage != null)
+            battery4NotExistImage.SetActive(level < 4);
+        
+        Debug.Log($"✅ Battery images updated: Level {level}/4");
+    }
+    
+    /// <summary>
+    /// ✅ Fallback: Update from local FarmDatabase
+    /// </summary>
+    void UpdateStatusImagesFromLocal()
+    {
+        if (farmDatabase == null)
+        {
+            Debug.LogWarning("⚠️ FarmDatabase not found");
+            return;
+        }
+        
         int currentFarmIndex = farmDatabase.currentFarmIndex;
         FarmData currentFarm = farmDatabase.GetFarmByIndex(currentFarmIndex);
         
@@ -157,29 +312,26 @@ public class InventoryFarmItemApplier : MonoBehaviour
             return;
         }
         
-        // ✅ Check if farm has robot
+        // Check if farm has robot (local data)
         bool hasRobot = !string.IsNullOrEmpty(currentFarm.robotType) && currentFarm.robotType != "none";
         
-        // ✅ Check if farm has battery (any type)
-        bool hasBattery = !string.IsNullOrEmpty(currentFarm.batteryType) && currentFarm.batteryType != "none";
-        
-        Debug.Log($"🔍 Farm {currentFarm.farmName}: Robot={hasRobot} ({currentFarm.robotType}), Battery={hasBattery} ({currentFarm.batteryType})");
-        
-        // ✅ Update robot images - SHOW exist if has robot, show not-exist if doesn't have robot
+        // Update robot images
         if (robotExistImage != null)
             robotExistImage.SetActive(hasRobot);
         
         if (robotNotExistImage != null)
             robotNotExistImage.SetActive(!hasRobot);
         
-        // ✅ Update battery images - SHOW exist if has battery, show not-exist if doesn't have battery
-        if (batteryExistImage != null)
-            batteryExistImage.SetActive(hasBattery);
+        // Calculate battery level from local data
+        int batteryLevel = 0;
+        if (hasRobot && !string.IsNullOrEmpty(currentFarm.robotPoweredUntil))
+        {
+            batteryLevel = CalculateBatteryLevel(currentFarm.robotPoweredUntil);
+        }
         
-        if (batteryNotExistImage != null)
-            batteryNotExistImage.SetActive(!hasBattery);
+        UpdateBatteryImages(batteryLevel);
         
-        Debug.Log($"✅ Status images updated - Robot Exist: {hasRobot}, Battery Exist: {hasBattery}");
+        Debug.Log($"✅ Status images updated from local - Robot: {hasRobot}, Battery Level: {batteryLevel}/4");
     }
     
     public void SetPendingItem(string productId)
@@ -305,7 +457,7 @@ public class InventoryFarmItemApplier : MonoBehaviour
         {
             itemType = itemType,
             tier = tier,
-            quantity = 1, // Robot/Battery is always 1
+            quantity = 1, // Robot is always 1
             farmNumber = farmNumber
         };
         
@@ -491,15 +643,24 @@ public class InventoryFarmItemApplier : MonoBehaviour
                 farmNumber,
                 onSuccess: (summary) => {
                     int farmIndex = farmNumber - 1;
+                    FarmData farm = farmDatabase.GetFarmByIndex(farmIndex);
                     
-                    farmDatabase.UpdateFarmFromBackend(
-                        farmIndex: farmIndex,
-                        nests: summary.nests.total,
-                        champChicks: summary.henStats.byKind.Champ,
-                        normalChicks: summary.henStats.byKind.Normal,
-                        legendChicks: summary.henStats.byKind.Legend,
-                        superLegendChicks: summary.henStats.byKind.SuperLegend
-                    );
+                    if (farm != null)
+                    {
+                        // Update farm with backend data including robot info
+                        farm.hasRobot = summary.robot != null && !string.IsNullOrEmpty(summary.robot.id);
+                        farm.robotActive = summary.robot != null && summary.robot.isActive;
+                        farm.robotPoweredUntil = summary.robot != null ? summary.robot.poweredUntil : "";
+                        
+                        farmDatabase.UpdateFarmFromBackend(
+                            farmIndex: farmIndex,
+                            nests: summary.nests.total,
+                            champChicks: summary.henStats.byKind.Champ,
+                            normalChicks: summary.henStats.byKind.Normal,
+                            legendChicks: summary.henStats.byKind.Legend,
+                            superLegendChicks: summary.henStats.byKind.SuperLegend
+                        );
+                    }
                     
                     farmRefreshed = true;
                     Debug.Log("✅ Farm data refreshed from backend");
