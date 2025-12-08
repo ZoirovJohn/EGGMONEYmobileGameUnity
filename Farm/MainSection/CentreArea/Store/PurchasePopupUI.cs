@@ -211,7 +211,7 @@ public class PurchasePopupUI : MonoBehaviour
             {
                 if (hasEnough)
                 {
-                    messageText.text  = "Ready to purchase.";
+                    messageText.text  = "Click to purchase ->";
                     messageText.color = new Color(0.16f, 0.6f, 0.2f);
                 }
                 else
