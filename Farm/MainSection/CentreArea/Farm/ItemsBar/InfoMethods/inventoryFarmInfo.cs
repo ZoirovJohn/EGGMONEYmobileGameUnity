@@ -201,9 +201,36 @@ public class inventoryFarmInfo : MonoBehaviour
                 }
             }
         }
+        else if (cellId.productId == "battery" || cellId.productId == "super_battery")
+        {
+            // ✅ Check if robot exists on current farm
+            bool hasRobot = CheckIfRobotExists();
+            
+            if (hasRobot)
+            {
+                // ✅ Robot exists - show special message in the same panel (but buttons hidden)
+                if (farmItemApplier != null)
+                {
+                    farmItemApplier.SetPendingItem(cellId.productId);
+                }
+                
+                if (infoErrorChanger != null)
+                {
+                    infoErrorChanger.OpenInfoSetItemToFarm("Robot takes battery itself, don't worry!");
+                }
+            }
+            else
+            {
+                // ❌ No robot - show error message
+                if (infoErrorChanger != null)
+                {
+                    infoErrorChanger.OpenErrorDefault("You need a robot first to use batteries!");
+                }
+            }
+        }
         else
         {
-            // ✅ SetPendingItem will also call UpdateStatusImages()
+            // ✅ Robot or other items
             if (farmItemApplier != null)
             {
                 farmItemApplier.SetPendingItem(cellId.productId);
@@ -211,9 +238,55 @@ public class inventoryFarmInfo : MonoBehaviour
             
             if (infoErrorChanger != null)
             {
-                infoErrorChanger.OpenInfoSetItemToFarm();
+                // ✅ Get item display name
+                string itemName = GetItemDisplayName(cellId.productId);
+                string message = $"Would you like to set {itemName} to the farm?";
+                
+                infoErrorChanger.OpenInfoSetItemToFarm(message);
             }
         }
+    }
+    
+    /// <summary>
+    /// ✅ Check if current farm has a robot
+    /// </summary>
+    bool CheckIfRobotExists()
+    {
+        // Try to get FarmDatabase from farmItemApplier
+        FarmDatabase farmDatabase = null;
+        
+        if (farmItemApplier != null)
+        {
+            var field = farmItemApplier.GetType().GetField("farmDatabase", 
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (field != null)
+            {
+                farmDatabase = field.GetValue(farmItemApplier) as FarmDatabase;
+            }
+        }
+        
+        if (farmDatabase == null)
+        {
+            Debug.LogWarning("⚠️ FarmDatabase not found, assuming no robot");
+            return false;
+        }
+        
+        // Get current farm
+        int currentFarmIndex = farmDatabase.currentFarmIndex;
+        FarmData currentFarm = farmDatabase.GetFarmByIndex(currentFarmIndex);
+        
+        if (currentFarm == null)
+        {
+            Debug.LogWarning($"⚠️ Current farm is null (index: {currentFarmIndex})");
+            return false;
+        }
+        
+        // Check if farm has robot
+        bool hasRobot = !string.IsNullOrEmpty(currentFarm.robotType) && currentFarm.robotType != "none";
+        
+        Debug.Log($"🤖 Robot exists on farm {currentFarm.farmName}: {hasRobot}");
+        
+        return hasRobot;
     }
 
     void OnPutVitaminButtonClicked()

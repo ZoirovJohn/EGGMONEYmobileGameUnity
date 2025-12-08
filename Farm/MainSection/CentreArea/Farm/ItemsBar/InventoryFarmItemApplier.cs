@@ -186,8 +186,30 @@ public class InventoryFarmItemApplier : MonoBehaviour
     {
         pendingProductId = productId;
         
-        // ✅ Update status images when setting pending item (when panel opens)
-        UpdateStatusImages();
+        // ✅ Check if it's a battery - if so, hide Yes/No buttons
+        if (productId == "battery" || productId == "super_battery")
+        {
+            // Hide Yes/No buttons for batteries (robot handles them automatically)
+            if (yesButton != null)
+                yesButton.gameObject.SetActive(false);
+            
+            if (noButton != null)
+                noButton.gameObject.SetActive(false);
+            
+            Debug.Log("🔋 Battery detected - hiding Yes/No buttons");
+        }
+        else
+        {
+            // Show Yes/No buttons for robot
+            if (yesButton != null)
+                yesButton.gameObject.SetActive(true);
+            
+            if (noButton != null)
+                noButton.gameObject.SetActive(true);
+            
+            // ✅ Update status images when setting pending item (when panel opens)
+            UpdateStatusImages();
+        }
     }
     
     void OnNoClicked()
