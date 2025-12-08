@@ -513,6 +513,24 @@ public class FarmHeaderManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// ✅ PUBLIC method to update farm selection highlight (yellow background)
+    /// Can be called from other scripts like InventoryLockItemApplier
+    /// </summary>
+    public void SelectFarm(int farmIndex)
+    {
+        if (farmIndex < 0 || farmIndex >= farmSlots.Count)
+        {
+            Debug.LogWarning($"⚠️ Cannot select farm index {farmIndex} - out of range (0-{farmSlots.Count - 1})");
+            return;
+        }
+        
+        selectedFarmIndex = farmIndex;
+        UpdateFarmSelection(farmIndex);
+        
+        Debug.Log($"✅ Farm header selection updated to farm {farmIndex + 1}");
+    }
+
     void UpdateFarmSelection(int farmIndex)
     {
         if (farmIndex < 0 || farmIndex >= farmSlots.Count) return;

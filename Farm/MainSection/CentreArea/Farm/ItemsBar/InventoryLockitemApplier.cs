@@ -509,6 +509,13 @@ public class InventoryLockItemApplier : MonoBehaviour
             {
                 farmDatabase.SwitchToFarm(newFarmIndex);
             }
+            
+            // ✅ CRITICAL FIX: Update farm header selection to show yellow on new farm
+            if (farmHeaderManager != null)
+            {
+                farmHeaderManager.SelectFarm(newFarmIndex);
+                Debug.Log($"✅ Updated farm header yellow highlight to farm {newFarmIndex + 1}");
+            }
         }
         
         // Clear pending data
