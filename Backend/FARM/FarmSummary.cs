@@ -18,15 +18,17 @@ public class FarmInfo
     public int maxCapacity;
 }
 
-[Serializable]
-public class RobotInfo
-{
-    public string id;
-    public bool isActive;
-    public string poweredUntil;
-    public bool needsCharge;
-    public string lastUsed;
-}
+    [Serializable]
+    public class RobotInfo
+    {
+        public string id;
+        public bool isActive;
+        public string poweredUntil;
+        public bool needsCharge;
+        public string batteryType; // ✅ NEW: "normal" or "premium"
+        public int daysLeftToNextCharge; // ✅ NEW: Direct days count from backend
+        public string lastUsed;
+    }
 
 [Serializable]
 public class NestsInfo

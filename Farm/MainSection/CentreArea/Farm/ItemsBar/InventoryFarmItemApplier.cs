@@ -32,14 +32,18 @@ public class InventoryFarmItemApplier : MonoBehaviour
     [SerializeField] private GameObject robotNotExistImage;
     
     [Header("Status Images - Battery (1-4)")]
-    [SerializeField] private GameObject battery1ExistImage;
     [SerializeField] private GameObject battery1NotExistImage;
-    [SerializeField] private GameObject battery2ExistImage;
+    [SerializeField] private GameObject battery1ExistNormalImage;
+    [SerializeField] private GameObject battery1ExistPremiumImage;
     [SerializeField] private GameObject battery2NotExistImage;
-    [SerializeField] private GameObject battery3ExistImage;
+    [SerializeField] private GameObject battery2ExistNormalImage;
+    [SerializeField] private GameObject battery2ExistPremiumImage;
     [SerializeField] private GameObject battery3NotExistImage;
-    [SerializeField] private GameObject battery4ExistImage;
+    [SerializeField] private GameObject battery3ExistNormalImage;
+    [SerializeField] private GameObject battery3ExistPremiumImage;
     [SerializeField] private GameObject battery4NotExistImage;
+    [SerializeField] private GameObject battery4ExistNormalImage;
+    [SerializeField] private GameObject battery4ExistPremiumImage;
     
     private string pendingProductId = "";
     private bool isProcessing = false;
@@ -111,40 +115,57 @@ public class InventoryFarmItemApplier : MonoBehaviour
                 if (!robotNotExistImage) robotNotExistImage = FindChildByName(infoPanel.transform, "Robot_NotExist");
             }
             
-            // Find battery images (1-4)
+            // Find battery images (1-4) - Normal and Premium variants
             string[] batteryNames = { "Battery1", "Battery2", "Battery3", "Battery4" };
-            GameObject[] existImages = { battery1ExistImage, battery2ExistImage, battery3ExistImage, battery4ExistImage };
             GameObject[] notExistImages = { battery1NotExistImage, battery2NotExistImage, battery3NotExistImage, battery4NotExistImage };
+            GameObject[] existNormalImages = { battery1ExistNormalImage, battery2ExistNormalImage, battery3ExistNormalImage, battery4ExistNormalImage };
+            GameObject[] existPremiumImages = { battery1ExistPremiumImage, battery2ExistPremiumImage, battery3ExistPremiumImage, battery4ExistPremiumImage };
             
             for (int i = 0; i < 4; i++)
             {
-                if (existImages[i] == null)
-                {
-                    existImages[i] = FindChildByName(infoPanel.transform, $"{batteryNames[i]}Exist");
-                    if (!existImages[i]) existImages[i] = FindChildByName(infoPanel.transform, $"Image{batteryNames[i]}Exist");
-                    if (!existImages[i]) existImages[i] = FindChildByName(infoPanel.transform, $"{batteryNames[i]}_Exist");
-                }
-                
+                // Not Exist
                 if (notExistImages[i] == null)
                 {
-                    notExistImages[i] = FindChildByName(infoPanel.transform, $"{batteryNames[i]}NotExist");
-                    if (!notExistImages[i]) notExistImages[i] = FindChildByName(infoPanel.transform, $"Image{batteryNames[i]}NotExist");
-                    if (!notExistImages[i]) notExistImages[i] = FindChildByName(infoPanel.transform, $"{batteryNames[i]}_NotExist");
+                    notExistImages[i] = FindChildByName(infoPanel.transform, $"Image{i + 1}NotExist");
+                    if (!notExistImages[i]) notExistImages[i] = FindChildByName(infoPanel.transform, $"{batteryNames[i]}NotExist");
+                    if (!notExistImages[i]) notExistImages[i] = FindChildByName(infoPanel.transform, $"Battery{i + 1}NotExist");
+                }
+                
+                // Exist Normal
+                if (existNormalImages[i] == null)
+                {
+                    existNormalImages[i] = FindChildByName(infoPanel.transform, $"Image{i + 1}ExistNormal");
+                    if (!existNormalImages[i]) existNormalImages[i] = FindChildByName(infoPanel.transform, $"{batteryNames[i]}ExistNormal");
+                    if (!existNormalImages[i]) existNormalImages[i] = FindChildByName(infoPanel.transform, $"Battery{i + 1}ExistNormal");
+                }
+                
+                // Exist Premium
+                if (existPremiumImages[i] == null)
+                {
+                    existPremiumImages[i] = FindChildByName(infoPanel.transform, $"Image{i + 1}ExistPremium");
+                    if (!existPremiumImages[i]) existPremiumImages[i] = FindChildByName(infoPanel.transform, $"{batteryNames[i]}ExistPremium");
+                    if (!existPremiumImages[i]) existPremiumImages[i] = FindChildByName(infoPanel.transform, $"Battery{i + 1}ExistPremium");
                 }
             }
-            
-            battery1ExistImage = existImages[0];
-            battery2ExistImage = existImages[1];
-            battery3ExistImage = existImages[2];
-            battery4ExistImage = existImages[3];
             
             battery1NotExistImage = notExistImages[0];
             battery2NotExistImage = notExistImages[1];
             battery3NotExistImage = notExistImages[2];
             battery4NotExistImage = notExistImages[3];
             
+            battery1ExistNormalImage = existNormalImages[0];
+            battery2ExistNormalImage = existNormalImages[1];
+            battery3ExistNormalImage = existNormalImages[2];
+            battery4ExistNormalImage = existNormalImages[3];
+            
+            battery1ExistPremiumImage = existPremiumImages[0];
+            battery2ExistPremiumImage = existPremiumImages[1];
+            battery3ExistPremiumImage = existPremiumImages[2];
+            battery4ExistPremiumImage = existPremiumImages[3];
+            
             Debug.Log($"✅ Status images found: Robot Exist={robotExistImage != null}, Robot NotExist={robotNotExistImage != null}");
-            Debug.Log($"✅ Battery images found: B1={battery1ExistImage != null}, B2={battery2ExistImage != null}, B3={battery3ExistImage != null}, B4={battery4ExistImage != null}");
+            Debug.Log($"✅ Battery Normal images: B1={battery1ExistNormalImage != null}, B2={battery2ExistNormalImage != null}, B3={battery3ExistNormalImage != null}, B4={battery4ExistNormalImage != null}");
+            Debug.Log($"✅ Battery Premium images: B1={battery1ExistPremiumImage != null}, B2={battery2ExistPremiumImage != null}, B3={battery3ExistPremiumImage != null}, B4={battery4ExistPremiumImage != null}");
         }
     }
     
@@ -209,87 +230,82 @@ public class InventoryFarmItemApplier : MonoBehaviour
         
         Debug.Log($"🤖 Robot: {(hasRobot ? "EXISTS" : "NOT EXISTS")}");
         
-        // Calculate battery level (1-4) based on poweredUntil
+        // ✅ Get battery level and type from backend
         int batteryLevel = 0;
+        string batteryType = "normal"; // default
         
-        if (hasRobot && summary.robot.isActive && !string.IsNullOrEmpty(summary.robot.poweredUntil))
+        if (hasRobot && summary.robot.isActive)
         {
-            batteryLevel = CalculateBatteryLevel(summary.robot.poweredUntil);
-            Debug.Log($"🔋 Battery Level: {batteryLevel}/4 (Powered until: {summary.robot.poweredUntil})");
+            // ✅ Use daysLeftToNextCharge from backend (no calculation needed!)
+            batteryLevel = CalculateBatteryLevelFromDays(summary.robot.daysLeftToNextCharge);
+            batteryType = summary.robot.batteryType ?? "normal"; // "normal" or "premium"
+            
+            Debug.Log($"🔋 Battery Level: {batteryLevel}/4 (Days left: {summary.robot.daysLeftToNextCharge}, Type: {batteryType})");
         }
         
-        // Update battery images (1-4)
-        UpdateBatteryImages(batteryLevel);
+        // Update battery images with type
+        UpdateBatteryImages(batteryLevel, batteryType);
     }
     
     /// <summary>
-    /// ✅ Calculate battery level (0-4) based on days remaining
-    /// 7 days max = 4 batteries
+    /// ✅ Calculate battery level (0-4) from days remaining (provided by backend)
     /// </summary>
-    int CalculateBatteryLevel(string poweredUntilStr)
+    int CalculateBatteryLevelFromDays(int daysRemaining)
     {
-        try
-        {
-            // Parse the date (format: "2025-12-15T05:43:54.378Z")
-            DateTime poweredUntil = DateTime.Parse(poweredUntilStr, null, System.Globalization.DateTimeStyles.RoundtripKind);
-            DateTime now = DateTime.UtcNow;
-            
-            // Calculate days remaining
-            TimeSpan remaining = poweredUntil - now;
-            double daysRemaining = remaining.TotalDays;
-            
-            Debug.Log($"📅 Days remaining: {daysRemaining:F2}");
-            
-            // Convert to battery level (1-4)
-            // 7 days = 4 batteries, each battery = ~1.75 days
-            if (daysRemaining <= 0)
-                return 0;
-            else if (daysRemaining < 2)
-                return 1;
-            else if (daysRemaining < 4)
-                return 2;
-            else if (daysRemaining < 6)
-                return 3;
-            else
-                return 4;
-        }
-        catch (Exception e)
-        {
-            Debug.LogError($"❌ Failed to parse poweredUntil date: {e.Message}");
+        // 7 days max = 4 batteries
+        // Each battery represents ~1.75 days
+        if (daysRemaining <= 0)
             return 0;
-        }
+        else if (daysRemaining == 1)
+            return 1;
+        else if (daysRemaining >= 2 && daysRemaining <= 3)
+            return 2;
+        else if (daysRemaining >= 4 && daysRemaining <= 5)
+            return 3;
+        else // 6-7 days
+            return 4;
     }
     
     /// <summary>
-    /// ✅ Update battery images based on level (0-4)
+    /// ✅ Update battery images based on level (0-4) and type (normal/premium)
     /// </summary>
-    void UpdateBatteryImages(int level)
+    void UpdateBatteryImages(int level, string batteryType)
     {
+        bool isPremium = batteryType == "premium";
+        
         // Battery 1
-        if (battery1ExistImage != null)
-            battery1ExistImage.SetActive(level >= 1);
         if (battery1NotExistImage != null)
             battery1NotExistImage.SetActive(level < 1);
+        if (battery1ExistNormalImage != null)
+            battery1ExistNormalImage.SetActive(level >= 1 && !isPremium);
+        if (battery1ExistPremiumImage != null)
+            battery1ExistPremiumImage.SetActive(level >= 1 && isPremium);
         
         // Battery 2
-        if (battery2ExistImage != null)
-            battery2ExistImage.SetActive(level >= 2);
         if (battery2NotExistImage != null)
             battery2NotExistImage.SetActive(level < 2);
+        if (battery2ExistNormalImage != null)
+            battery2ExistNormalImage.SetActive(level >= 2 && !isPremium);
+        if (battery2ExistPremiumImage != null)
+            battery2ExistPremiumImage.SetActive(level >= 2 && isPremium);
         
         // Battery 3
-        if (battery3ExistImage != null)
-            battery3ExistImage.SetActive(level >= 3);
         if (battery3NotExistImage != null)
             battery3NotExistImage.SetActive(level < 3);
+        if (battery3ExistNormalImage != null)
+            battery3ExistNormalImage.SetActive(level >= 3 && !isPremium);
+        if (battery3ExistPremiumImage != null)
+            battery3ExistPremiumImage.SetActive(level >= 3 && isPremium);
         
         // Battery 4
-        if (battery4ExistImage != null)
-            battery4ExistImage.SetActive(level >= 4);
         if (battery4NotExistImage != null)
             battery4NotExistImage.SetActive(level < 4);
+        if (battery4ExistNormalImage != null)
+            battery4ExistNormalImage.SetActive(level >= 4 && !isPremium);
+        if (battery4ExistPremiumImage != null)
+            battery4ExistPremiumImage.SetActive(level >= 4 && isPremium);
         
-        Debug.Log($"✅ Battery images updated: Level {level}/4");
+        Debug.Log($"✅ Battery images updated: Level {level}/4, Type: {batteryType}");
     }
     
     /// <summary>
@@ -322,16 +338,10 @@ public class InventoryFarmItemApplier : MonoBehaviour
         if (robotNotExistImage != null)
             robotNotExistImage.SetActive(!hasRobot);
         
-        // Calculate battery level from local data
-        int batteryLevel = 0;
-        if (hasRobot && !string.IsNullOrEmpty(currentFarm.robotPoweredUntil))
-        {
-            batteryLevel = CalculateBatteryLevel(currentFarm.robotPoweredUntil);
-        }
+        // For local fallback, show 0 batteries (we don't have accurate data)
+        UpdateBatteryImages(0, "normal");
         
-        UpdateBatteryImages(batteryLevel);
-        
-        Debug.Log($"✅ Status images updated from local - Robot: {hasRobot}, Battery Level: {batteryLevel}/4");
+        Debug.Log($"✅ Status images updated from local - Robot: {hasRobot} (No battery data available locally)");
     }
     
     public void SetPendingItem(string productId)
