@@ -95,8 +95,6 @@ public class ManyToFarm : MonoBehaviour
                 Debug.Log($"📦 Auto-found selected item: {cellId.productId}");
             }
         }
-        
-        // ✅ REMOVED: Don't set targetFarmNumber here - get it dynamically when clicking Put
     }
 
     void AdjustQuantity(int delta)
@@ -184,6 +182,45 @@ public class ManyToFarm : MonoBehaviour
             return;
         }
         
+        // ✅ CHECK IF TRYING TO PLACE A HEN OR NEST
+        string productId = cellId.productId.ToLower();
+        bool isTryingToPlaceHen = productId.Contains("chick") || productId.Contains("hen");
+        bool isTryingToPlaceNest = productId.Contains("nest");
+        
+        if (isTryingToPlaceHen)
+        {
+            // ✅ CHECK IF THERE'S ALREADY A HEN IN THE CAGE
+            if (IsHenAlreadyInCage())
+            {
+                Debug.LogWarning("⚠️ Cage already has a hen! Cannot place another hen.");
+                
+                // Show error message to user
+                if (infoErrorChanger != null)
+                {
+                    infoErrorChanger.OpenErrorDefault("Cage already has a hen! Select another cage.");
+                }
+                
+                return; // ❌ STOP - Don't call backend
+            }
+        }
+        
+        if (isTryingToPlaceNest)
+        {
+            // ✅ CHECK IF THERE'S ALREADY A NEST IN THE CAGE
+            if (IsNestAlreadyInCage())
+            {
+                Debug.LogWarning("⚠️ Cage already has a nest! Cannot place another nest.");
+                
+                // Show error message to user
+                if (infoErrorChanger != null)
+                {
+                    infoErrorChanger.OpenErrorDefault("Cage already has a nest! Select another cage.");
+                }
+                
+                return; // ❌ STOP - Don't call backend
+            }
+        }
+        
         // ✅ GET CURRENT FARM DYNAMICALLY (always up-to-date)
         if (farmDatabase != null)
         {
@@ -213,6 +250,56 @@ public class ManyToFarm : MonoBehaviour
                 Debug.LogError($"❌ Failed to place items: {error}");
             }
         );
+    }
+    
+    // ✅ NEW METHOD: Check if there's already a hen in bigCageInside2
+    bool IsHenAlreadyInCage()
+    {
+        if (bigCageInside2 == null)
+            return false;
+        
+        // Check for ChampChick
+        Transform champChick = bigCageInside2.transform.Find("ChampChick");
+        if (champChick != null && champChick.gameObject.activeSelf)
+        {
+            Debug.Log("🐔 ChampChick already active in cage");
+            return true;
+        }
+        
+        // Check for WhiteChick
+        Transform whiteChick = bigCageInside2.transform.Find("WhiteChick");
+        if (whiteChick != null && whiteChick.gameObject.activeSelf)
+        {
+            Debug.Log("🐔 WhiteChick already active in cage");
+            return true;
+        }
+        
+        return false;
+    }
+    
+    // ✅ NEW METHOD: Check if there's already a nest in bigCageInside2
+    bool IsNestAlreadyInCage()
+    {
+        if (bigCageInside2 == null)
+            return false;
+        
+        // Check for Nest (covers both normal nest and super nest)
+        Transform nest = bigCageInside2.transform.Find("Nest");
+        if (nest != null && nest.gameObject.activeSelf)
+        {
+            Debug.Log("🪺 Nest already active in cage");
+            return true;
+        }
+        
+        // Check for SuperNest if you have a separate object for it
+        Transform superNest = bigCageInside2.transform.Find("SuperNest");
+        if (superNest != null && superNest.gameObject.activeSelf)
+        {
+            Debug.Log("🪺 SuperNest already active in cage");
+            return true;
+        }
+        
+        return false;
     }
 
     // =====================
@@ -464,7 +551,7 @@ public class ManyToFarm : MonoBehaviour
                     
                     farmDatabase.UpdateFarmFromBackend(
                         farmIndex: farmIndex,
-                        nests: summary.nests.total, // ✅ Use total nests
+                        nests: summary.nests.total,
                         champChicks: summary.henStats.byKind.Champ,
                         normalChicks: summary.henStats.byKind.Normal,
                         legendChicks: summary.henStats.byKind.Legend,
@@ -525,27 +612,20 @@ public class ManyToFarm : MonoBehaviour
         return true;
     }
 
-    /// <summary>
-    /// Map Unity product IDs to backend item types
-    /// Backend accepts: "nest", "hen", or "robot"
-    /// </summary>
     string MapProductIdToItemType(string productId)
     {
         string normalized = productId.ToLowerInvariant().Replace("_", "").Replace(" ", "");
         
-        // HEN items (chicks that are already hatched hens)
         if (normalized.Contains("chick") || normalized.Contains("hen"))
         {
             return "hen";
         }
         
-        // NEST items
         if (normalized.Contains("nest"))
         {
             return "nest";
         }
         
-        // ROBOT
         if (normalized.Contains("robot"))
         {
             return "robot";
@@ -555,22 +635,12 @@ public class ManyToFarm : MonoBehaviour
         return null;
     }
 
-    /// <summary>
-    /// Map Unity product IDs to backend tiers
-    /// For HENS: "normal", "gold", "legend", "superlegend" (lowercase!)
-    /// For NESTS: "normal", "premium" (lowercase)
-    /// For ROBOT: null (no tier)
-    /// 
-    /// IMPORTANT: Backend stores champ hens as "gold" tier!
-    /// </summary>
     string MapProductIdToTier(string productId)
     {
         string normalized = productId.ToLowerInvariant().Replace("_", "").Replace(" ", "");
         
-        // ✅ HEN TIERS (lowercase - backend expects these exact values!)
         if (normalized.Contains("chick") || normalized.Contains("hen"))
         {
-            // Check in order of specificity (most specific first)
             if (normalized.Contains("superlegend") || normalized.Contains("super"))
             {
                 return "superlegend";
@@ -579,7 +649,6 @@ public class ManyToFarm : MonoBehaviour
             {
                 return "legend";
             }
-            // ✅ FIXED: Map "champ" to "gold" for backend (backend stores it as "gold")
             else if (normalized.Contains("champ") || normalized.Contains("gold"))
             {
                 return "gold";
@@ -595,17 +664,15 @@ public class ManyToFarm : MonoBehaviour
             }
         }
         
-        // ✅ NEST TIERS (lowercase)
         if (normalized.Contains("nest"))
         {
             if (normalized.Contains("premium") || normalized.Contains("super"))
             {
                 return "premium";
             }
-            // Don't map "gold" nests - backend might expect "gold" for nests
             else if (normalized.Contains("gold"))
             {
-                return "premium"; // Change to "gold" if backend expects it
+                return "premium";
             }
             else
             {
@@ -613,7 +680,6 @@ public class ManyToFarm : MonoBehaviour
             }
         }
         
-        // ✅ ROBOT - no tier needed
         if (normalized.Contains("robot"))
         {
             return null;
@@ -631,31 +697,21 @@ public class ManyToFarm : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// PUBLIC: Call this when the panel opens to set the target farm
-    /// </summary>
     public void SetTargetFarm(int farmNumber)
     {
         targetFarmNumber = farmNumber;
     }
 
-    /// <summary>
-    /// PUBLIC: Call this when the panel opens to set the item
-    /// </summary>
     public void SetItem(InventoryCellId item)
     {
         cellId = item;
         
         if (cellId != null)
         {
-            SetQuantity(1); // Reset to 1 when new item selected
+            SetQuantity(1);
         }
     }
 
-    // ===========================
-    // Request/Response Classes
-    // ===========================
-    
     [Serializable]
     private class PlaceFarmRequest
     {
