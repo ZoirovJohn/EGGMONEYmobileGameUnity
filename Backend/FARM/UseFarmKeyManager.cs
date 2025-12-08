@@ -30,7 +30,7 @@ public class UseFarmKeyManager : MonoBehaviour
     /// <summary>
     /// Use farm key via API
     /// </summary>
-    /// <param name="keyId">Key item ID (e.g., "key_farm", "premiumfarmkey")</param>
+    /// <param name="keyId">Key item ID (e.g., "keyFarm", "premiumfarmkey")</param>
     /// <param name="onSuccess">Callback on success with response</param>
     /// <param name="onError">Callback on error with error message</param>
     public void UseFarmKey(string keyId, Action<UseFarmKeyResponse> onSuccess = null, Action<string> onError = null)
@@ -107,16 +107,17 @@ public class UseFarmKeyManager : MonoBehaviour
 
     /// <summary>
     /// Determines the key type based on key ID
+    /// ✅ UPDATED: Handles all variations from inventory cells
     /// </summary>
     private string GetKeyType(string keyId)
     {
-        // Generic farm key = "normal"
-        if (keyId == "key_farm")
+        // ✅ Generic farm keys = "normal"
+        if (keyId == "key_farm" || keyId == "keyFarm" || keyId == "farmKey")
         {
             return "normal";
         }
         
-        // Premium farm key = "premium"
+        // ✅ Premium farm keys = "premium"
         if (keyId == "premiumfarmkey" || keyId == "premium_farm_key" || keyId == "premiumFarmKey")
         {
             return "premium";

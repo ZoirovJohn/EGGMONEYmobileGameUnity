@@ -368,7 +368,7 @@ public class PlayerWallet : MonoBehaviour
         if (n == "goldegg" || n == "goldenegg" || n == "ggg") return Item.GoldEgg;
         if (n == "vitamin" || n == "vitaminvitamin" || n == "booster") return Item.vitamin;
         if (n == "battery") return Item.Battery;
-        if (n == "keyfarm" || n == "farmopenkey" || n == "premiumfarmopenkey" || n == "farmkey") return Item.KeyFarm;
+        if (n == "keyfarm" || n == "farmkey" || n == "farmopenkey" || n == "premiumfarmopenkey") return Item.KeyFarm;
         if (n == "robot" || n == "farmmanagementrobot") return Item.Robot;
         if (n == "superfood") return Item.SuperFood;
         if (n == "supernest") return Item.SuperNest;

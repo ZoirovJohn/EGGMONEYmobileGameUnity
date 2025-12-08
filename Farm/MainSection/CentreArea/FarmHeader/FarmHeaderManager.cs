@@ -20,7 +20,11 @@ public class FarmHeaderManager : MonoBehaviour
     
     [Header("Max Farms Setting")]
     [Tooltip("Total number of farms available in the game (unlocked + locked)")]
-    public int maxTotalFarms = 8;
+    public int maxTotalFarms = 99999;
+    
+    [Header("Visible Locks Setting")]
+    [Tooltip("How many lock slots to show to the user (doesn't affect max farms, just UI display)")]
+    public int visibleLockSlots = 7;
 
     [Header("Backend Integration")]
     public PlayerWallet playerWallet;
@@ -111,8 +115,11 @@ public class FarmHeaderManager : MonoBehaviour
         {
             farmCount = playerWallet.UserFarms;
             
-            // Always show 7 locks next to user's farms
-            lockCount = 7;
+            // ✅ Show a fixed number of visible lock slots (e.g., 7)
+            // This is just for UI display, doesn't limit actual max farms
+            lockCount = visibleLockSlots;
+            
+            Debug.Log($"📊 Farm counts loaded: {farmCount} unlocked farms, showing {lockCount} lock slots");
             return;
         }
         
@@ -126,8 +133,10 @@ public class FarmHeaderManager : MonoBehaviour
         // Get actual unlocked farm count from database
         farmCount = farmDatabase.farms.Count;
         
-        // Calculate locked farms
-        lockCount = Mathf.Max(0, maxTotalFarms - farmCount);
+        // Show visible lock slots
+        lockCount = visibleLockSlots;
+        
+        Debug.Log($"📊 Farm counts from database: {farmCount} unlocked farms, showing {lockCount} lock slots");
     }
 
     void Update()

@@ -6,7 +6,17 @@ using System;
 public class AuthManager : MonoBehaviour
 {
     [Header("Config")]
-    public APIConfig config; 
+    public APIConfig config;
+    
+    [Header("References")]
+    [SerializeField] private PlayerWallet playerWallet;
+
+    private void Awake()
+    {
+        // Auto-find PlayerWallet if not assigned
+        if (playerWallet == null)
+            playerWallet = FindAnyObjectByType<PlayerWallet>();
+    }
 
     // =====================
     // SIGNUP
@@ -33,7 +43,6 @@ public class AuthManager : MonoBehaviour
         else
             onError?.Invoke(request.error);
     }
-
 
     // =====================
     // LOGIN
@@ -62,7 +71,7 @@ public class AuthManager : MonoBehaviour
     }
 
     // =====================
-    // GET ME (Fetch Current User)
+    // GET ME (Fetch Current User - String Response)
     // =====================
     public void GetMe(Action<string> onSuccess = null, Action<string> onError = null)
     {
@@ -126,4 +135,100 @@ public class AuthManager : MonoBehaviour
         else
             onError?.Invoke(request.error);
     }
+
+    // =====================
+    // GET USER PROFILE (Typed Response)
+    // =====================
+    /// <summary>
+    /// Refresh user profile from /auth/me with typed response
+    /// Updates PlayerWallet automatically with latest backend data
+    /// </summary>
+    public void GetUserProfile(Action<UserProfile> onSuccess = null, Action<string> onError = null)
+    {
+        StartCoroutine(GetUserProfileCoroutine(onSuccess, onError));
+    }
+
+    private IEnumerator GetUserProfileCoroutine(Action<UserProfile> onSuccess, Action<string> onError)
+    {
+        string accessToken = AuthStorage.GetAccessToken();
+        
+        if (string.IsNullOrEmpty(accessToken))
+        {
+            onError?.Invoke("No access token");
+            yield break;
+        }
+
+        string url = $"{config.baseUrl}/auth/me";
+        
+        UnityWebRequest request = UnityWebRequest.Get(url);
+        request.SetRequestHeader("Authorization", "Bearer " + accessToken);
+        request.SetRequestHeader("Content-Type", "application/json");
+        
+        yield return request.SendWebRequest();
+        
+        if (request.result == UnityWebRequest.Result.Success)
+        {
+            try
+            {
+                string responseText = request.downloadHandler.text;
+                Debug.Log($"📥 /auth/me response: {responseText}");
+                
+                UserProfile profile = JsonUtility.FromJson<UserProfile>(responseText);
+                
+                // Update PlayerWallet with fresh data
+                if (playerWallet != null)
+                {
+                    playerWallet.SetUserFarms(profile.userFarms);
+                    playerWallet.SetLevel(profile.level);
+                    playerWallet.SetEggs(profile.eggs);
+                    playerWallet.SetName(profile.username);
+                    playerWallet.SetLocation(profile.location);
+                    playerWallet.SetRanking(profile.ranking);
+                    
+                    if (!string.IsNullOrEmpty(profile.referralCode))
+                    {
+                        playerWallet.SetReferralCode(profile.referralCode);
+                    }
+                    
+                    Debug.Log($"✅ PlayerWallet updated: UserFarms={profile.userFarms}, Level={profile.level}, Eggs={profile.eggs}");
+                }
+                else
+                {
+                    Debug.LogWarning("⚠️ PlayerWallet not found, profile data not synced");
+                }
+                
+                onSuccess?.Invoke(profile);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"❌ Parse error: {e.Message}");
+                Debug.LogError($"Response text: {request.downloadHandler.text}");
+                onError?.Invoke($"Parse error: {e.Message}");
+            }
+        }
+        else
+        {
+            Debug.LogError($"❌ API error: {request.error}");
+            Debug.LogError($"Response: {request.downloadHandler.text}");
+            onError?.Invoke(request.error);
+        }
+    }
+}
+
+// =====================
+// DATA CLASSES
+// =====================
+
+[Serializable]
+public class UserProfile
+{
+    public string username;
+    public string email;
+    public int level;
+    public int eggs;
+    public string location;
+    public int ranking;
+    public int userFarms;
+    public string referralCode;
+    // Add other fields as needed based on your backend response
 }
