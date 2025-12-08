@@ -25,7 +25,7 @@ public class inventoryFarmInfo : MonoBehaviour
     [SerializeField] Button putVitaminButton;
     [SerializeField] TMP_Text vitaminCountText;
 
-    // ✅ NEW: Static variable shared across all instances
+    // ✅ Static variable shared across all instances
     private static string currentVitaminType = "";
     private static inventoryFarmInfo activeInstance = null;
 
@@ -203,6 +203,7 @@ public class inventoryFarmInfo : MonoBehaviour
         }
         else
         {
+            // ✅ SetPendingItem will also call UpdateStatusImages()
             if (farmItemApplier != null)
             {
                 farmItemApplier.SetPendingItem(cellId.productId);
@@ -247,18 +248,22 @@ public class inventoryFarmInfo : MonoBehaviour
             return;
         }
 
-        // ✅ FIXED: Get FarmDatabase from VitaminAllManager's public field
-        FarmDatabase farmDatabase = activeInstance.vitaminAllManager.GetComponent<VitaminAllManager>()?.GetFarmDatabase();
+        // ✅ Get FarmDatabase from farmItemApplier (using reflection to access private field)
+        FarmDatabase farmDatabase = null;
         
-        // ✅ If that doesn't work, try finding it
-        if (farmDatabase == null)
+        if (activeInstance.farmItemApplier != null)
         {
-            farmDatabase = FindAnyObjectByType<FarmDatabase>(FindObjectsInactive.Include);
+            var field = activeInstance.farmItemApplier.GetType().GetField("farmDatabase", 
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (field != null)
+            {
+                farmDatabase = field.GetValue(activeInstance.farmItemApplier) as FarmDatabase;
+            }
         }
         
         if (farmDatabase == null)
         {
-            Debug.LogError("❌ FarmDatabase not found in scene!");
+            Debug.LogError("❌ FarmDatabase not found!");
             if (activeInstance.infoErrorChanger != null)
             {
                 activeInstance.infoErrorChanger.OpenErrorDefault("System error: FarmDatabase not found");
