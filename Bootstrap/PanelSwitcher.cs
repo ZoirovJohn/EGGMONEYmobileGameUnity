@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Video;
+using UnityEngine.UI;
 
 public class PanelSwitcher : MonoBehaviour
 {
@@ -16,6 +17,7 @@ public class PanelSwitcher : MonoBehaviour
 
   [Header("Video Settings")]
   public VideoPlayer introVideoPlayer; // Reference to the Video Player component
+  public Button introVideoButton;      // Reference to the Button component on panelIntroVideo
 
   private void Awake()
   {
@@ -40,11 +42,23 @@ public class PanelSwitcher : MonoBehaviour
     {
       introVideoPlayer.loopPointReached += OnVideoFinished;
     }
+
+    // Subscribe to button click for skip functionality
+    if (introVideoButton != null)
+    {
+      introVideoButton.onClick.AddListener(OnIntroVideoClicked);
+    }
   }
 
   private void OnVideoFinished(VideoPlayer vp)
   {
     // When video finishes, show login page
+    ShowLogin();
+  }
+
+  private void OnIntroVideoClicked()
+  {
+    // When user clicks during video, skip to login
     ShowLogin();
   }
 
@@ -112,10 +126,15 @@ public class PanelSwitcher : MonoBehaviour
 
   private void OnDestroy()
   {
-    // Unsubscribe from event to prevent memory leaks
+    // Unsubscribe from events to prevent memory leaks
     if (introVideoPlayer != null)
     {
       introVideoPlayer.loopPointReached -= OnVideoFinished;
+    }
+
+    if (introVideoButton != null)
+    {
+      introVideoButton.onClick.RemoveListener(OnIntroVideoClicked);
     }
   }
 }
