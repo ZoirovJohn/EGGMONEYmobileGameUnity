@@ -350,6 +350,63 @@ public static class TranslationsData
             { "Korean", "챔피언 병아리" }
         };
 
+        // open new farm section
+
+        translations["ErrorNoKey"] = new Dictionary<string, string>
+        {
+            { "English", "You don’t have this key.\nPurchase it from the store." },
+            { "Korean", "해당 열쇠가 없습니다.\n상점에서 구매하세요." }
+        };
+
+        translations["ConfirmOpenNewFarm"] = new Dictionary<string, string>
+        {
+            { "English", "Would you want to open a new farm?" },
+            { "Korean", "새 농장을 여시겠습니까?" }
+        };
+
+        translations["Key_Farm"] = new Dictionary<string, string>
+        {
+            { "English", "Farm Key" },
+            { "Korean", "농장 열쇠" }
+        };
+
+        translations["Key_PremiumFarm"] = new Dictionary<string, string>
+        {
+            { "English", "Premium Farm Key" },
+            { "Korean", "프리미엄 농장 열쇠" }
+        };
+
+        // Farm level keys
+        translations["Key_Farm_4"] = new Dictionary<string, string>
+        {
+            { "English", "Farm 4 Key" },
+            { "Korean", "농장 4 열쇠" }
+        };
+
+        translations["Key_Farm_5"] = new Dictionary<string, string>
+        {
+            { "English", "Farm 5 Key" },
+            { "Korean", "농장 5 열쇠" }
+        };
+
+        translations["Key_Farm_6"] = new Dictionary<string, string>
+        {
+            { "English", "Farm 6 Key" },
+            { "Korean", "농장 6 열쇠" }
+        };
+
+        translations["Key_Farm_7"] = new Dictionary<string, string>
+        {
+            { "English", "Farm 7 Key" },
+            { "Korean", "농장 7 열쇠" }
+        };
+        
+        translations["Key_Farm_8"] = new Dictionary<string, string>
+        {
+            { "English", "Farm 8 Key" },
+            { "Korean", "농장 8 열쇠" }
+        };
+
 
         return translations;
     }
