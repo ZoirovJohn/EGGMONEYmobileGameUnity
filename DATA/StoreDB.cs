@@ -8,145 +8,68 @@ public class StoreDB : MonoBehaviour
     [System.Serializable]
     public class Item
     {
-        public string id;            // ex) "nest", "silver_egg", ...
-        public string name;          // display name
-        public int priceFP;          // price (0 if not sold)
-        public bool canBuy = true;   // set false if not purchasable
-        public bool canSell = false; // set true if sell-only
+        public string id;            
+        public int priceFP;
 
-        [TextArea] public string howToGet;
-        public bool giftPermitted;
-        [TextArea] public string giftFunction;
-        [TextArea] public string lifetime;
-        [TextArea] public string performance;
+        public bool canBuy = true;
 
-        public Sprite icon;          // optional
+        // 🔹 Localized name
+        public string Title =>
+            LanguageManager.Instance.GetTranslation($"Store_{id}_Title");
+
+        // 🔹 Localized description
+        public string Description =>
+            LanguageManager.Instance.GetTranslation($"Store_{id}_Desc");
     }
 
-    public List<Item> items = new List<Item>();
+    public List<Item> items = new();
 
-    // quick lookup by id
     Dictionary<string, Item> _byId;
 
     void Awake()
     {
-        if (Instance == null) Instance = this; else if (Instance != this) Destroy(gameObject);
+        if (Instance == null) Instance = this;
+        else { Destroy(gameObject); return; }
 
-        // Seed automatically if empty
-        if (items == null || items.Count == 0) SeedInOrder();
+        if (items == null || items.Count == 0)
+            SeedItems();
+
         RebuildIndex();
     }
 
-    [ContextMenu("Seed Items (in this order)")]
-    public void SeedInOrder()
+    // ---------------------------------------
+    //  Seed 10 items
+    // ---------------------------------------
+    [ContextMenu("Seed Items")]
+    public void SeedItems()
     {
-        items = new List<Item>
+        items = new()
         {
-            // 1) nest
-            new Item{
-                id="nest", name="Nest", priceFP=4000, canBuy=true,
-                howToGet="Store",
-                giftPermitted=true,
-                lifetime="No change after one use",
-                performance="Chickens cannot lay eggs without a nest."
-            },
-
-            // 2) SilverEgg (Sgg)
-            new Item{
-                id="silver_egg", name="Silver Egg", priceFP=10000, canBuy=true,
-                howToGet="Store",
-                giftPermitted=false,
-                lifetime="Unlimited",
-                performance="Tap to turn into a chick; it becomes Soondong after 48 hours."
-            },
-
-            // 3) Food (Prey)
-            new Item{
-                id="food", name="Food", priceFP=10, canBuy=true,
-                howToGet="Store / Daily check",
-                giftPermitted=true,
-                lifetime="For one chicken for one day",
-                performance="Daily food amount a chicken can eat."
-            },
-
-            // 4) GoldEgg (Ggg)
-            new Item{
-                id="gold_egg", name="Gold Egg", priceFP=30000, canBuy=true,
-                howToGet="Store",
-                giftPermitted=false,
-                lifetime="Unlimited",
-                performance="Tap to turn into a chick; it becomes Champ after 24 hours."
-            },
-
-            // 5) Vitamin (Vitamin Vitamin)
-            new Item{
-                id="Vitamin", name="Vitamin", priceFP=5000, canBuy=true,
-                howToGet="Store",
-                giftPermitted=true,
-                lifetime="During the chicken's lifetime",
-                performance="Use on one chicken. Birth speed +0.0545."
-            },
-
-            // 6) battery
-            new Item{
-                id="battery", name="Battery", priceFP=3500, canBuy=true,
-                howToGet="Store",
-                giftPermitted=true,
-                lifetime="7 days",
-                performance="Powers the farm management robot for 7 days."
-            },
-
-            // 7) Robot (Farm management robot)
-            new Item{
-                id="robot", name="Robot", priceFP=100000, canBuy=true,
-                howToGet="Store",
-                giftPermitted=true,
-                lifetime="No change after one use",
-                performance="Once placed, cannot be moved; works while battery lasts; auto-performs daily duties."
-            },
-
-            // 8) SuperBlueEgg (Event Blue egg / Bgg)
-            new Item{
-                id="super_blue_egg", name="Super Blue Egg", priceFP=6000, canBuy=true,
-                howToGet="Store",
-                giftPermitted=false,
-                lifetime="Unlimited",
-                performance="Tap to get premium items."
-            },
-
-            // 9) SuperRedEgg (Event Red egg / Rgg)
-            new Item{
-                id="super_red_egg", name="Super Red Egg", priceFP=20000, canBuy=true,
-                howToGet="Store",
-                giftPermitted=false,
-                lifetime="Unlimited",
-                performance="Tap to get Soondong, Champ, Legend coco, and Super Legend coco."
-            },
-
-            // 10) farmKey
-            new Item{
-                id="farmKey", name="Farm Key", priceFP=100000, canBuy=true,
-                howToGet="Store",
-                giftPermitted=true,
-                lifetime="No change after one use",
-                performance="Unlocks access to additional farm slots or premium farm features."
-            },
+            new Item { id="nest",            priceFP=500 },
+            new Item { id="battery",         priceFP=3500 },
+            new Item { id="vitamin",         priceFP=3000 },
+            new Item { id="food",            priceFP=10 },
+            new Item { id="robot",           priceFP=100000 },
+            new Item { id="silver_egg",      priceFP=10000 },
+            new Item { id="gold_egg",        priceFP=30000 },
+            new Item { id="super_blue_egg",  priceFP=6000 },
+            new Item { id="super_red_egg",   priceFP=20000 },
+            new Item { id="farmKey",         priceFP=100000 },
         };
     }
 
-    [ContextMenu("Rebuild Index")]
     public void RebuildIndex()
     {
-        _byId = new Dictionary<string, Item>(items.Count);
-        foreach (var it in items) if (it != null && !string.IsNullOrEmpty(it.id)) _byId[it.id] = it;
+        _byId = new Dictionary<string, Item>();
+        foreach (var it in items)
+            if (!string.IsNullOrEmpty(it.id))
+                _byId[it.id] = it;
     }
 
     public Item Get(string id)
     {
         if (string.IsNullOrEmpty(id)) return null;
-        if (_byId != null && _byId.TryGetValue(id, out var it)) return it;
-        foreach (var i in items) if (i != null && i.id == id) return i; // fallback if index stale
-        return null;
+        return _byId.TryGetValue(id, out var it) ? it : null;
     }
 
     public int GetPrice(string id) => Get(id)?.priceFP ?? -1;

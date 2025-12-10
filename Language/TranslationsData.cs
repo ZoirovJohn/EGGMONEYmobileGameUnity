@@ -461,7 +461,107 @@ public static class TranslationsData
             { "Korean", "부화" }
         };
 
+        // STORE DB
 
+        translations["Store_nest_Title"] = new Dictionary<string, string> {
+            { "English", "NEST" },
+            { "Korean", "둥지" }
+        };
+
+        translations["Store_nest_Desc"] = new Dictionary<string, string> {
+            { "English", "Chickens can’t lay eggs without this." },
+            { "Korean", "닭은 이게 없으면 알 못낳요" }
+        };
+
+        translations["Store_battery_Title"] = new Dictionary<string, string> {
+            { "English", "Battery" },
+            { "Korean", "배터리" }
+        };
+
+        translations["Store_battery_Desc"] = new Dictionary<string, string> {
+            { "English", "Batteries are a food to moving a robot." },
+            { "Korean", "로봇 움직이려면 배터리가 밥이죠" }
+        };
+
+        translations["Store_vitamin_Title"] = new Dictionary<string, string> {
+            { "English", "Vitamin" },
+            { "Korean", "비타민" }
+        };
+
+        translations["Store_vitamin_Desc"] = new Dictionary<string, string> {
+            { "English", "Egg laying speed increases" },
+            { "Korean", "알 낳는 속도가 증가해요" }
+        };
+
+        translations["Store_food_Title"] = new Dictionary<string, string> {
+            { "English", "Prey" },
+            { "Korean", "먹이" }
+        };
+
+        translations["Store_food_Desc"] = new Dictionary<string, string> {
+            { "English", "If you don’t feed a chicken, it will die." },
+            { "Korean", "닭에게 밥 안주면 죽어요." }
+        };
+
+        translations["Store_robot_Title"] = new Dictionary<string, string> {
+            { "English", "Robot" },
+            { "Korean", "로봇" }
+        };
+
+        translations["Store_robot_Desc"] = new Dictionary<string, string> {
+            { "English", "The farm’s all–rounder" },
+            { "Korean", "농장의 만능 일꾼" }
+        };
+
+        translations["Store_silver_egg_Title"] = new Dictionary<string, string> {
+            { "English", "Sgg" },
+            { "Korean", "실버 알" }
+        };
+
+        translations["Store_silver_egg_Desc"] = new Dictionary<string, string> {
+            { "English", "Growing up from a chick to a gentle hen" },
+            { "Korean", "병아리 후 순둥이로 성장한다." }
+        };
+
+        translations["Store_gold_egg_Title"] = new Dictionary<string, string> {
+            { "English", "Ggg" },
+            { "Korean", "골드 알" }
+        };
+
+        translations["Store_gold_egg_Desc"] = new Dictionary<string, string> {
+            { "English", "Growing up from a chick to a Champ" },
+            { "Korean", "병아리 후 챔프로 성장한다." }
+        };
+
+        translations["Store_super_blue_egg_Title"] = new Dictionary<string, string> {
+            { "English", "Blue Egg" },
+            { "Korean", "블루 이벤트 알" }
+        };
+
+        translations["Store_super_blue_egg_Desc"] = new Dictionary<string, string> {
+            { "English", "You can get premium items." },
+            { "Korean", "고급 아이템을 얻을 수 있는 알" }
+        };
+
+        translations["Store_super_red_egg_Title"] = new Dictionary<string, string> {
+            { "English", "Red Egg" },
+            { "Korean", "레드 이벤트 알" }
+        };
+
+        translations["Store_super_red_egg_Desc"] = new Dictionary<string, string> {
+            { "English", "You can get a special chicken." },
+            { "Korean", "레전드 꼬꼬 등을 기대해볼 수 있다." }
+        };
+
+        translations["Store_farmKey_Title"] = new Dictionary<string, string> {
+            { "English", "Farm Key" },
+            { "Korean", "농장 열쇠" }
+        };
+
+        translations["Store_farmKey_Desc"] = new Dictionary<string, string> {
+            { "English", "Opens a new farm." },
+            { "Korean", "새 농장을 열 수 있어요." }
+        };
 
 
         return translations;

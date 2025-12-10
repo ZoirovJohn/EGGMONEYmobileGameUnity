@@ -17,16 +17,14 @@ public class LanguageManager : MonoBehaviour
     [Header("Current Language")]
     public string currentLanguage = "English";
 
-    // Dictionary to store all translations
-    private Dictionary<string, Dictionary<string, string>> translations = new Dictionary<string, Dictionary<string, string>>();
+    // All translations
+    private Dictionary<string, Dictionary<string, string>> translations;
 
     private void Awake()
     {
-        // Singleton pattern
         if (Instance == null)
         {
             Instance = this;
-            // Remove DontDestroyOnLoad if only using in Scene 2
             InitializeTranslations();
             LoadLanguagePreference();
         }
@@ -39,22 +37,18 @@ public class LanguageManager : MonoBehaviour
 
     private void Start()
     {
-        // Only setup UI if this is the active instance
-        if (Instance != this) return;
-
         if (langPanel != null) langPanel.SetActive(false);
 
         if (langButton != null) langButton.onClick.AddListener(TogglePanel);
         if (engBtn != null) engBtn.onClick.AddListener(() => SetLanguage("English"));
         if (korBtn != null) korBtn.onClick.AddListener(() => SetLanguage("Korean"));
 
-        // Apply the current language to all text elements
         UpdateAllTexts();
+        UpdateAllStoreUI(); // ⭐ Run once at start
     }
 
     private void InitializeTranslations()
     {
-        // Load all translations from the TranslationsData file
         translations = TranslationsData.GetTranslations();
     }
 
@@ -67,41 +61,52 @@ public class LanguageManager : MonoBehaviour
     {
         currentLanguage = language;
         SaveLanguagePreference();
-        UpdateAllTexts();
-        langPanel.SetActive(false);
 
+        UpdateAllTexts();
+        UpdateAllStoreUI(); // ⭐ force-update store UI
+
+        langPanel.SetActive(false);
         Debug.Log("Language changed to: " + language);
     }
 
     private void UpdateAllTexts()
     {
-        // Update the current language display text
         if (currentLanguageText != null)
-        {
             currentLanguageText.text = currentLanguage == "English" ? "ENG" : "한국어";
-        }
 
-        // Find all LocalizedText components in the scene, including inactive ones
+        // Update LocalizedText components
         LocalizedText[] localizedTexts = Resources.FindObjectsOfTypeAll<LocalizedText>();
+
         foreach (LocalizedText text in localizedTexts)
         {
-            // Skip objects that are in the editor (prefabs), only update scene objects
-            if (text.gameObject.scene.name != null)
+            // Only update objects IN THE ACTIVE SCENE (skip prefabs)
+            if (text.gameObject.scene == UnityEngine.SceneManagement.SceneManager.GetActiveScene())
             {
                 text.UpdateText();
             }
         }
     }
 
+    // ⭐ UPDATE STORE UI
+    private void UpdateAllStoreUI()
+    {
+        var storeUIs = FindObjectsByType<PopulateStoreUIFromDB>(FindObjectsSortMode.None);
+
+        foreach (var ui in storeUIs)
+            ui.Apply();
+    }
+
+
     public string GetTranslation(string key)
     {
-        if (translations.ContainsKey(key) && translations[key].ContainsKey(currentLanguage))
+        if (translations.ContainsKey(key) &&
+            translations[key].ContainsKey(currentLanguage))
         {
             return translations[key][currentLanguage];
         }
-        
+
         Debug.LogWarning($"Translation not found for key: {key} in language: {currentLanguage}");
-        return key; // Return the key itself if translation not found
+        return key;
     }
 
     private void SaveLanguagePreference()
