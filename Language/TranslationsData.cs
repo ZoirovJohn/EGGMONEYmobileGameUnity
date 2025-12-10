@@ -222,10 +222,16 @@ public static class TranslationsData
             { "Korean", "상점으로 이동" }
         };
 
-        translations["HowManyToPut"] = new Dictionary<string, string>
+        translations["ItemNotEnough"] = new Dictionary<string, string>
         {
-            { "English", "How many do you want to put?" },
-            { "Korean", "몇 개를 놓고 싶나요?" }
+            { "English", "You don't have any {0}.\nPurchase it from the store." },
+            { "Korean", "{0}이(가) 없습니다.\n상점에서 구매하세요." }
+        };
+
+        translations["HowManyToPutCage"] = new Dictionary<string, string>
+        {
+            { "English", "How many {0} do you want to put to the cage?" },
+            { "Korean", "{0}을(를) 몇 개 우리에 넣고 싶나요?" }
         };
 
         translations["ConfirmPlaceItem"] = new Dictionary<string, string>
@@ -269,6 +275,81 @@ public static class TranslationsData
             { "English", "Would you like to open a new farm?" },
             { "Korean", "새 농장을 열고 싶으신가요?" }
         };
+
+        // 🔹 Item Display Names
+        translations["Item_Nest"] = new Dictionary<string, string>
+        {
+            { "English", "Nest" },
+            { "Korean", "둥지" }
+        };
+
+        translations["Item_SilverEgg"] = new Dictionary<string, string>
+        {
+            { "English", "Silver Egg" },
+            { "Korean", "은색 알" }
+        };
+
+        translations["Item_Food"] = new Dictionary<string, string>
+        {
+            { "English", "Food" },
+            { "Korean", "먹이" }
+        };
+
+        translations["Item_GoldEgg"] = new Dictionary<string, string>
+        {
+            { "English", "Gold Egg" },
+            { "Korean", "황금 알" }
+        };
+
+        translations["Item_Vitamin"] = new Dictionary<string, string>
+        {
+            { "English", "Vitamin Booster" },
+            { "Korean", "비타민 부스터" }
+        };
+
+        translations["Item_Battery"] = new Dictionary<string, string>
+        {
+            { "English", "Battery" },
+            { "Korean", "배터리" }
+        };
+
+        translations["Item_Robot"] = new Dictionary<string, string>
+        {
+            { "English", "Robot" },
+            { "Korean", "로봇" }
+        };
+
+        translations["Item_SuperBlueEgg"] = new Dictionary<string, string>
+        {
+            { "English", "Super Blue Egg" },
+            { "Korean", "슈퍼 블루 알" }
+        };
+
+        translations["Item_SuperRedEgg"] = new Dictionary<string, string>
+        {
+            { "English", "Super Red Egg" },
+            { "Korean", "슈퍼 레드 알" }
+        };
+
+        translations["Item_FarmKey"] = new Dictionary<string, string>
+        {
+            { "English", "Farm Key" },
+            { "Korean", "농장 열쇠" }
+        };
+
+        // 🔹 Chickens / hens
+        translations["Item_WhiteChick"] = new Dictionary<string, string>
+        {
+            { "English", "White Chick" },
+            { "Korean", "흰 병아리" }
+        };
+
+        translations["Item_ChampChick"] = new Dictionary<string, string>
+        {
+            { "English", "Champion Chick" },
+            { "Korean", "챔피언 병아리" }
+        };
+
 
         return translations;
     }

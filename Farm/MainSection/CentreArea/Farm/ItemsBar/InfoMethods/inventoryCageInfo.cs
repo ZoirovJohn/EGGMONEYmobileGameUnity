@@ -9,10 +9,10 @@ public class inventoryCageInfo : MonoBehaviour
     [SerializeField] PlayerWallet wallet;
     [SerializeField] InfoErrorChanger infoErrorChanger;
     [SerializeField] InventoryManager inventoryManager;
-    
-    [Header("Error Message")] 
+
+    [Header("Error Message")]
     [SerializeField] TMP_Text errorMessageText;
-    
+
     [Header("Optional - Auto Find")]
     [SerializeField] bool autoFind = true;
 
@@ -27,38 +27,32 @@ public class inventoryCageInfo : MonoBehaviour
     {
         if (!cellId)
             cellId = GetComponent<InventoryCellId>();
-            
+
         if (autoFind)
         {
             if (!wallet)
                 wallet = FindAnyObjectByType<PlayerWallet>();
-            
+
             if (!infoErrorChanger)
                 infoErrorChanger = FindAnyObjectByType<InfoErrorChanger>();
-            
+
             if (!inventoryManager)
                 inventoryManager = FindAnyObjectByType<InventoryManager>();
-            
+
             if (!errorMessageText)
             {
-                // Try to find error message text in the scene
-                GameObject errorPanel = GameObject.Find("ErrorGoToStore");
-                if (!errorPanel) errorPanel = GameObject.Find("errorGoStore");
-                if (!errorPanel) errorPanel = GameObject.Find("ErrorGoStore");
-                
+                GameObject errorPanel = GameObject.Find("ErrorGoToStore")
+                                  ?? GameObject.Find("errorGoStore")
+                                  ?? GameObject.Find("ErrorGoStore");
+
                 if (errorPanel)
-                {
                     errorMessageText = errorPanel.GetComponentInChildren<TMP_Text>(true);
-                }
             }
         }
-        
-        // Hook up button click
+
         Button btn = GetComponent<Button>();
         if (btn)
-        {
             btn.onClick.AddListener(inventoryCageInfoMethod);
-        }
     }
 
     public void inventoryCageInfoMethod()
@@ -68,148 +62,118 @@ public class inventoryCageInfo : MonoBehaviour
             Debug.LogWarning("Cell ID or product ID is missing!");
             return;
         }
-        
+
         if (!wallet)
         {
             Debug.LogWarning("Wallet reference is missing!");
             return;
         }
-        
-        // ✅ First check local wallet (fast feedback)
+
         CheckItemAvailability();
     }
 
     void CheckItemAvailability()
     {
-        // Get item count from wallet
         int itemCount = wallet.GetItemCount(cellId.productId);
-        
+
         if (itemCount == 0)
         {
-            // ✅ Sync with backend to ensure accuracy before showing error
             if (inventoryManager != null)
             {
                 ShowLoading(true);
-                
+
                 inventoryManager.GetInventory(
                     onSuccess: (response) =>
                     {
                         ShowLoading(false);
-                        
-                        // Recheck after sync
+
                         int updatedCount = wallet.GetItemCount(cellId.productId);
-                        
+
                         if (updatedCount == 0)
-                        {
                             ShowNotEnoughItemsError();
-                        }
                         else
-                        {
                             ShowSetItemPanel();
-                        }
                     },
                     onError: (err) =>
                     {
                         ShowLoading(false);
                         Debug.LogError($"Failed to sync inventory: {err}");
-                        
-                        // Show error anyway if sync failed
                         ShowNotEnoughItemsError();
                     }
                 );
             }
             else
             {
-                // No inventory manager, just show error
                 ShowNotEnoughItemsError();
             }
         }
         else
         {
-            // Item count > 0, show SetItemToFarm panel
             ShowSetItemPanel();
         }
     }
 
     void ShowNotEnoughItemsError()
     {
-        // Get item name for better error message
         string itemName = GetItemDisplayName(cellId.productId);
-        
+
         if (errorMessageText)
         {
-            errorMessageText.text = $"You don't have any {itemName}.\nPurchase it from the store.";
+            string template = LanguageManager.Instance.GetTranslation("ItemNotEnough");
+            errorMessageText.text = string.Format(template, itemName);
         }
-        
-        // Use InfoErrorChanger to show ErrorGoStore panel
+
         if (infoErrorChanger != null)
-        {
             infoErrorChanger.OpenErrorGoStore();
-        }
         else
-        {
             Debug.LogWarning("⚠️ InfoErrorChanger is not assigned!");
-        }
     }
 
-    // In ShowSetItemPanel():
     void ShowSetItemPanel()
     {
-        // ✅ FIXED: Only copy if bigCageInside2 is NOT already active
         bool bigCageInside2WasActive = bigCageInside2 != null && bigCageInside2.activeSelf;
-        
+
         if (!bigCageInside2WasActive)
-        {
-            // Copy the active state from bigCageInside1 to bigCageInside2
             CopyChildrenActiveStates(bigCageInside1, bigCageInside2);
-        }
-        
-        // Close bigCageInside1 and open bigCageInside2
+
         if (bigCageInside1 != null)
             bigCageInside1.SetActive(false);
-        
+
         if (bigCageInside2 != null)
             bigCageInside2.SetActive(true);
-        
+
         if (infoErrorChanger != null)
         {
-            // ✅ Use the productId directly as itemName
-            string message = $"How many {cellId.productId} do you want to put to the cage?";
-            
+            string itemName = GetItemDisplayName(cellId.productId);
+
+            string template = LanguageManager.Instance.GetTranslation("HowManyToPutCage");
+            string message = string.Format(template, itemName);
+
             infoErrorChanger.OpenInfoSetItemToCage(message);
-            
-            // Pass the selected item to ManyToFarm
+
             ManyToFarm manyToFarm = FindAnyObjectByType<ManyToFarm>();
             if (manyToFarm != null)
-            {
                 manyToFarm.SetItem(cellId);
-            }
         }
     }
 
-    // Copy active states from bigCageInside1 children to bigCageInside2 children
     void CopyChildrenActiveStates(GameObject source, GameObject target)
     {
-        if (source == null || target == null)
-            return;
+        if (source == null || target == null) return;
 
-        // Get all children from both parents
         Transform[] sourceChildren = source.GetComponentsInChildren<Transform>(true);
         Transform[] targetChildren = target.GetComponentsInChildren<Transform>(true);
 
-        // Create a mapping by name
         foreach (Transform sourceChild in sourceChildren)
         {
-            if (sourceChild == source.transform) continue; // Skip parent itself
+            if (sourceChild == source.transform) continue;
 
-            // Find matching child in target by name
             foreach (Transform targetChild in targetChildren)
             {
-                if (targetChild == target.transform) continue; // Skip parent itself
+                if (targetChild == target.transform) continue;
 
                 if (sourceChild.name == targetChild.name)
                 {
-                    // Copy active state
                     targetChild.gameObject.SetActive(sourceChild.gameObject.activeSelf);
                     break;
                 }
@@ -220,43 +184,42 @@ public class inventoryCageInfo : MonoBehaviour
     void ShowLoading(bool show)
     {
         if (loadingIndicator != null)
-        {
             loadingIndicator.SetActive(show);
-        }
     }
 
-    // ✅ Get user-friendly item names
     string GetItemDisplayName(string productId)
     {
-        switch (productId)
+        string key = productId switch
         {
-            case "nest":
-                return "Nest";
-            case "silver_egg":
-                return "Silver Egg";
-            case "food":
-                return "Food";
-            case "gold_egg":
-                return "Gold Egg";
-            case "booster":
-            case "vitamin":
-                return "Vitamin Booster";
-            case "battery":
-                return "Battery";
-            case "robot":
-                return "Robot";
-            case "super_blue_egg":
-                return "Super Blue Egg";
-            case "super_red_egg":
-                return "Super Red Egg";
-            case "farmKey":
-                return "Farm Key";
-            default:
-                return "this item";
-        }
+            "nest" => "Item_Nest",
+            "silver_egg" => "Item_SilverEgg",
+            "food" => "Item_Food",
+            "gold_egg" => "Item_GoldEgg",
+            "booster" => "Item_Vitamin",
+            "vitamin" => "Item_Vitamin",
+            "battery" => "Item_Battery",
+            "robot" => "Item_Robot",
+            "super_blue_egg" => "Item_SuperBlueEgg",
+            "super_red_egg" => "Item_SuperRedEgg",
+            "farmKey" => "Item_FarmKey",
+
+            // Hens
+            "white_chick" => "Item_WhiteChick",
+            "champ_chick" => "Item_ChampChick",
+
+            _ => null
+        };
+
+        // If no key found, return default text
+        if (key == null)
+            return LanguageManager.Instance.currentLanguage == "Korean" 
+                ? "이 아이템" 
+                : "this item";
+
+        return LanguageManager.Instance.GetTranslation(key);
     }
 
-    // ✅ PUBLIC: Reload inventory after using an item
+
     public void RefreshInventoryAfterUse()
     {
         if (inventoryManager != null)
