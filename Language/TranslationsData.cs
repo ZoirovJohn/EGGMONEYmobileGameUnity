@@ -6,6 +6,8 @@ public static class TranslationsData
     {
         var translations = new Dictionary<string, Dictionary<string, string>>();
 
+        // Header Section
+
         translations["NextGames"] = new Dictionary<string, string>
         {
             { "English", "Next Games" },
@@ -59,6 +61,8 @@ public static class TranslationsData
             { "English", "With Friends" },
             { "Korean", "친구와 함께" }
         };
+
+        // Manager Section
 
         translations["Management"] = new Dictionary<string, string>
         {
@@ -156,6 +160,12 @@ public static class TranslationsData
             { "Korean", "지갑 접속" }
         };
 
+        translations["WalletAccessBlocked"] = new Dictionary<string, string>
+        {
+            { "English", "Access wallet is not allowed. Change your location" },
+            { "Korean", "지갑 접속이 허용되지 않습니다. 위치를 변경하세요" }
+        };
+
         translations["General"] = new Dictionary<string, string>
         {
             { "English", "General" },
@@ -190,6 +200,74 @@ public static class TranslationsData
         {
             { "English", "<u>Let's Join Us On Today's Farm</u>" },
             { "Korean", "<u>오늘의 농장에 함께해요</u>" }
+        };
+
+        // Farm Section Infos
+
+        translations["FarmTileInstructions"] = new Dictionary<string, string>
+        {
+            { "English", "You can set up items by clicking on the farm tiles above.\nEven I am a pig, I can figure it out." },
+            { "Korean", "위의 농장 타일을 클릭하여 아이템을 배치할 수 있어요.\n저도 돼지지만 이 정도는 알 수 있어요." }
+        };
+
+        translations["NotEnoughItem"] = new Dictionary<string, string>
+        {
+            { "English", "You don't have enough of the item. Purchase it from the store." },
+            { "Korean", "아이템이 부족합니다. 상점에서 구매하세요." }
+        };
+
+        translations["GoToStore"] = new Dictionary<string, string>
+        {
+            { "English", "Go To Store" },
+            { "Korean", "상점으로 이동" }
+        };
+
+        translations["HowManyToPut"] = new Dictionary<string, string>
+        {
+            { "English", "How many do you want to put?" },
+            { "Korean", "몇 개를 놓고 싶나요?" }
+        };
+
+        translations["ConfirmPlaceItem"] = new Dictionary<string, string>
+        {
+            { "English", "Would you like to set the selected item on the farm?" },
+            { "Korean", "선택한 아이템을 농장에 배치하시겠습니까?" }
+        };
+
+        translations["YES"] = new Dictionary<string, string>
+        {
+            { "English", "YES" },
+            { "Korean", "예" }
+        };
+
+        translations["NO"] = new Dictionary<string, string>
+        {
+            { "English", "NO" },
+            { "Korean", "아니요" }
+        };
+
+        translations["PutAllVitamins"] = new Dictionary<string, string>
+        {
+            { "English", "Press the button if you want to put all of your vitamins to hens!" },
+            { "Korean", "모든 비타민을 닭들에게 주고 싶다면 버튼을 누르세요!" }
+        };
+
+        translations["PUT"] = new Dictionary<string, string>
+        {
+            { "English", "PUT" },
+            { "Korean", "놓기" }
+        };
+
+        translations["ItemAlreadyApplied"] = new Dictionary<string, string>
+        {
+            { "English", "The selected item is already applied to the tile!" },
+            { "Korean", "선택한 아이템이 이미 해당 타일에 적용되었습니다!" }
+        };
+
+        translations["OpenNewFarm"] = new Dictionary<string, string>
+        {
+            { "English", "Would you like to open a new farm?" },
+            { "Korean", "새 농장을 열고 싶으신가요?" }
         };
 
         return translations;
