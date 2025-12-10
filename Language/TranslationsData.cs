@@ -400,11 +400,19 @@ public static class TranslationsData
             { "English", "Farm 7 Key" },
             { "Korean", "농장 7 열쇠" }
         };
-        
+
         translations["Key_Farm_8"] = new Dictionary<string, string>
         {
             { "English", "Farm 8 Key" },
             { "Korean", "농장 8 열쇠" }
+        };
+
+        // lock slot click info
+
+        translations["SelectFarmKeyFirst"] = new Dictionary<string, string>
+        {
+            { "English", "Would you want to open a new farm?\nPlease select a farm key first!" },
+            { "Korean", "새 농장을 여시겠습니까?\n먼저 농장 열쇠를 선택하세요!" }
         };
 
 
