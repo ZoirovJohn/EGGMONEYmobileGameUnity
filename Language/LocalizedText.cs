@@ -18,11 +18,6 @@ public class LocalizedText : MonoBehaviour
         tmpText = GetComponent<TextMeshProUGUI>();
     }
 
-    private void OnEnable()
-    {
-        // Don't update immediately, wait for Start
-    }
-
     private void Start()
     {
         UpdateText();
@@ -32,8 +27,7 @@ public class LocalizedText : MonoBehaviour
     {
         if (LanguageManager.Instance == null)
         {
-            Debug.LogWarning("LanguageManager instance not found!");
-            return;
+            return; // Silently skip if LanguageManager not ready yet
         }
 
         string translatedText = LanguageManager.Instance.GetTranslation(translationKey);
@@ -46,10 +40,6 @@ public class LocalizedText : MonoBehaviour
         else if (tmpText != null)
         {
             tmpText.text = translatedText;
-        }
-        else
-        {
-            Debug.LogWarning("No Text or TextMeshProUGUI component found on " + gameObject.name);
         }
     }
 }

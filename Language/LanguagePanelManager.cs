@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 using System.Collections.Generic;
 
 public class LanguageManager : MonoBehaviour
@@ -11,6 +12,7 @@ public class LanguageManager : MonoBehaviour
     public GameObject langPanel;
     public Button engBtn;
     public Button korBtn;
+    public TMP_Text currentLanguageText;
 
     [Header("Current Language")]
     public string currentLanguage = "English";
@@ -73,11 +75,21 @@ public class LanguageManager : MonoBehaviour
 
     private void UpdateAllTexts()
     {
-        // Find all LocalizedText components in the scene and update them
-        LocalizedText[] localizedTexts = FindObjectsByType<LocalizedText>(FindObjectsSortMode.None);
+        // Update the current language display text
+        if (currentLanguageText != null)
+        {
+            currentLanguageText.text = currentLanguage == "English" ? "ENG" : "한국어";
+        }
+
+        // Find all LocalizedText components in the scene, including inactive ones
+        LocalizedText[] localizedTexts = Resources.FindObjectsOfTypeAll<LocalizedText>();
         foreach (LocalizedText text in localizedTexts)
         {
-            text.UpdateText();
+            // Skip objects that are in the editor (prefabs), only update scene objects
+            if (text.gameObject.scene.name != null)
+            {
+                text.UpdateText();
+            }
         }
     }
 
