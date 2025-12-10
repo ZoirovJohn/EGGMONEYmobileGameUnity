@@ -415,6 +415,54 @@ public static class TranslationsData
             { "Korean", "새 농장을 여시겠습니까?\n먼저 농장 열쇠를 선택하세요!" }
         };
 
+        // INVENTORY - Info Hatch Panel
+
+        // Hatch Panel Text
+        translations["Hatch_YouHave"] = new Dictionary<string, string>
+        {
+            { "English", "You have: {0} {1}" },
+            { "Korean", "보유한 수량: {0} {1}" }
+        };
+
+        translations["Hatch_Available"] = new Dictionary<string, string>
+        {
+            { "English", "Available for hatch" },
+            { "Korean", "부화 가능합니다" }
+        };
+
+        translations["Hatch_NotEnough"] = new Dictionary<string, string>
+        {
+            { "English", "Don't have enough eggs" },
+            { "Korean", "알이 부족합니다" }
+        };
+
+        // Egg names
+        translations["Egg_Silver"] = new Dictionary<string, string>
+        {
+            { "English", "Silver Eggs" },
+            { "Korean", "실버 알" }
+        };
+
+        translations["Egg_Gold"] = new Dictionary<string, string>
+        {
+            { "English", "Gold Eggs" },
+            { "Korean", "골드 알" }
+        };
+
+        translations["Egg_Generic"] = new Dictionary<string, string>
+        {
+            { "English", "eggs" },
+            { "Korean", "알" }
+        };
+
+        translations["HATCH"] = new Dictionary<string, string>
+        {
+            { "English", "HATCH" },
+            { "Korean", "부화" }
+        };
+
+
+
 
         return translations;
     }
