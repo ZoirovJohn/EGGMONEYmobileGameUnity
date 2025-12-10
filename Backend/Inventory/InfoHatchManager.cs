@@ -49,6 +49,7 @@ public class InfoHatchManager : MonoBehaviour
         }
     }
 
+    // ⭐ Called when egg icon clicked
     public void InitializeHatchPanel(string eggType, int availableEggs)
     {
         if (infoHatchPanel == null)
@@ -98,7 +99,7 @@ public class InfoHatchManager : MonoBehaviour
         RefreshUI();
     }
 
-    void RefreshUI()
+    public void RefreshUI()
     {
         if (inputCount)
             inputCount.text = currentQty.ToString();
@@ -168,12 +169,11 @@ public class InfoHatchManager : MonoBehaviour
             return;
         }
 
-        if (btnOk)
-            btnOk.interactable = false;
+        btnOk.interactable = false;
 
         hatchAPI.HatchEggs(
-            eggType: eggType,
-            quantity: currentQty,
+            eggType,
+            currentQty,
             onSuccess: (response) =>
             {
                 infoHatchPanel?.SetActive(false);
@@ -181,12 +181,11 @@ public class InfoHatchManager : MonoBehaviour
             onError: (err) =>
             {
                 Debug.LogError($"❌ Hatch failed: {err}");
-                if (btnOk) btnOk.interactable = true;
+                btnOk.interactable = true;
             }
         );
     }
 
-    // LOCALIZED egg name lookup
     string GetEggDisplayName(string eggId)
     {
         string key = eggId switch
@@ -197,5 +196,12 @@ public class InfoHatchManager : MonoBehaviour
         };
 
         return LanguageManager.Instance.GetTranslation(key);
+    }
+
+    // ⭐ CALLED BY LANGUAGE MANAGER
+    public void RefreshLanguage()
+    {
+        if (infoHatchPanel != null && infoHatchPanel.activeSelf)
+            RefreshUI();
     }
 }

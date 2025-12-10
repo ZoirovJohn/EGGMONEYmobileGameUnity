@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 
 public class LanguageManager : MonoBehaviour
 {
@@ -17,7 +18,6 @@ public class LanguageManager : MonoBehaviour
     [Header("Current Language")]
     public string currentLanguage = "English";
 
-    // All translations
     private Dictionary<string, Dictionary<string, string>> translations;
 
     private void Awake()
@@ -44,7 +44,8 @@ public class LanguageManager : MonoBehaviour
         if (korBtn != null) korBtn.onClick.AddListener(() => SetLanguage("Korean"));
 
         UpdateAllTexts();
-        UpdateAllStoreUI(); // ⭐ Run once at start
+        UpdateAllStoreUI();
+        UpdateAllHatchPanels();
     }
 
     private void InitializeTranslations()
@@ -63,10 +64,12 @@ public class LanguageManager : MonoBehaviour
         SaveLanguagePreference();
 
         UpdateAllTexts();
-        UpdateAllStoreUI(); // ⭐ force-update store UI
+        UpdateAllStoreUI();
+        UpdateAllHatchPanels();
+        UpdateAllHatchUI();
+        UpdateAllPurchasePopups();
 
         langPanel.SetActive(false);
-        Debug.Log("Language changed to: " + language);
     }
 
     private void UpdateAllTexts()
@@ -74,27 +77,46 @@ public class LanguageManager : MonoBehaviour
         if (currentLanguageText != null)
             currentLanguageText.text = currentLanguage == "English" ? "ENG" : "한국어";
 
-        // Update LocalizedText components
+        // Update all LocalizedText components in active scene
         LocalizedText[] localizedTexts = Resources.FindObjectsOfTypeAll<LocalizedText>();
 
         foreach (LocalizedText text in localizedTexts)
         {
-            // Only update objects IN THE ACTIVE SCENE (skip prefabs)
-            if (text.gameObject.scene == UnityEngine.SceneManagement.SceneManager.GetActiveScene())
-            {
+            if (text.gameObject.scene == SceneManager.GetActiveScene())
                 text.UpdateText();
-            }
         }
     }
 
-    // ⭐ UPDATE STORE UI
     private void UpdateAllStoreUI()
     {
         var storeUIs = FindObjectsByType<PopulateStoreUIFromDB>(FindObjectsSortMode.None);
-
         foreach (var ui in storeUIs)
             ui.Apply();
     }
+
+    private void UpdateAllHatchPanels()
+    {
+        var hatchManagers = FindObjectsByType<InfoHatchManager>(FindObjectsSortMode.None);
+        foreach (var hm in hatchManagers)
+            hm.RefreshLanguage();
+    }
+
+    private void UpdateAllHatchUI()
+    {
+        var hatchUIs = FindObjectsByType<InfoHatchManager>(FindObjectsSortMode.None);
+
+        foreach (var ui in hatchUIs)
+            ui.RefreshUI();  // <-- direct refresh
+    }
+
+    private void UpdateAllPurchasePopups()
+    {
+        var popups = FindObjectsByType<PurchasePopupUI>(FindObjectsSortMode.None);
+
+        foreach (var popup in popups)
+            popup.RefreshUI();
+    }
+
 
 
     public string GetTranslation(string key)
@@ -105,7 +127,7 @@ public class LanguageManager : MonoBehaviour
             return translations[key][currentLanguage];
         }
 
-        Debug.LogWarning($"Translation not found for key: {key} in language: {currentLanguage}");
+        Debug.LogWarning($"Translation not found for key: {key}");
         return key;
     }
 
@@ -118,12 +140,5 @@ public class LanguageManager : MonoBehaviour
     private void LoadLanguagePreference()
     {
         currentLanguage = PlayerPrefs.GetString("Language", "English");
-    }
-
-    private void OnDestroy()
-    {
-        if (langButton != null) langButton.onClick.RemoveAllListeners();
-        if (engBtn != null) engBtn.onClick.RemoveAllListeners();
-        if (korBtn != null) korBtn.onClick.RemoveAllListeners();
     }
 }

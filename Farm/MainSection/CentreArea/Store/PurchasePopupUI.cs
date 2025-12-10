@@ -29,17 +29,17 @@ public class PurchasePopupUI : MonoBehaviour
     [Header("Market Manager")]
     [SerializeField] MarketManager marketManager;
 
-    // runtime
     StoreDB.Item item;
     int unitPrice = 0;
     int qty = 1;
     bool purchasable = false;
-    bool updatingQtyFromCode = false; // ✅ Flag to prevent recursion
+    bool updatingFromCode = false;
 
     Coroutine tempMsgCo;
 
     void Awake()
     {
+        // Handle typing
         if (qtyInput)
         {
             qtyInput.onValueChanged.AddListener(OnQtyTyped);
@@ -49,67 +49,37 @@ public class PurchasePopupUI : MonoBehaviour
 
     void OnEnable()
     {
-        if (!store)  store  = StoreDB.Instance;
+        if (!store) store = StoreDB.Instance;
         if (!wallet) wallet = FindAnyObjectByType<PlayerWallet>(FindObjectsInactive.Include);
         if (!marketManager) marketManager = FindAnyObjectByType<MarketManager>(FindObjectsInactive.Include);
 
-        // Clear ALL button listeners first
-        if (btnMinus)
-        {
-            btnMinus.onClick.RemoveAllListeners();
-            Debug.Log("➖ Minus button listener cleared and being set up");
-        }
-        
-        if (btnPlus)
-        {
-            btnPlus.onClick.RemoveAllListeners();
-            Debug.Log("➕ Plus button listener cleared and being set up");
-        }
+        btnMinus?.onClick.RemoveAllListeners();
+        btnPlus?.onClick.RemoveAllListeners();
+        btnBuy?.onClick.RemoveAllListeners();
+        btnCancel?.onClick.RemoveAllListeners();
 
-        if (btnBuy)    btnBuy.onClick.RemoveAllListeners();
-        if (btnCancel) btnCancel.onClick.RemoveAllListeners();
-
-        // Load item
         item = store ? store.Get(productId) : null;
+
         if (item == null)
         {
-            Debug.LogWarning($"[PurchasePopupUI] productId '{productId}' not found in StoreDB.");
-
-            if (btnBuy)    btnBuy.gameObject.SetActive(false);
-            if (btnCancel) btnCancel.gameObject.SetActive(true);
-            if (btnCancel) btnCancel.onClick.AddListener(Close);
-
-            if (messageText)
-            {
-                messageText.text  = "Item not found.";
-                messageText.color = new Color(0.85f, 0.2f, 0.2f);
-            }
+            ShowLocalizedError("Store_ItemNotFound");
             return;
         }
 
-        unitPrice   = Mathf.Max(0, item.priceFP);
+        unitPrice = Mathf.Max(0, item.priceFP);
         purchasable = item.canBuy && unitPrice > 0;
 
+        // Localized price
         if (unitPriceText)
-            unitPriceText.text = $"Price : {(unitPrice > 0 ? $"{unitPrice:N0} FP" : "None")}";
-
-        if (btnBuy)    btnBuy.gameObject.SetActive(true);
-        if (btnCancel) btnCancel.gameObject.SetActive(false);
+        {
+            string priceFormat = LanguageManager.Instance.GetTranslation("Store_Price");
+            unitPriceText.text = string.Format(priceFormat, unitPrice);
+        }
 
         SetQty(Mathf.Clamp(1, minQty, maxQty));
 
-        // Set up button listeners AFTER initial quantity is set
-        if (btnMinus)
-        {
-            btnMinus.onClick.AddListener(OnMinusClicked);
-            Debug.Log("➖ Minus button listener added");
-        }
-        
-        if (btnPlus)
-        {
-            btnPlus.onClick.AddListener(OnPlusClicked);
-            Debug.Log("➕ Plus button listener added");
-        }
+        btnMinus?.onClick.AddListener(() => SetQty(qty - 1));
+        btnPlus?.onClick.AddListener(() => SetQty(qty + 1));
 
         if (btnBuy)
         {
@@ -123,252 +93,209 @@ public class PurchasePopupUI : MonoBehaviour
 
         if (btnCancel)
             btnCancel.onClick.AddListener(Close);
+
+        RefreshUI();
     }
 
+    // ------------------------------
+    // Quantity Handling
+    // ------------------------------
     void OnQtyTyped(string s)
     {
-        // ✅ Ignore if we're updating from code (button clicks)
-        if (updatingQtyFromCode) return;
+        if (updatingFromCode) return;
 
-        if (int.TryParse(s, out var v)) SetQty(v);
-        else RefreshUI();
-    }
-
-    void OnMinusClicked()
-    {
-        Debug.Log($"➖ MINUS BUTTON CLICKED! Current qty: {qty}, new will be: {qty - 1}");
-        SetQty(qty - 1);
-    }
-
-    void OnPlusClicked()
-    {
-        Debug.Log($"➕ PLUS BUTTON CLICKED! Current qty: {qty}, new will be: {qty + 1}");
-        SetQty(qty + 1);
+        if (int.TryParse(s, out int v))
+            SetQty(v);
+        else
+            RefreshUI();
     }
 
     void SetQty(int newQty)
     {
         qty = Mathf.Clamp(newQty, minQty, maxQty);
-        
-        // ✅ Set flag to prevent OnQtyTyped from triggering
-        updatingQtyFromCode = true;
-        
+
+        updatingFromCode = true;
         if (qtyInput && qtyInput.text != qty.ToString())
             qtyInput.text = qty.ToString();
-        
-        updatingQtyFromCode = false;
+        updatingFromCode = false;
 
         RefreshUI();
     }
 
-    void RefreshUI()
+    // ------------------------------
+    // UI Refresh with Localization
+    // ------------------------------
+        public void RefreshUI()
     {
-        long totalL = (long)qty * unitPrice;
-        int total = totalL > int.MaxValue ? int.MaxValue : (int)totalL;
+        if (item == null) return;
 
-        if (totalText) totalText.text = $"Total : {total:N0} FP";
+        // ⭐⭐ FIX: Update localized price text
+        if (unitPriceText)
+        {
+            string priceFormat = LanguageManager.Instance.GetTranslation("Store_Price");
+            unitPriceText.text = string.Format(priceFormat, unitPrice);
+        }
+
+        // Continue existing code...
+        long totalLong = (long)qty * unitPrice;
+        int total = totalLong > int.MaxValue ? int.MaxValue : (int)totalLong;
+
+        if (totalText)
+        {
+            string totalFormat = LanguageManager.Instance.GetTranslation("Store_Total");
+            totalText.text = string.Format(totalFormat, total);
+        }
+
+        btnMinus.interactable = qty > minQty;
+        btnPlus.interactable = qty < maxQty;
 
         bool canBuyNow;
-
-        if (btnMinus)
-        {
-            bool minusEnabled = qty > minQty;
-            btnMinus.interactable = minusEnabled;
-            Debug.Log($"➖ Minus button interactable: {minusEnabled}, qty: {qty}, minQty: {minQty}");
-        }
-        
-        if (btnPlus)
-        {
-            bool plusEnabled = qty < maxQty;
-            btnPlus.interactable = plusEnabled;
-            Debug.Log($"➕ Plus button interactable: {plusEnabled}, qty: {qty}, maxQty: {maxQty}");
-        }
 
         if (!purchasable)
         {
             canBuyNow = false;
-            if (messageText)
-            {
-                messageText.text  = "This item is not purchasable.";
-                messageText.color = new Color(0.85f, 0.2f, 0.2f);
-            }
+            LocalizeMsg("Store_NotPurchasable", false);
         }
         else if (!wallet)
         {
             canBuyNow = false;
-            if (messageText)
-            {
-                messageText.text  = "No wallet found.";
-                messageText.color = new Color(0.85f, 0.2f, 0.2f);
-            }
+            LocalizeMsg("Store_NoWallet", false);
         }
         else
         {
-            bool hasEnough = wallet.Has(total);
-            canBuyNow = hasEnough;
-            
-            if (messageText)
-            {
-                if (hasEnough)
-                {
-                    messageText.text  = "Click to purchase ->";
-                    messageText.color = new Color(0.16f, 0.6f, 0.2f);
-                }
-                else
-                {
-                    messageText.text  = "Insufficient FP balance.";
-                    messageText.color = new Color(0.85f, 0.2f, 0.2f);
-                }
-            }
+            bool enough = wallet.Has(total);
+            canBuyNow = enough;
+
+            if (enough)
+                LocalizeMsg("Store_ClickToBuy", true);
+            else
+                LocalizeMsg("Store_InsufficientFP", false);
         }
 
-        if (btnBuy)    btnBuy.gameObject.SetActive(canBuyNow);
-        if (btnCancel) btnCancel.gameObject.SetActive(!canBuyNow);
+        btnBuy?.gameObject.SetActive(canBuyNow);
+        btnCancel?.gameObject.SetActive(!canBuyNow);
     }
 
+    // ------------------------------
+    // Purchase Processing
+    // ------------------------------
     void TryBuy()
     {
-        if (!wallet || item == null)
+        if (wallet == null || item == null)
         {
-            if (btnBuy) btnBuy.interactable = true;
+            btnBuy.interactable = true;
             return;
         }
 
-        long totalL = (long)qty * unitPrice;
-        int total = totalL > int.MaxValue ? int.MaxValue : (int)totalL;
+        long totalLong = (long)qty * unitPrice;
+        int total = totalLong > int.MaxValue ? int.MaxValue : (int)totalLong;
 
         if (!wallet.Has(total))
         {
-            Debug.LogWarning($"Insufficient balance: need {total} FP, have {wallet.FP} FP");
-            
-            if (messageText)
-            {
-                messageText.text  = "Insufficient FP balance.";
-                messageText.color = new Color(0.85f, 0.2f, 0.2f);
-            }
-            
-            if (btnBuy) btnBuy.interactable = true;
+            LocalizeMsg("Store_InsufficientFP", false);
+            btnBuy.interactable = true;
             RefreshUI();
             return;
         }
 
-        if (marketManager != null)
+        if (marketManager == null)
         {
-            PurchaseData purchaseData = MapProductToPurchaseData(productId, qty);
-            
-            if (purchaseData != null)
-            {
-                if (messageText)
-                {
-                    messageText.text  = "Processing purchase...";
-                    messageText.color = new Color(0.6f, 0.6f, 0.6f);
-                }
-
-                marketManager.Purchase(
-                    purchaseData,
-                    onSuccess: (response) =>
-                    {
-                        Debug.Log("Purchase API successful: " + response);
-                        
-                        if (wallet.TrySpend(total))
-                        {
-                            wallet.AddItem(productId, qty);
-
-                            if (tempMsgCo != null) { StopCoroutine(tempMsgCo); tempMsgCo = null; }
-                            tempMsgCo = StartCoroutine(FlashMessage(
-                                $"Purchased {qty}x {productId}!",
-                                new Color(0.2f, 0.6f, 1f),
-                                3f
-                            ));
-                        }
-                        
-                        if (btnBuy) btnBuy.interactable = true;
-                    },
-                    onError: (err) =>
-                    {
-                        Debug.LogError("Purchase API failed: " + err);
-                        
-                        if (messageText)
-                        {
-                            if (err.Contains("insufficient") || err.Contains("balance") || err.Contains("enough"))
-                            {
-                                messageText.text  = "Insufficient balance on server.";
-                            }
-                            else
-                            {
-                                messageText.text  = "Purchase failed. Please try again.";
-                            }
-                            messageText.color = new Color(0.85f, 0.2f, 0.2f);
-                        }
-                        
-                        if (btnBuy) btnBuy.interactable = true;
-                        RefreshUI();
-                    }
-                );
-            }
-            else
-            {
-                Debug.LogError($"Failed to map productId '{productId}' to PurchaseData");
-                if (btnBuy) btnBuy.interactable = true;
-            }
+            Debug.LogError("MarketManager missing");
+            btnBuy.interactable = true;
+            return;
         }
-        else
+
+        PurchaseData data = MapProduct(productId, qty);
+        if (data == null)
         {
-            Debug.LogError("MarketManager not found!");
-            if (btnBuy) btnBuy.interactable = true;
+            Debug.LogError("Unknown product mapping");
+            btnBuy.interactable = true;
+            return;
         }
+
+        LocalizeMsg("Store_Processing", false);
+
+        marketManager.Purchase(
+            data,
+            onSuccess: (res) =>
+            {
+                wallet.TrySpend(total);
+                wallet.AddItem(productId, qty);
+
+                FlashMsg("Store_Purchased", new Color(0.2f, 0.6f, 1f), 3f);
+                btnBuy.interactable = true;
+            },
+            onError: (err) =>
+            {
+                LocalizeMsg("Store_PurchaseFailed", false);
+                btnBuy.interactable = true;
+                RefreshUI();
+            });
     }
 
-    PurchaseData MapProductToPurchaseData(string productId, int quantity)
+    // ------------------------------
+    // Localization Helpers
+    // ------------------------------
+    void LocalizeMsg(string key, bool good)
     {
-        switch (productId)
-        {
-            case "silver_egg":
-                return new PurchaseData(ItemType.egg, EggTier.normal, quantity);
-            case "gold_egg":
-                return new PurchaseData(ItemType.egg, EggTier.gold, quantity);
-            case "super_blue_egg":
-                return new PurchaseData(ItemType.egg, EggTier.blue, quantity);
-            case "super_red_egg":
-                return new PurchaseData(ItemType.egg, EggTier.red, quantity);
-            case "nest":
-                return new PurchaseData(ItemType.nest, quantity);
-            case "food":
-                return new PurchaseData(ItemType.food, quantity);
-            case "vitamin":
-                return new PurchaseData(ItemType.vitamin, quantity);
-            case "battery":
-                return new PurchaseData(ItemType.battery, quantity);
-            case "farmKey":
-                return new PurchaseData(ItemType.farmKey, quantity);
-            case "robot":
-                return new PurchaseData(ItemType.robot, quantity);
-            default:
-                Debug.LogWarning($"Unknown productId: {productId}");
-                return null;
-        }
+        if (!messageText) return;
+
+        string msg = LanguageManager.Instance.GetTranslation(key);
+        messageText.text = msg;
+        messageText.color = good
+            ? new Color(0.16f, 0.6f, 0.2f)
+            : new Color(0.85f, 0.2f, 0.2f);
     }
 
-    IEnumerator FlashMessage(string text, Color color, float seconds)
+    void ShowLocalizedError(string key)
+    {
+        if (!messageText) return;
+
+        messageText.text = LanguageManager.Instance.GetTranslation(key);
+        messageText.color = new Color(0.85f, 0.2f, 0.2f);
+
+        btnBuy?.gameObject.SetActive(false);
+        btnCancel?.gameObject.SetActive(true);
+    }
+
+    IEnumerator FlashMsg(string key, Color col, float sec)
     {
         if (!messageText) yield break;
 
-        string prevText = messageText.text;
-        Color  prevCol  = messageText.color;
+        string oldText = messageText.text;
+        Color oldCol = messageText.color;
 
-        messageText.text  = text;
-        messageText.color = color;
+        messageText.text = LanguageManager.Instance.GetTranslation(key);
+        messageText.color = col;
 
-        yield return new WaitForSecondsRealtime(seconds);
+        yield return new WaitForSecondsRealtime(sec);
 
-        if (messageText)
-        {
-            messageText.text  = prevText;
-            messageText.color = prevCol;
-        }
+        messageText.text = oldText;
+        messageText.color = oldCol;
 
         RefreshUI();
     }
 
-    public void Close() { /* do nothing */ }
+    public void Close() { }
+
+    // ------------------------------
+    // Mapping
+    // ------------------------------
+    PurchaseData MapProduct(string id, int qty)
+    {
+        switch (id)
+        {
+            case "silver_egg": return new PurchaseData(ItemType.egg, EggTier.normal, qty);
+            case "gold_egg": return new PurchaseData(ItemType.egg, EggTier.gold, qty);
+            case "super_blue_egg": return new PurchaseData(ItemType.egg, EggTier.blue, qty);
+            case "super_red_egg": return new PurchaseData(ItemType.egg, EggTier.red, qty);
+            case "nest": return new PurchaseData(ItemType.nest, qty);
+            case "food": return new PurchaseData(ItemType.food, qty);
+            case "vitamin": return new PurchaseData(ItemType.vitamin, qty);
+            case "battery": return new PurchaseData(ItemType.battery, qty);
+            case "farmKey": return new PurchaseData(ItemType.farmKey, qty);
+            case "robot": return new PurchaseData(ItemType.robot, qty);
+            default: return null;
+        }
+    }
 }

@@ -563,6 +563,65 @@ public static class TranslationsData
             { "Korean", "새 농장을 열 수 있어요." }
         };
 
+        translations["BUY"] = new Dictionary<string, string> {
+            { "English", "BUY" },
+            { "Korean", "구매" }
+        };
+
+        // STORE - Purchase Popup
+
+        translations["Store_Price"] = new() {
+            { "English", "Price : {0} FP" },
+            { "Korean", "가격 : {0} FP" }
+        };
+
+        translations["Store_Total"] = new() {
+            { "English", "Total : {0} FP" },
+            { "Korean", "총액 : {0} FP" }
+        };
+
+        translations["Store_NotPurchasable"] = new() {
+            { "English", "This item cannot be purchased." },
+            { "Korean", "이 아이템은 구매할 수 없습니다." }
+        };
+
+        translations["Store_NoWallet"] = new() {
+            { "English", "Wallet not found." },
+            { "Korean", "지갑을 찾을 수 없습니다." }
+        };
+
+        translations["Store_ClickToBuy"] = new() {
+            { "English", "Click to purchase →" },
+            { "Korean", "구매하려면 클릭하세요 →" }
+        };
+
+        translations["Store_InsufficientFP"] = new() {
+            { "English", "Not enough FP balance." },
+            { "Korean", "FP 잔액이 부족합니다." }
+        };
+
+        translations["Store_Processing"] = new() {
+            { "English", "Processing purchase..." },
+            { "Korean", "구매 처리 중..." }
+        };
+
+        translations["Store_PurchaseFailed"] = new() {
+            { "English", "Purchase failed. Please try again." },
+            { "Korean", "구매에 실패했습니다. 다시 시도하세요." }
+        };
+
+        translations["Store_Purchased"] = new() {
+            { "English", "Purchase completed!" },
+            { "Korean", "구매 완료!" }
+        };
+
+        translations["Store_ItemNotFound"] = new() {
+            { "English", "Item not found." },
+            { "Korean", "아이템을 찾을 수 없습니다." }
+        };
+
+
+
 
         return translations;
     }
