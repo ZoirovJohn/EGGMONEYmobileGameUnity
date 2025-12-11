@@ -35,7 +35,7 @@ public static class TranslationsData
         translations["Status"] = new Dictionary<string, string>
         {
             { "English", "Status" },
-            { "Korean", "상태" }
+            { "Korean", "상태창" }
         };
 
         translations["NEXT"] = new Dictionary<string, string>
@@ -85,7 +85,7 @@ public static class TranslationsData
         translations["ChangeYourLocation"] = new Dictionary<string, string>
         {
             { "English", "Change your Location" },
-            { "Korean", "위치 변경" }
+            { "Korean", "현재 지역 변경" }
         };
 
         translations["SelectCountry"] = new Dictionary<string, string>
@@ -139,7 +139,7 @@ public static class TranslationsData
         translations["ReferralCodeInfo"] = new Dictionary<string, string>
         {
             { "English", "Once an invite code has been entered, it cannot be changed. You can earn additional eggs through the invite code system. For more information, please visit the Today's Farm website." },
-            { "Korean", "초대 코드는 한 번 입력하면 변경할 수 없습니다. 초대 코드 시스템을 통해 추가 알을 얻을 수 있습니다. 자세한 내용은 Today's Farm 웹사이트를 방문하세요." }
+            { "Korean", "초대 코드는 한 번 입력하면 변경할 수 없습니다. 초대 코드 시스템을 통해 추가 이익을 얻을 수 있습니다. 자세한 내용은 Today's Farm 웹사이트를 방문하세요." }
         };
 
         translations["Accept"] = new Dictionary<string, string>
@@ -207,7 +207,7 @@ public static class TranslationsData
         translations["FarmTileInstructions"] = new Dictionary<string, string>
         {
             { "English", "You can set up items by clicking on the farm tiles above.\nEven I am a pig, I can figure it out." },
-            { "Korean", "위의 농장 타일을 클릭하여 아이템을 배치할 수 있어요.\n저도 돼지지만 이 정도는 알 수 있어요." }
+            { "Korean", "위의 농장 타일을 클릭하여 아이템을 배치할 수 있어요.\n돼지도 이 정도는 알 수 있어요." }
         };
 
         translations["NotEnoughItem"] = new Dictionary<string, string>
@@ -225,7 +225,7 @@ public static class TranslationsData
         translations["ItemNotEnough"] = new Dictionary<string, string>
         {
             { "English", "You don't have any {0}.\nPurchase it from the store." },
-            { "Korean", "{0}이(가) 없습니다.\n상점에서 구매하세요." }
+            { "Korean", "{0}이(가) 없습니다. 상점에서 구매하세요." }
         };
 
         translations["HowManyToPutCage"] = new Dictionary<string, string>
@@ -286,7 +286,7 @@ public static class TranslationsData
         translations["Item_SilverEgg"] = new Dictionary<string, string>
         {
             { "English", "Silver Egg" },
-            { "Korean", "은색 알" }
+            { "Korean", "실버에그" }
         };
 
         translations["Item_Food"] = new Dictionary<string, string>
@@ -298,7 +298,7 @@ public static class TranslationsData
         translations["Item_GoldEgg"] = new Dictionary<string, string>
         {
             { "English", "Gold Egg" },
-            { "Korean", "황금 알" }
+            { "Korean", "골드에그" }
         };
 
         translations["Item_Vitamin"] = new Dictionary<string, string>
@@ -355,7 +355,7 @@ public static class TranslationsData
         translations["ErrorNoKey"] = new Dictionary<string, string>
         {
             { "English", "You don’t have this key.\nPurchase it from the store." },
-            { "Korean", "해당 열쇠가 없습니다.\n상점에서 구매하세요." }
+            { "Korean", "해당 열쇠가 없습니다. 상점에서 구매하세요." }
         };
 
         translations["ConfirmOpenNewFarm"] = new Dictionary<string, string>
@@ -412,7 +412,7 @@ public static class TranslationsData
         translations["SelectFarmKeyFirst"] = new Dictionary<string, string>
         {
             { "English", "Would you want to open a new farm?\nPlease select a farm key first!" },
-            { "Korean", "새 농장을 여시겠습니까?\n먼저 농장 열쇠를 선택하세요!" }
+            { "Korean", "새 농장을 여시겠습니까? 먼저 농장 열쇠를 선택하세요!" }
         };
 
         // INVENTORY - Info Hatch Panel
@@ -433,26 +433,26 @@ public static class TranslationsData
         translations["Hatch_NotEnough"] = new Dictionary<string, string>
         {
             { "English", "Don't have enough eggs" },
-            { "Korean", "알이 부족합니다" }
+            { "Korean", "달걀이 부족합니다" }
         };
 
         // Egg names
         translations["Egg_Silver"] = new Dictionary<string, string>
         {
             { "English", "Silver Eggs" },
-            { "Korean", "실버 알" }
+            { "Korean", "실버에그" }
         };
 
         translations["Egg_Gold"] = new Dictionary<string, string>
         {
             { "English", "Gold Eggs" },
-            { "Korean", "골드 알" }
+            { "Korean", "골드에그" }
         };
 
         translations["Egg_Generic"] = new Dictionary<string, string>
         {
             { "English", "eggs" },
-            { "Korean", "알" }
+            { "Korean", "달걀" }
         };
 
         translations["HATCH"] = new Dictionary<string, string>
