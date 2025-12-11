@@ -69,6 +69,10 @@ public class FooterPanelSwitcher : MonoBehaviour
         UnityEngine.EventSystems.EventSystem.current?.SetSelectedGameObject(null);
     }
 
+    /// <summary>
+    /// Clear all footer button background highlights
+    /// </summary>
+    /// <param name="closePanels">If true, also closes the footer panels</param>
     public void ClearFooterSelection(bool closePanels = false)
     {
         // Optionally close footer panels too
@@ -86,6 +90,8 @@ public class FooterPanelSwitcher : MonoBehaviour
 
         // Clear UI focus (removes highlighted state)
         UnityEngine.EventSystems.EventSystem.current?.SetSelectedGameObject(null);
+        
+        Debug.Log("✅ Footer selection cleared");
     }
 
     // Public methods for Button OnClick

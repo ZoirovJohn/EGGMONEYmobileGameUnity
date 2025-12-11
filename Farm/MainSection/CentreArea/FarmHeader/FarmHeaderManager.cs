@@ -105,6 +105,27 @@ public class FarmHeaderManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Called when opening main menu or other panels where no farm should be selected
+    /// </summary>
+    public void ClearFarmSelection()
+    {
+        for (int i = 0; i < farmSlots.Count; i++)
+        {
+            GameObject slot = farmSlots[i];
+            
+            Image backgroundImg = slot.GetComponent<Image>();
+            
+            if (backgroundImg != null)
+            {
+                Color c = backgroundImg.color;
+                backgroundImg.color = new Color(c.r, c.g, c.b, 0f); // Set alpha to 0 (transparent)
+            }
+        }
+        
+        Debug.Log("✅ Farm header selection cleared");
+    }
+
+    /// <summary>
     /// Load farm counts from PlayerWallet (loaded from backend via /auth/me)
     /// If PlayerWallet is not available, fallback to FarmDatabase
     /// </summary>
