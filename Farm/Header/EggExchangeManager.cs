@@ -14,6 +14,7 @@ public class EggExchangeManager : MonoBehaviour
     [SerializeField] private InfoErrorChanger infoErrorChanger;
     [SerializeField] private BasketManager basketManager;
     [SerializeField] private Button topButton; // The button that opens/closes this panel
+    [SerializeField] private Button topButton2;
 
     [Header("UI Elements")]
     [SerializeField] private TMP_InputField eggInputField;
@@ -52,9 +53,10 @@ public class EggExchangeManager : MonoBehaviour
         }
 
         // Setup top button listener
-        if (topButton != null)
+        if (topButton != null && topButton2 != null)
         {
             topButton.onClick.AddListener(OnTopButtonClicked);
+            topButton2.onClick.AddListener(OnTopButtonClicked);
         }
     }
 
