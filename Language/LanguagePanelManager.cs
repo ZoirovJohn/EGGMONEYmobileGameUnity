@@ -69,6 +69,7 @@ public class LanguageManager : MonoBehaviour
         UpdateAllHatchUI();
         UpdateAllPurchasePopups();
         UpdateAllFarmItemAppliers(); 
+        UpdateAllEggExchangeManagers();
 
         langPanel.SetActive(false);
     }
@@ -86,6 +87,13 @@ public class LanguageManager : MonoBehaviour
             if (text.gameObject.scene == SceneManager.GetActiveScene())
                 text.UpdateText();
         }
+    }
+
+    private void UpdateAllEggExchangeManagers()
+    {
+        var exchangeManagers = FindObjectsByType<EggExchangeManager>(FindObjectsSortMode.None);
+        foreach (var em in exchangeManagers)
+            em.UpdateLocalizedTexts();
     }
 
     private void UpdateAllStoreUI()

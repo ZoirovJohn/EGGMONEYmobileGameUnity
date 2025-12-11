@@ -24,6 +24,11 @@ public class EggExchangeManager : MonoBehaviour
     [SerializeField] private Button btnYes;
     [SerializeField] private Button btnNo;
 
+    [Header("Localized Text Elements")]
+    [SerializeField] private TMP_Text swapText1; // "You can get "
+    [SerializeField] private TMP_Text swapText2; // "Would you like to exchange..."
+    [SerializeField] private TMP_Text deliveryText1; // "Fill in 30 and order delivery"
+
     [Header("Exchange Settings")]
     [SerializeField] private int fpPerEgg = 400; // 1 egg = 400 FP
 
@@ -58,6 +63,29 @@ public class EggExchangeManager : MonoBehaviour
             topButton.onClick.AddListener(OnTopButtonClicked);
             topButton2.onClick.AddListener(OnTopButtonClicked);
         }
+
+        // Initialize localized texts
+        UpdateLocalizedTexts();
+    }
+
+    private void OnEnable()
+    {
+        // Update texts when panel becomes active (in case language changed)
+        UpdateLocalizedTexts();
+    }
+
+    public void UpdateLocalizedTexts()
+    {
+        if (LanguageManager.Instance == null) return;
+
+        if (swapText1 != null)
+            swapText1.text = LanguageManager.Instance.GetTranslation("SwapText1");
+
+        if (swapText2 != null)
+            swapText2.text = LanguageManager.Instance.GetTranslation("SwapText2");
+
+        if (deliveryText1 != null)
+            deliveryText1.text = LanguageManager.Instance.GetTranslation("DeliveryText1");
     }
 
     private void OnTopButtonClicked()
@@ -75,6 +103,9 @@ public class EggExchangeManager : MonoBehaviour
     private void OpenExchangePanel()
     {
         isPanelOpen = true;
+        
+        // Update texts when opening
+        UpdateLocalizedTexts();
         
         // Fetch available eggs from backend using BasketManager
         if (basketManager != null)

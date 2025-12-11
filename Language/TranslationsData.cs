@@ -630,6 +630,38 @@ public static class TranslationsData
             { "Korean", "배터리: {0}일" }
         };
 
+        // SWAP & DELIVER
+
+        translations["Swap"] = new Dictionary<string, string>
+        {
+            { "English", "Swap" },
+            { "Korean", "교환" }
+        };
+
+        translations["Delivery"] = new Dictionary<string, string>
+        {
+            { "English", "Delivery" },
+            { "Korean", "배송" }
+        };
+
+        translations["SwapText1"] = new Dictionary<string, string>
+        {
+            { "English", "You can get " },
+            { "Korean", "획득 가능: " }
+        };
+
+        translations["SwapText2"] = new Dictionary<string, string>
+        {
+            { "English", "Would you like to exchange the selected quantity of eggs for FP?" },
+            { "Korean", "선택한 수량의 알을 FP로 교환하시겠습니까?" }
+        };
+
+        translations["DeliveryText1"] = new Dictionary<string, string>
+        {
+            { "English", "Fill in 30 and order delivery" },
+            { "Korean", "30개를 채워서 배송 주문하세요" }
+        };
+
         return translations;
     }
 }
