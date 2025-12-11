@@ -14,8 +14,8 @@ public class ManyToFarm : MonoBehaviour
     [SerializeField] Button minusButton;
     
     [Header("Runtime Data - Auto Set")]
-    private InventoryCellId cellId; // Gets productId from selected item
-    private int targetFarmNumber = 1; // Which farm to place items in
+    private InventoryCellId cellId;
+    private int targetFarmNumber = 1;
     
     [Header("References")]
     [SerializeField] APIConfig apiConfig;
@@ -35,6 +35,9 @@ public class ManyToFarm : MonoBehaviour
     
     private int currentQuantity = 1;
     private bool isProcessing = false;
+    
+    // ✅ NEW: Track what was just placed to preserve it during refresh
+    private bool justPlacedPremiumNest = false;
 
     void Awake()
     {
@@ -48,7 +51,6 @@ public class ManyToFarm : MonoBehaviour
             if (!farmHeaderManager) farmHeaderManager = FindAnyObjectByType<FarmHeaderManager>();
             if (!infoErrorChanger) infoErrorChanger = FindAnyObjectByType<InfoErrorChanger>();
             
-            // Find APIConfig if not assigned
             if (!apiConfig)
             {
                 apiConfig = Resources.Load<APIConfig>("APIConfig");
@@ -59,7 +61,6 @@ public class ManyToFarm : MonoBehaviour
             }
         }
         
-        // Setup button listeners
         if (putButton)
         {
             putButton.onClick.AddListener(OnPutButtonClicked);
@@ -83,10 +84,8 @@ public class ManyToFarm : MonoBehaviour
 
     void OnEnable()
     {
-        // Reset to default quantity when panel opens
         SetQuantity(1);
         
-        // ✅ Get cellId from scene (selected inventory item)
         if (cellId == null)
         {
             cellId = FindAnyObjectByType<InventoryCellId>();
@@ -104,10 +103,7 @@ public class ManyToFarm : MonoBehaviour
 
     void SetQuantity(int value)
     {
-        // Get max available from wallet
         int maxAvailable = GetMaxAvailableQuantity();
-        
-        // Clamp between 1 and max available
         currentQuantity = Mathf.Clamp(value, 1, Mathf.Max(1, maxAvailable));
         
         if (quantityInput)
@@ -115,7 +111,6 @@ public class ManyToFarm : MonoBehaviour
             quantityInput.text = currentQuantity.ToString();
         }
         
-        // Update button states
         UpdateButtonStates();
     }
 
@@ -127,7 +122,6 @@ public class ManyToFarm : MonoBehaviour
         }
         else
         {
-            // Reset to 1 if invalid input
             SetQuantity(1);
         }
     }
@@ -182,49 +176,43 @@ public class ManyToFarm : MonoBehaviour
             return;
         }
         
-        // ✅ CHECK IF TRYING TO PLACE A HEN OR NEST
         string productId = cellId.productId.ToLower();
         bool isTryingToPlaceHen = productId.Contains("chick") || productId.Contains("hen");
         bool isTryingToPlaceNest = productId.Contains("nest");
         
         if (isTryingToPlaceHen)
         {
-            // ✅ CHECK IF THERE'S ALREADY A HEN IN THE CAGE
             if (IsHenAlreadyInCage())
             {
                 Debug.LogWarning("⚠️ Cage already has a hen! Cannot place another hen.");
                 
-                // Show error message to user
                 if (infoErrorChanger != null)
                 {
                     infoErrorChanger.OpenErrorDefault("Cage already has a hen! Select another cage.");
                 }
                 
-                return; // ❌ STOP - Don't call backend
+                return;
             }
         }
         
         if (isTryingToPlaceNest)
         {
-            // ✅ CHECK IF THERE'S ALREADY A NEST IN THE CAGE
             if (IsNestAlreadyInCage())
             {
                 Debug.LogWarning("⚠️ Cage already has a nest! Cannot place another nest.");
                 
-                // Show error message to user
                 if (infoErrorChanger != null)
                 {
                     infoErrorChanger.OpenErrorDefault("Cage already has a nest! Select another cage.");
                 }
                 
-                return; // ❌ STOP - Don't call backend
+                return;
             }
         }
         
-        // ✅ GET CURRENT FARM DYNAMICALLY (always up-to-date)
         if (farmDatabase != null)
         {
-            targetFarmNumber = farmDatabase.currentFarmIndex + 1; // Convert 0-based to 1-based
+            targetFarmNumber = farmDatabase.currentFarmIndex + 1;
             Debug.Log($"🎯 Placing items in Farm {targetFarmNumber}");
         }
         else
@@ -233,7 +221,6 @@ public class ManyToFarm : MonoBehaviour
             return;
         }
         
-        // Check if user has enough items
         int available = wallet.GetItemCount(cellId.productId);
         if (available < currentQuantity)
         {
@@ -241,7 +228,6 @@ public class ManyToFarm : MonoBehaviour
             return;
         }
         
-        // Start placement process
         PlaceItemsInFarm(
             onSuccess: (response) => {
                 Debug.Log("✅ Items placed successfully!");
@@ -252,13 +238,11 @@ public class ManyToFarm : MonoBehaviour
         );
     }
     
-    // ✅ NEW METHOD: Check if there's already a hen in bigCageInside2
     bool IsHenAlreadyInCage()
     {
         if (bigCageInside2 == null)
             return false;
         
-        // Check for ChampChick
         Transform champChick = bigCageInside2.transform.Find("ChampChick");
         if (champChick != null && champChick.gameObject.activeSelf)
         {
@@ -266,7 +250,6 @@ public class ManyToFarm : MonoBehaviour
             return true;
         }
         
-        // Check for WhiteChick
         Transform whiteChick = bigCageInside2.transform.Find("WhiteChick");
         if (whiteChick != null && whiteChick.gameObject.activeSelf)
         {
@@ -277,7 +260,6 @@ public class ManyToFarm : MonoBehaviour
         return false;
     }
     
-    // ✅ NEW METHOD: Check if there's already a nest in bigCageInside2
     bool IsNestAlreadyInCage()
     {
         if (bigCageInside2 == null)
@@ -294,11 +276,6 @@ public class ManyToFarm : MonoBehaviour
         return false;
     }
 
-
-
-    // =====================
-    // PLACE ITEMS (POST /farm/place)
-    // =====================
     public void PlaceItemsInFarm(Action<string> onSuccess = null, Action<string> onError = null)
     {
         StartCoroutine(PlaceItemsCoroutine(onSuccess, onError));
@@ -310,12 +287,13 @@ public class ManyToFarm : MonoBehaviour
         UpdateButtonStates();
         ShowLoading(true);
         
-        // ✅ Log the original product ID
         Debug.Log($"🔍 Original productId from cellId: '{cellId.productId}'");
         
-        // Map product ID to backend format
         string itemType = MapProductIdToItemType(cellId.productId);
         string tier = MapProductIdToTier(cellId.productId);
+        
+        // ✅ NEW: Track if we're placing a premium nest
+        justPlacedPremiumNest = (itemType == "nest" && tier == "premium");
         
         if (string.IsNullOrEmpty(itemType))
         {
@@ -326,7 +304,6 @@ public class ManyToFarm : MonoBehaviour
             yield break;
         }
         
-        // Create request body
         var requestBody = new PlaceFarmRequest
         {
             itemType = itemType,
@@ -337,7 +314,6 @@ public class ManyToFarm : MonoBehaviour
         
         string jsonBody = JsonUtility.ToJson(requestBody);
         
-        // Get access token
         string accessToken = AuthStorage.GetAccessToken();
         
         if (string.IsNullOrEmpty(accessToken))
@@ -349,7 +325,6 @@ public class ManyToFarm : MonoBehaviour
             yield break;
         }
         
-        // Prepare request
         byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonBody);
         
         string url = apiConfig.baseUrl + "/farm/place";
@@ -360,7 +335,6 @@ public class ManyToFarm : MonoBehaviour
         request.SetRequestHeader("Content-Type", "application/json");
         request.SetRequestHeader("Authorization", "Bearer " + accessToken);
         
-        // Send request
         yield return request.SendWebRequest();
         
         ShowLoading(false);
@@ -372,16 +346,17 @@ public class ManyToFarm : MonoBehaviour
             HandlePlacementSuccess(responseText);
             onSuccess?.Invoke(responseText);
             
-            // ✅ Update visual in BigCageInside2
+            // ✅ Update visual IMMEDIATELY (before refresh)
             UpdateBigCageInside2Visual();
             
-            // Wait a frame before refreshing
             yield return null;
             
-            // Refresh farm data from backend
+            // ✅ Refresh farm data from backend (this will now preserve premium nest)
             yield return RefreshFarmData();
             
-            // Close the placement panel
+            // ✅ Reset flag after refresh
+            justPlacedPremiumNest = false;
+            
             if (infoErrorChanger != null)
             {
                 infoErrorChanger.CloseAllInfoErrorMethod();
@@ -414,13 +389,11 @@ public class ManyToFarm : MonoBehaviour
             
             if (response != null)
             {
-                // Only log nest count if it exists in response
                 if (response.currentNestCount > 0 || response.maxCapacity > 0)
                 {
                     Debug.Log($"📊 Current nest count: {response.currentNestCount}/{response.maxCapacity}");
                 }
                 
-                // Update local wallet (optimistic update)
                 if (wallet != null)
                 {
                     wallet.TryConsumeItem(cellId.productId, currentQuantity);
@@ -443,7 +416,6 @@ public class ManyToFarm : MonoBehaviour
         Debug.LogError($"❌ Failed to place items: {error}");
     }
 
-    // ✅ UPDATED: Update BigCageInside2 visual to show the added item
     void UpdateBigCageInside2Visual()
     {
         if (bigCageInside2 == null || cellId == null)
@@ -451,12 +423,9 @@ public class ManyToFarm : MonoBehaviour
 
         string id = cellId.productId.ToLowerInvariant();
 
-        // ==========================
-        // PREMIUM NEST ("super_nest")
-        // ==========================
+        // PREMIUM NEST
         if (id == "super_nest" || id.Contains("super"))
         {
-            // Turn ON PremiumNest
             Transform premiumNest = bigCageInside2.transform.Find("PremiumNest");
             if (premiumNest != null)
             {
@@ -464,7 +433,6 @@ public class ManyToFarm : MonoBehaviour
                 Debug.Log("✅ Activated PremiumNest in BigCageInside2");
             }
 
-            // Turn OFF normal nest if needed
             Transform normalNest = bigCageInside2.transform.Find("Nest");
             if (normalNest != null)
                 normalNest.gameObject.SetActive(false);
@@ -472,12 +440,9 @@ public class ManyToFarm : MonoBehaviour
             return;
         }
 
-        // ======================
-        // NORMAL NEST ("nest")
-        // ======================
+        // NORMAL NEST
         if (id == "nest")
         {
-            // Turn ON normal nest
             Transform normalNest = bigCageInside2.transform.Find("Nest");
             if (normalNest != null)
             {
@@ -485,7 +450,6 @@ public class ManyToFarm : MonoBehaviour
                 Debug.Log("✅ Activated Normal Nest in BigCageInside2");
             }
 
-            // Turn OFF premium nest if needed
             Transform premiumNest = bigCageInside2.transform.Find("PremiumNest");
             if (premiumNest != null)
                 premiumNest.gameObject.SetActive(false);
@@ -493,9 +457,7 @@ public class ManyToFarm : MonoBehaviour
             return;
         }
 
-        // ======================
         // HENS
-        // ======================
         if (id.Contains("chick") || id.Contains("hen"))
         {
             string chickType = (id.Contains("champ") || id.Contains("gold"))
@@ -509,12 +471,10 @@ public class ManyToFarm : MonoBehaviour
                 Debug.Log($"✅ Activated {chickType} in BigCageInside2");
             }
 
-            // Clock UI
             Transform clock = bigCageInside2.transform.Find("Clock");
             if (clock != null)
                 clock.gameObject.SetActive(true);
 
-            // Lifetime UI
             Transform lifeTime = bigCageInside2.transform.Find("LifeTime");
             if (lifeTime != null)
                 lifeTime.gameObject.SetActive(true);
@@ -540,7 +500,6 @@ public class ManyToFarm : MonoBehaviour
                 }
             );
             
-            // Wait for inventory refresh (with timeout)
             float timeout = 3f;
             float elapsed = 0f;
             while (!inventoryRefreshed && elapsed < timeout)
@@ -558,8 +517,14 @@ public class ManyToFarm : MonoBehaviour
             farmAPIManager.GetFarmSummary(
                 targetFarmNumber,
                 onSuccess: (summary) => {
-                    // Update FarmDatabase with backend data
                     int farmIndex = targetFarmNumber - 1;
+                    
+                    // ✅ IMPORTANT: Pass the nestDetails to FarmDatabase BEFORE updating
+                    if (summary.nests != null && summary.nests.details != null)
+                    {
+                        farmDatabase.SetFarmNestDetails(farmIndex, summary.nests.details);
+                        Debug.Log($"✅ Stored {summary.nests.details.Count} nest details for Farm {targetFarmNumber}");
+                    }
                     
                     farmDatabase.UpdateFarmFromBackend(
                         farmIndex: farmIndex,
@@ -578,7 +543,6 @@ public class ManyToFarm : MonoBehaviour
                 }
             );
             
-            // Wait for farm refresh (with timeout)
             float timeout = 3f;
             float elapsed = 0f;
             while (!farmRefreshed && elapsed < timeout)
@@ -598,6 +562,25 @@ public class ManyToFarm : MonoBehaviour
         if (farmHeaderManager != null)
         {
             farmHeaderManager.UpdateAllFarmSlotVisuals();
+        }
+        
+        // ✅ Step 4: If we just placed a premium nest, ensure BigCageInside2 shows it correctly
+        if (justPlacedPremiumNest && bigCageInside2 != null)
+        {
+            Transform premiumNest = bigCageInside2.transform.Find("PremiumNest");
+            Transform normalNest = bigCageInside2.transform.Find("Nest");
+            
+            if (premiumNest != null && !premiumNest.gameObject.activeSelf)
+            {
+                premiumNest.gameObject.SetActive(true);
+                Debug.Log("✅ Re-enabled PremiumNest after refresh");
+            }
+            
+            if (normalNest != null && normalNest.gameObject.activeSelf)
+            {
+                normalNest.gameObject.SetActive(false);
+                Debug.Log("✅ Disabled normal nest after refresh (premium was placed)");
+            }
         }
     }
 
@@ -651,7 +634,6 @@ public class ManyToFarm : MonoBehaviour
     {
         string normalized = productId.ToLowerInvariant().Replace("_", "").Replace(" ", "");
         
-        // 🐔 HENS
         if (normalized.Contains("chick") || normalized.Contains("hen"))
         {
             if (normalized.Contains("superlegend"))
@@ -663,22 +645,17 @@ public class ManyToFarm : MonoBehaviour
             if (normalized.Contains("champ") || normalized.Contains("gold"))
                 return "gold";
 
-            // default white / normal / basic chickens
             return "normal";
         }
 
-        // 🪺 NESTS
         if (normalized.Contains("nest"))
         {
-            // PREMIUM NEST ("super_nest")
             if (normalized.Contains("super"))
                 return "premium";
 
-            // NORMAL NEST ("nest")
             return "normal";
         }
 
-        // 🤖 Robot
         if (normalized.Contains("robot"))
         {
             return null;
@@ -687,7 +664,6 @@ public class ManyToFarm : MonoBehaviour
         Debug.LogWarning($"⚠️ Unknown item type for: {productId}, returning null");
         return null;
     }
-
 
     void ShowLoading(bool show)
     {
