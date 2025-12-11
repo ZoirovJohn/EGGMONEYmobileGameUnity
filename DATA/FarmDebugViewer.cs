@@ -84,7 +84,12 @@ public class FarmDebugViewer : MonoBehaviour
             sb.AppendLine($"  🪺 Nests Occupied: {farm.nestsOccupied}");
             sb.AppendLine($"  🐣 Normal Chicks: {farm.normalChicks}");
             sb.AppendLine($"  🏆 Champ Chicks: {farm.champChicks}");
-            
+
+            // ✅ ADD THESE TWO LINES (THIS WAS MISSING)
+            sb.AppendLine($"  💎 Premium Nests: {farm.premiumNests}");
+            sb.AppendLine($"  🪺 Normal Nests: {farm.normalNests}");
+            // ⬆️ Now premium & normal nest counts will show
+
             if (farm.cages != null)
             {
                 sb.AppendLine($"  📦 Total Cages: {farm.cages.Count}");

@@ -48,10 +48,6 @@ public class PlayerDataLoader : MonoBehaviour
                     else
                         playerWallet.SetFP(0);
                 }
-                else
-                {
-                    Debug.LogError("❌ PlayerWallet reference is missing!");
-                }
 
                 PlayerPrefs.SetString("userId", userData.id);
                 PlayerPrefs.SetString("email", userData.email);
@@ -148,25 +144,18 @@ public class PlayerDataLoader : MonoBehaviour
             FarmSummary summary = summaries[i];
             FarmData farmData = ConvertSummaryToFarmData(summary, i);
             farmDatabase.farms.Add(farmData);
-            
-            // ✅ NEW: Set nest details BEFORE generating cages
+
+            // store nest details for cage generation
             if (summary.nests != null && summary.nests.details != null)
             {
                 farmDatabase.SetFarmNestDetails(i, summary.nests.details);
             }
         }
 
-        // Now generate cages (will use the nest details we just set)
         farmDatabase.GenerateCagesFromFarmData();
 
         if (farmHeaderManager != null)
-        {
             farmHeaderManager.Refresh();
-        }
-        else
-        {
-            Debug.LogWarning("⚠️ FarmHeaderManager not assigned, UI not refreshed");
-        }
     }
 
     private FarmData ConvertSummaryToFarmData(FarmSummary summary, int index)
@@ -182,14 +171,16 @@ public class PlayerDataLoader : MonoBehaviour
             cages = new System.Collections.Generic.List<CageData>()
         };
 
+        // Chick counts
         farm.normalChicks = summary.henStats.byKind.Normal;
         farm.champChicks = summary.henStats.byKind.Champ;
         farm.legendChicks = summary.henStats.byKind.Legend;
         farm.superLegendChicks = summary.henStats.byKind.SuperLegend;
-        
+
+        // PREMIUM / NORMAL NEST COUNTS (THE FIX YOU NEEDED)
         int premiumNests = 0;
         int normalNests = 0;
-        
+
         if (summary.nests.details != null)
         {
             foreach (var nest in summary.nests.details)
@@ -198,29 +189,21 @@ public class PlayerDataLoader : MonoBehaviour
                     premiumNests++;
                 else
                     normalNests++;
-                
-                // ✅ NEW: Process egg ready status from backend
-                if (nest.hen != null && nest.hen.hasEggReady)
-                {
-                    // Store this information for later use in cage distribution
-                    // We'll handle this in the cage creation
-                }
             }
         }
-        
-        farm.premiumNests = premiumNests;
+
+        farm.premiumNests = premiumNests;   // 🌟 STORED CORRECTLY HERE
         farm.normalNests = normalNests;
-        
+
+        // Robot
         if (summary.robot != null)
         {
             farm.hasRobot = !string.IsNullOrEmpty(summary.robot.id);
             farm.robotActive = summary.robot.isActive;
             farm.robotPoweredUntil = summary.robot.poweredUntil ?? "";
-            
+
             if (farm.hasRobot)
-            {
                 farm.robotType = "robot";
-            }
         }
         else
         {
@@ -230,14 +213,7 @@ public class PlayerDataLoader : MonoBehaviour
             farm.robotType = "none";
         }
 
-        if (farm.isPremium)
-        {
-            farm.farmKeyType = "premiumfarmkey";
-        }
-        else
-        {
-            farm.farmKeyType = "normal";
-        }
+        farm.farmKeyType = farm.isPremium ? "premiumfarmkey" : "normal";
 
         return farm;
     }

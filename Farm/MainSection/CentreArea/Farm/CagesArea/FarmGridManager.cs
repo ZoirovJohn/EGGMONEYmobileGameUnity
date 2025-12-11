@@ -201,49 +201,59 @@ public class FarmGridManager : MonoBehaviour
 
         bool hasAnyChick = data.normalChicks > 0 || data.champChicks > 0;
 
-        // ORDER 1: Nest (ONLY show if nestsOccupied > 0)
-        Transform nest = cageRoot.Find("Nest");
-        if (nest != null && data.nestsOccupied > 0)
+        // 1️⃣ PREMIUM NEST FIRST
+        Transform premiumNest = cageRoot.Find("PremiumNest");
+        Transform normalNest = cageRoot.Find("Nest");
+
+        if (data.nestsOccupied > 0)
         {
-            nest.gameObject.SetActive(true);
-            nest.SetAsFirstSibling();
+            if (data.isPremium && premiumNest != null)
+            {
+                premiumNest.gameObject.SetActive(true);
+                premiumNest.SetAsFirstSibling();
+            }
+            else if (normalNest != null)
+            {
+                normalNest.gameObject.SetActive(true);
+                normalNest.SetAsFirstSibling();
+            }
         }
 
-        // ORDER 2: ChampChick (priority chick)
+        // 2️⃣ CHICKS
         Transform champChick = cageRoot.Find("ChampChick");
-        if (champChick != null && data.champChicks > 0)
+        Transform normalChick = cageRoot.Find("WhiteChick");
+
+        if (data.champChicks > 0 && champChick != null)
         {
             champChick.gameObject.SetActive(true);
             champChick.SetAsLastSibling();
         }
 
-        // ORDER 3: NormalChick
-        Transform normalChick = cageRoot.Find("WhiteChick");
-        if (normalChick != null && data.normalChicks > 0)
+        if (data.normalChicks > 0 && normalChick != null)
         {
             normalChick.gameObject.SetActive(true);
             normalChick.SetAsLastSibling();
         }
 
-        // ORDER 4: Egg or Clock (only if there are chicks)
+        // 3️⃣ EGG / CLOCK
         if (hasAnyChick)
         {
             Transform egg = cageRoot.Find("Egg");
             Transform clock = cageRoot.Find("Clock");
-            
+
             if (data.hasEgg && egg != null)
             {
                 egg.gameObject.SetActive(true);
                 egg.SetAsLastSibling();
             }
-            else if (!data.hasEgg && clock != null)
+            else if (clock != null)
             {
                 clock.gameObject.SetActive(true);
                 clock.SetAsLastSibling();
             }
         }
 
-        // ORDER 5: LifeTime (top layer - only if there are chicks)
+        // 4️⃣ LIFETIME
         Transform lifeTime = cageRoot.Find("LifeTime");
         if (lifeTime != null && hasAnyChick)
         {
@@ -252,15 +262,27 @@ public class FarmGridManager : MonoBehaviour
         }
     }
 
+
     void SetAllOff(GameObject cage)
     {
-        string[] names = { "LifeTime", "Nest", "Egg", "Clock", "WhiteChick", "ChampChick" };
+        string[] names = 
+        { 
+            "LifeTime", 
+            "Nest", 
+            "PremiumNest", 
+            "Egg", 
+            "Clock", 
+            "WhiteChick", 
+            "ChampChick" 
+        };
+
         foreach (var n in names)
         {
             Transform t = cage.transform.Find(n);
             if (t != null) t.gameObject.SetActive(false);
         }
     }
+
 
     void ShowBigCage(int index)
     {

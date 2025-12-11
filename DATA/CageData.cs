@@ -16,6 +16,7 @@ public class CageData
     public bool eggReady = false; // ✅ NEW: Indicates if egg is ready to collect (from hen.hasEggReady)
     public float remainingTime = 0f;
     public int upgradeLevel = 0;
+    public bool isPremium = false;
 }
 
 [System.Serializable]

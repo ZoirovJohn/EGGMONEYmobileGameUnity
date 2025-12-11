@@ -110,14 +110,24 @@ public class FarmDatabase : ScriptableObject
             cagesWithNests.Add(i);
         }
 
-        // ✅ Step 2: Count how many eggs we should have from the nest details (if available)
+        // ⭐ STEP 1B — APPLY PREMIUM FLAG TO CAGES ⭐
+        if (farmNestDetails.ContainsKey(farm.farmIndex))
+        {
+            var nests = farmNestDetails[farm.farmIndex];
+
+            for (int i = 0; i < nests.Count && i < farm.cages.Count; i++)
+            {
+                farm.cages[i].isPremium = nests[i].isPremium;  
+            }
+        }
+
+        // Step 2: Count eggs from backend
         int totalEggsReady = 0;
         
         if (farmNestDetails.ContainsKey(farm.farmIndex))
         {
             List<NestDetail> nestDetails = farmNestDetails[farm.farmIndex];
-            
-            // Count eggs from backend nest details
+
             foreach (var nest in nestDetails)
             {
                 if (nest.hen != null && nest.hen.hasEggReady)
@@ -125,103 +135,61 @@ public class FarmDatabase : ScriptableObject
                     totalEggsReady++;
                 }
             }
-            
-            Debug.Log($"✅ Farm {farm.farmIndex}: {totalEggsReady} eggs ready from backend");
         }
         else
         {
-            // Fallback: if no backend data, randomly assign ~50% eggs
             totalEggsReady = Mathf.RoundToInt(cagesWithNests.Count * 0.5f);
-            Debug.LogWarning($"⚠️ No nest details for farm {farm.farmIndex}, using fallback: {totalEggsReady} eggs");
         }
 
-        // Step 3: Distribute chicks
         int currentIndex = 0;
-        
-        // SuperLegend chicks first
+
+        // SuperLegend
         for (int i = 0; i < farm.superLegendChicks && currentIndex < cagesWithNests.Count; i++)
         {
             int cageIndex = cagesWithNests[currentIndex];
             farm.cages[cageIndex].superLegendChicks = 1;
-            
-            // ✅ First X cages get eggs, rest get clocks
-            if (currentIndex < totalEggsReady)
-            {
-                farm.cages[cageIndex].hasEgg = true;
-                farm.cages[cageIndex].eggReady = true;
-            }
-            else
-            {
-                farm.cages[cageIndex].hasEgg = false;
-                farm.cages[cageIndex].eggReady = false;
-            }
-            
+            farm.cages[cageIndex].hasEgg = currentIndex < totalEggsReady;
+            farm.cages[cageIndex].eggReady = currentIndex < totalEggsReady;
             farm.cages[cageIndex].remainingTime = Random.Range(30f, 300f);
             currentIndex++;
         }
-        
-        // Legend chicks
+
+        // Legend
         for (int i = 0; i < farm.legendChicks && currentIndex < cagesWithNests.Count; i++)
         {
             int cageIndex = cagesWithNests[currentIndex];
             farm.cages[cageIndex].legendChicks = 1;
-            
-            if (currentIndex < totalEggsReady)
-            {
-                farm.cages[cageIndex].hasEgg = true;
-                farm.cages[cageIndex].eggReady = true;
-            }
-            else
-            {
-                farm.cages[cageIndex].hasEgg = false;
-                farm.cages[cageIndex].eggReady = false;
-            }
-            
+            farm.cages[cageIndex].hasEgg = currentIndex < totalEggsReady;
+            farm.cages[cageIndex].eggReady = currentIndex < totalEggsReady;
             farm.cages[cageIndex].remainingTime = Random.Range(30f, 300f);
             currentIndex++;
         }
-        
-        // Champ chicks
+
+        // Champ
         for (int i = 0; i < farm.champChicks && currentIndex < cagesWithNests.Count; i++)
         {
             int cageIndex = cagesWithNests[currentIndex];
             farm.cages[cageIndex].champChicks = 1;
-            
-            if (currentIndex < totalEggsReady)
-            {
-                farm.cages[cageIndex].hasEgg = true;
-                farm.cages[cageIndex].eggReady = true;
-            }
-            else
-            {
-                farm.cages[cageIndex].hasEgg = false;
-                farm.cages[cageIndex].eggReady = false;
-            }
-            
+            farm.cages[cageIndex].hasEgg = currentIndex < totalEggsReady;
+            farm.cages[cageIndex].eggReady = currentIndex < totalEggsReady;
             farm.cages[cageIndex].remainingTime = Random.Range(30f, 300f);
             currentIndex++;
         }
-        
-        // Normal chicks last
+
+        // Normal
         for (int i = 0; i < farm.normalChicks && currentIndex < cagesWithNests.Count; i++)
         {
             int cageIndex = cagesWithNests[currentIndex];
             farm.cages[cageIndex].normalChicks = 1;
-            
-            if (currentIndex < totalEggsReady)
-            {
-                farm.cages[cageIndex].hasEgg = true;
-                farm.cages[cageIndex].eggReady = true;
-            }
-            else
-            {
-                farm.cages[cageIndex].hasEgg = false;
-                farm.cages[cageIndex].eggReady = false;
-            }
-            
+            farm.cages[cageIndex].hasEgg = currentIndex < totalEggsReady;
+            farm.cages[cageIndex].eggReady = currentIndex < totalEggsReady;
             farm.cages[cageIndex].remainingTime = Random.Range(30f, 300f);
             currentIndex++;
         }
+
+        // Counts
+        farm.premiumNests = farmNestDetails[farm.farmIndex].FindAll(n => n.isPremium).Count;
+        farm.normalNests = farmNestDetails[farm.farmIndex].FindAll(n => !n.isPremium).Count;
     }
 
     #region BACKEND INTEGRATION
