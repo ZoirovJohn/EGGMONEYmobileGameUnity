@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using UnityEngine.Networking;
 using System.Collections;
 using System;
+using TMPro;
 
 public class InventoryFarmItemApplier : MonoBehaviour
 {
@@ -30,6 +31,11 @@ public class InventoryFarmItemApplier : MonoBehaviour
     [Header("Status Images - Robot")]
     [SerializeField] private GameObject robotExistImage;
     [SerializeField] private GameObject robotNotExistImage;
+
+    [Header("Status Texts")]
+    [SerializeField] private TMP_Text robotStatusText;
+    [SerializeField] private TMP_Text batteryStatusText;
+
     
     [Header("Status Images - Battery (1-4)")]
     [SerializeField] private GameObject battery1NotExistImage;
@@ -168,6 +174,25 @@ public class InventoryFarmItemApplier : MonoBehaviour
             Debug.Log($"✅ Battery Premium images: B1={battery1ExistPremiumImage != null}, B2={battery2ExistPremiumImage != null}, B3={battery3ExistPremiumImage != null}, B4={battery4ExistPremiumImage != null}");
         }
     }
+
+   void UpdateStatusTexts(bool robotExists, int daysLeft)
+    {
+        // Robot text
+        if (robotStatusText != null)
+        {
+            string format = LanguageManager.Instance.GetTranslation("Status_Robot");
+            robotStatusText.text = string.Format(format, robotExists ? 1 : 0);
+        }
+
+        // Battery text
+        if (batteryStatusText != null)
+        {
+            string format = LanguageManager.Instance.GetTranslation("Status_Battery");
+            batteryStatusText.text = string.Format(format, Mathf.Max(daysLeft, 0));
+        }
+    }
+
+
     
     GameObject FindChildByName(Transform parent, string name)
     {
@@ -229,21 +254,25 @@ public class InventoryFarmItemApplier : MonoBehaviour
             robotNotExistImage.SetActive(!hasRobot);
         
         Debug.Log($"🤖 Robot: {(hasRobot ? "EXISTS" : "NOT EXISTS")}");
-        
-        // ✅ Get battery level and type from backend
+
+        // --- UPDATE TEXTS (Robot: X / Batteries: Y days) ---
+        int daysLeft = hasRobot ? Mathf.Max(summary.robot.daysLeftToNextCharge, 0) : 0;
+        UpdateStatusTexts(hasRobot, daysLeft);
+        // ---------------------------------------------------
+
+        // Get battery level + type
         int batteryLevel = 0;
-        string batteryType = "normal"; // default
-        
+        string batteryType = "normal";
+
         if (hasRobot && summary.robot.isActive)
         {
-            // ✅ Use daysLeftToNextCharge from backend (no calculation needed!)
             batteryLevel = CalculateBatteryLevelFromDays(summary.robot.daysLeftToNextCharge);
-            batteryType = summary.robot.batteryType ?? "normal"; // "normal" or "premium"
-            
+            batteryType = summary.robot.batteryType ?? "normal";
+
             Debug.Log($"🔋 Battery Level: {batteryLevel}/4 (Days left: {summary.robot.daysLeftToNextCharge}, Type: {batteryType})");
         }
-        
-        // Update battery images with type
+
+        // Update battery images visually
         UpdateBatteryImages(batteryLevel, batteryType);
     }
     

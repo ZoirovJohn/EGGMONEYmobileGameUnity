@@ -68,6 +68,7 @@ public class LanguageManager : MonoBehaviour
         UpdateAllHatchPanels();
         UpdateAllHatchUI();
         UpdateAllPurchasePopups();
+        UpdateAllFarmItemAppliers(); 
 
         langPanel.SetActive(false);
     }
@@ -92,6 +93,13 @@ public class LanguageManager : MonoBehaviour
         var storeUIs = FindObjectsByType<PopulateStoreUIFromDB>(FindObjectsSortMode.None);
         foreach (var ui in storeUIs)
             ui.Apply();
+    }
+
+    private void UpdateAllFarmItemAppliers()
+    {
+        var appliers = FindObjectsByType<InventoryFarmItemApplier>(FindObjectsSortMode.None);
+        foreach (var a in appliers)
+            a.UpdateStatusImages();   // refresh text + icons
     }
 
     private void UpdateAllHatchPanels()

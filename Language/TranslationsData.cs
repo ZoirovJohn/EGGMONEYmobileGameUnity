@@ -620,8 +620,15 @@ public static class TranslationsData
             { "Korean", "아이템을 찾을 수 없습니다." }
         };
 
+        translations["Status_Robot"] = new() {
+            { "English", "Robot: {0}" },
+            { "Korean", "로봇: {0}" }
+        };
 
-
+        translations["Status_Battery"] = new() {
+            { "English", "Batteries: {0} days" },
+            { "Korean", "배터리: {0}일" }
+        };
 
         return translations;
     }
