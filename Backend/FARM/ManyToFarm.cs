@@ -282,25 +282,19 @@ public class ManyToFarm : MonoBehaviour
     {
         if (bigCageInside2 == null)
             return false;
-        
-        // Check for Nest (covers both normal nest and super nest)
-        Transform nest = bigCageInside2.transform.Find("Nest");
-        if (nest != null && nest.gameObject.activeSelf)
-        {
-            Debug.Log("🪺 Nest already active in cage");
+
+        Transform normalNest = bigCageInside2.transform.Find("Nest");
+        if (normalNest != null && normalNest.gameObject.activeSelf)
             return true;
-        }
-        
-        // Check for SuperNest if you have a separate object for it
-        Transform superNest = bigCageInside2.transform.Find("SuperNest");
-        if (superNest != null && superNest.gameObject.activeSelf)
-        {
-            Debug.Log("🪺 SuperNest already active in cage");
+
+        Transform premiumNest = bigCageInside2.transform.Find("PremiumNest");
+        if (premiumNest != null && premiumNest.gameObject.activeSelf)
             return true;
-        }
-        
+
         return false;
     }
+
+
 
     // =====================
     // PLACE ITEMS (POST /farm/place)
@@ -455,59 +449,77 @@ public class ManyToFarm : MonoBehaviour
         if (bigCageInside2 == null || cellId == null)
             return;
 
-        string productId = cellId.productId.ToLower();
+        string id = cellId.productId.ToLowerInvariant();
 
-        // Check if it's a nest
-        if (productId.Contains("nest"))
+        // ==========================
+        // PREMIUM NEST ("super_nest")
+        // ==========================
+        if (id == "super_nest" || id.Contains("super"))
         {
-            // Show nest
-            Transform nest = bigCageInside2.transform.Find("Nest");
-            if (nest != null)
+            // Turn ON PremiumNest
+            Transform premiumNest = bigCageInside2.transform.Find("PremiumNest");
+            if (premiumNest != null)
             {
-                nest.gameObject.SetActive(true);
-                Debug.Log("✅ Activated Nest in BigCageInside2");
+                premiumNest.gameObject.SetActive(true);
+                Debug.Log("✅ Activated PremiumNest in BigCageInside2");
             }
+
+            // Turn OFF normal nest if needed
+            Transform normalNest = bigCageInside2.transform.Find("Nest");
+            if (normalNest != null)
+                normalNest.gameObject.SetActive(false);
+
+            return;
         }
-        // Check if it's a hen/chick
-        else if (productId.Contains("chick") || productId.Contains("hen"))
+
+        // ======================
+        // NORMAL NEST ("nest")
+        // ======================
+        if (id == "nest")
         {
-            string chickType = null;
-            
-            if (productId.Contains("champ") || productId.Contains("gold"))
+            // Turn ON normal nest
+            Transform normalNest = bigCageInside2.transform.Find("Nest");
+            if (normalNest != null)
             {
-                chickType = "ChampChick";
-            }
-            else if (productId.Contains("white") || productId.Contains("normal"))
-            {
-                chickType = "WhiteChick";
+                normalNest.gameObject.SetActive(true);
+                Debug.Log("✅ Activated Normal Nest in BigCageInside2");
             }
 
-            if (!string.IsNullOrEmpty(chickType))
+            // Turn OFF premium nest if needed
+            Transform premiumNest = bigCageInside2.transform.Find("PremiumNest");
+            if (premiumNest != null)
+                premiumNest.gameObject.SetActive(false);
+
+            return;
+        }
+
+        // ======================
+        // HENS
+        // ======================
+        if (id.Contains("chick") || id.Contains("hen"))
+        {
+            string chickType = (id.Contains("champ") || id.Contains("gold"))
+                ? "ChampChick"
+                : "WhiteChick";
+
+            Transform chick = bigCageInside2.transform.Find(chickType);
+            if (chick != null)
             {
-                // Show the chick
-                Transform chick = bigCageInside2.transform.Find(chickType);
-                if (chick != null)
-                {
-                    chick.gameObject.SetActive(true);
-                    Debug.Log($"✅ Activated {chickType} in BigCageInside2");
-                }
-
-                // Also show Clock since hen was added
-                Transform clock = bigCageInside2.transform.Find("Clock");
-                if (clock != null)
-                {
-                    clock.gameObject.SetActive(true);
-                    Debug.Log("✅ Activated Clock in BigCageInside2");
-                }
-
-                // Show LifeTime as well
-                Transform lifeTime = bigCageInside2.transform.Find("LifeTime");
-                if (lifeTime != null)
-                {
-                    lifeTime.gameObject.SetActive(true);
-                    Debug.Log("✅ Activated LifeTime in BigCageInside2");
-                }
+                chick.gameObject.SetActive(true);
+                Debug.Log($"✅ Activated {chickType} in BigCageInside2");
             }
+
+            // Clock UI
+            Transform clock = bigCageInside2.transform.Find("Clock");
+            if (clock != null)
+                clock.gameObject.SetActive(true);
+
+            // Lifetime UI
+            Transform lifeTime = bigCageInside2.transform.Find("LifeTime");
+            if (lifeTime != null)
+                lifeTime.gameObject.SetActive(true);
+
+            return;
         }
     }
 
@@ -639,55 +651,43 @@ public class ManyToFarm : MonoBehaviour
     {
         string normalized = productId.ToLowerInvariant().Replace("_", "").Replace(" ", "");
         
+        // 🐔 HENS
         if (normalized.Contains("chick") || normalized.Contains("hen"))
         {
-            if (normalized.Contains("superlegend") || normalized.Contains("super"))
-            {
+            if (normalized.Contains("superlegend"))
                 return "superlegend";
-            }
-            else if (normalized.Contains("legend"))
-            {
+
+            if (normalized.Contains("legend"))
                 return "legend";
-            }
-            else if (normalized.Contains("champ") || normalized.Contains("gold"))
-            {
+
+            if (normalized.Contains("champ") || normalized.Contains("gold"))
                 return "gold";
-            }
-            else if (normalized.Contains("normal") || normalized.Contains("white") || normalized.Contains("basic"))
-            {
-                return "normal";
-            }
-            else
-            {
-                Debug.LogWarning($"⚠️ Unknown hen tier for: {productId}, defaulting to 'normal'");
-                return "normal";
-            }
+
+            // default white / normal / basic chickens
+            return "normal";
         }
-        
+
+        // 🪺 NESTS
         if (normalized.Contains("nest"))
         {
-            if (normalized.Contains("premium") || normalized.Contains("super"))
-            {
+            // PREMIUM NEST ("super_nest")
+            if (normalized.Contains("super"))
                 return "premium";
-            }
-            else if (normalized.Contains("gold"))
-            {
-                return "premium";
-            }
-            else
-            {
-                return "normal";
-            }
+
+            // NORMAL NEST ("nest")
+            return "normal";
         }
-        
+
+        // 🤖 Robot
         if (normalized.Contains("robot"))
         {
             return null;
         }
-        
+
         Debug.LogWarning($"⚠️ Unknown item type for: {productId}, returning null");
         return null;
     }
+
 
     void ShowLoading(bool show)
     {
