@@ -15,16 +15,14 @@ public class MainMenuPanelTablet : MonoBehaviour
     [Header("Button References")]
     public RawImage[] buttonRawImages = new RawImage[6];
     public VideoPlayer[] buttonVideoPlayers = new VideoPlayer[6];
+    
+    private bool isInitialized = false;
 
     private void Start()
     {
-        // Check screen aspect ratio directly
         float aspectRatio = (float)Screen.width / Screen.height;
         Debug.Log($"📱 MainMenuPanelTablet: Screen {Screen.width}x{Screen.height}, Aspect: {aspectRatio:F2}");
         
-        // Tablet detection: Check both landscape (1.3-1.7) and portrait (0.6-0.8)
-        // iPad Air portrait: 1536/2048 = 0.75
-        // iPad Air landscape: 2048/1536 = 1.33
         bool isTablet = (aspectRatio >= 1.3f && aspectRatio <= 1.7f) || 
                         (aspectRatio >= 0.6f && aspectRatio <= 0.8f);
         
@@ -33,6 +31,7 @@ public class MainMenuPanelTablet : MonoBehaviour
             Debug.Log("✅ Tablet panel activated - setting up videos");
             gameObject.SetActive(true);
             SetupVideos();
+            isInitialized = true;
         }
         else
         {
@@ -41,10 +40,72 @@ public class MainMenuPanelTablet : MonoBehaviour
         }
     }
 
+    // ✅ NEW: Handle re-enabling
+    private void OnEnable()
+    {
+        if (isInitialized)
+        {
+            Debug.Log("🔄 MainMenuPanelTablet re-enabled - restarting videos");
+            RestartAllVideos();
+        }
+    }
+
+    // ✅ NEW: Stop videos when disabled
+    private void OnDisable()
+    {
+        if (isInitialized)
+        {
+            Debug.Log("⏸️ MainMenuPanelTablet disabled - stopping videos");
+            StopAllVideos();
+        }
+    }
+
     private void SetupVideos()
     {
         SetupMainScreenVideo();
         SetupTopButtonVideos();
+    }
+
+    // ✅ NEW: Restart all videos
+    private void RestartAllVideos()
+    {
+        if (mainScreenVideoPlayer != null && mainScreenVideoPlayer.clip != null)
+        {
+            if (!mainScreenVideoPlayer.isPlaying)
+            {
+                mainScreenVideoPlayer.Play();
+                Debug.Log("▶️ Restarted main screen video");
+            }
+        }
+
+        for (int i = 0; i < buttonVideoPlayers.Length; i++)
+        {
+            if (buttonVideoPlayers[i] != null && buttonVideoPlayers[i].clip != null)
+            {
+                if (!buttonVideoPlayers[i].isPlaying)
+                {
+                    buttonVideoPlayers[i].Play();
+                    Debug.Log($"▶️ Restarted button {i + 1} video");
+                }
+            }
+        }
+    }
+
+    // ✅ NEW: Stop all videos
+    private void StopAllVideos()
+    {
+        if (mainScreenVideoPlayer != null && mainScreenVideoPlayer.isPlaying)
+        {
+            mainScreenVideoPlayer.Pause();
+        }
+
+        foreach (var videoPlayer in buttonVideoPlayers)
+        {
+            if (videoPlayer != null && videoPlayer.isPlaying)
+            {
+                videoPlayer.Pause();
+            }
+        }
     }
 
     private void SetupMainScreenVideo()
@@ -63,13 +124,16 @@ public class MainMenuPanelTablet : MonoBehaviour
 
         mainScreenVideoPlayer.enabled = true;
 
-        // Tablet: 3:2 ratio (width:height)
         int width = 1440;
-        int height = 960;  // 1440 ÷ 960 = 1.5 (3:2 ratio)
+        int height = 960;
         
-        RenderTexture renderTexture = new RenderTexture(width, height, 0);
-        mainScreenVideoPlayer.targetTexture = renderTexture;
-        mainScreenImage.texture = renderTexture;
+        // ✅ Check if RenderTexture already exists
+        if (mainScreenVideoPlayer.targetTexture == null)
+        {
+            RenderTexture renderTexture = new RenderTexture(width, height, 0);
+            mainScreenVideoPlayer.targetTexture = renderTexture;
+            mainScreenImage.texture = renderTexture;
+        }
 
         mainScreenVideoPlayer.clip = mainScreenVideo;
         mainScreenVideoPlayer.isLooping = true;
@@ -84,7 +148,6 @@ public class MainMenuPanelTablet : MonoBehaviour
 
     private void SetupTopButtonVideos()
     {
-        // Tablet: 512x512
         int width = 512;
         int height = 512;
 
@@ -102,7 +165,6 @@ public class MainMenuPanelTablet : MonoBehaviour
                 continue;
             }
 
-            // Stop any existing playback first
             if (buttonVideoPlayers[i].isPlaying)
             {
                 buttonVideoPlayers[i].Stop();
@@ -110,11 +172,14 @@ public class MainMenuPanelTablet : MonoBehaviour
             
             buttonVideoPlayers[i].enabled = true;
 
-            RenderTexture renderTexture = new RenderTexture(width, height, 0);
-            buttonVideoPlayers[i].targetTexture = renderTexture;
-            buttonRawImages[i].texture = renderTexture;
+            // ✅ Check if RenderTexture already exists
+            if (buttonVideoPlayers[i].targetTexture == null)
+            {
+                RenderTexture renderTexture = new RenderTexture(width, height, 0);
+                buttonVideoPlayers[i].targetTexture = renderTexture;
+                buttonRawImages[i].texture = renderTexture;
+            }
 
-            // Configure video player settings BEFORE assigning clip
             buttonVideoPlayers[i].source = VideoSource.VideoClip;
             buttonVideoPlayers[i].isLooping = true;
             buttonVideoPlayers[i].playOnAwake = false;
@@ -123,10 +188,8 @@ public class MainMenuPanelTablet : MonoBehaviour
             buttonVideoPlayers[i].skipOnDrop = true;
             buttonVideoPlayers[i].playbackSpeed = 1f;
             
-            // Assign the specific clip for this button
             buttonVideoPlayers[i].clip = buttonVideoClips[i];
             
-            // Capture index for coroutine
             int index = i;
             StartCoroutine(PlayVideoAfterFrame(buttonVideoPlayers[index]));
 
@@ -142,13 +205,11 @@ public class MainMenuPanelTablet : MonoBehaviour
             yield break;
         }
 
-        // Prepare the video if not already prepared
         if (!videoPlayer.isPrepared)
         {
             videoPlayer.Prepare();
         }
 
-        // Wait until the video is prepared
         float timeout = 5f;
         float elapsed = 0f;
         
@@ -164,7 +225,6 @@ public class MainMenuPanelTablet : MonoBehaviour
             yield break;
         }
 
-        // Now play the video
         videoPlayer.Play();
         Debug.Log($"▶️ Playing video: {videoPlayer.clip.name}");
     }

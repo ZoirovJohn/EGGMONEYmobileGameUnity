@@ -15,6 +15,8 @@ public class MainMenuPanelPhone : MonoBehaviour
     [Header("Button References")]
     public RawImage[] buttonRawImages = new RawImage[6];
     public VideoPlayer[] buttonVideoPlayers = new VideoPlayer[6];
+    
+    private bool isInitialized = false;
 
     private void Start()
     {
@@ -23,7 +25,6 @@ public class MainMenuPanelPhone : MonoBehaviour
         Debug.Log($"📱 MainMenuPanelPhone: Screen {Screen.width}x{Screen.height}, Aspect: {aspectRatio:F2}");
         
         // Phone detection: Exclude tablet aspect ratios
-        // Phones are either very tall (< 0.6) or very wide (> 1.7)
         bool isPhone = (aspectRatio < 0.6f || aspectRatio > 1.7f);
         
         if (isPhone)
@@ -31,6 +32,7 @@ public class MainMenuPanelPhone : MonoBehaviour
             Debug.Log("✅ Phone panel activated - setting up videos");
             gameObject.SetActive(true);
             SetupVideos();
+            isInitialized = true;
         }
         else
         {
@@ -39,10 +41,76 @@ public class MainMenuPanelPhone : MonoBehaviour
         }
     }
 
+    // ✅ NEW: Handle re-enabling
+    private void OnEnable()
+    {
+        // Only restart videos if we've already initialized
+        // (Skip on first enable since Start() handles it)
+        if (isInitialized)
+        {
+            Debug.Log("🔄 MainMenuPanelPhone re-enabled - restarting videos");
+            RestartAllVideos();
+        }
+    }
+
+    // ✅ NEW: Stop videos when disabled
+    private void OnDisable()
+    {
+        if (isInitialized)
+        {
+            Debug.Log("⏸️ MainMenuPanelPhone disabled - stopping videos");
+            StopAllVideos();
+        }
+    }
+
     private void SetupVideos()
     {
         SetupMainScreenVideo();
         SetupTopButtonVideos();
+    }
+
+    // ✅ NEW: Restart all videos
+    private void RestartAllVideos()
+    {
+        // Restart main screen video
+        if (mainScreenVideoPlayer != null && mainScreenVideoPlayer.clip != null)
+        {
+            if (!mainScreenVideoPlayer.isPlaying)
+            {
+                mainScreenVideoPlayer.Play();
+                Debug.Log("▶️ Restarted main screen video");
+            }
+        }
+
+        // Restart button videos
+        for (int i = 0; i < buttonVideoPlayers.Length; i++)
+        {
+            if (buttonVideoPlayers[i] != null && buttonVideoPlayers[i].clip != null)
+            {
+                if (!buttonVideoPlayers[i].isPlaying)
+                {
+                    buttonVideoPlayers[i].Play();
+                    Debug.Log($"▶️ Restarted button {i + 1} video");
+                }
+            }
+        }
+    }
+
+    // ✅ NEW: Stop all videos
+    private void StopAllVideos()
+    {
+        if (mainScreenVideoPlayer != null && mainScreenVideoPlayer.isPlaying)
+        {
+            mainScreenVideoPlayer.Pause();
+        }
+
+        foreach (var videoPlayer in buttonVideoPlayers)
+        {
+            if (videoPlayer != null && videoPlayer.isPlaying)
+            {
+                videoPlayer.Pause();
+            }
+        }
     }
 
     private void SetupMainScreenVideo()
@@ -61,13 +129,16 @@ public class MainMenuPanelPhone : MonoBehaviour
 
         mainScreenVideoPlayer.enabled = true;
 
-        // Phone: 1080x1080
         int width = 1080;
         int height = 1080;
         
-        RenderTexture renderTexture = new RenderTexture(width, height, 0);
-        mainScreenVideoPlayer.targetTexture = renderTexture;
-        mainScreenImage.texture = renderTexture;
+        // ✅ Check if RenderTexture already exists
+        if (mainScreenVideoPlayer.targetTexture == null)
+        {
+            RenderTexture renderTexture = new RenderTexture(width, height, 0);
+            mainScreenVideoPlayer.targetTexture = renderTexture;
+            mainScreenImage.texture = renderTexture;
+        }
 
         mainScreenVideoPlayer.clip = mainScreenVideo;
         mainScreenVideoPlayer.isLooping = true;
@@ -82,7 +153,6 @@ public class MainMenuPanelPhone : MonoBehaviour
 
     private void SetupTopButtonVideos()
     {
-        // Phone: 512x682
         int width = 512;
         int height = 682;
 
@@ -100,7 +170,6 @@ public class MainMenuPanelPhone : MonoBehaviour
                 continue;
             }
 
-            // Stop any existing playback first
             if (buttonVideoPlayers[i].isPlaying)
             {
                 buttonVideoPlayers[i].Stop();
@@ -108,11 +177,14 @@ public class MainMenuPanelPhone : MonoBehaviour
             
             buttonVideoPlayers[i].enabled = true;
 
-            RenderTexture renderTexture = new RenderTexture(width, height, 0);
-            buttonVideoPlayers[i].targetTexture = renderTexture;
-            buttonRawImages[i].texture = renderTexture;
+            // ✅ Check if RenderTexture already exists
+            if (buttonVideoPlayers[i].targetTexture == null)
+            {
+                RenderTexture renderTexture = new RenderTexture(width, height, 0);
+                buttonVideoPlayers[i].targetTexture = renderTexture;
+                buttonRawImages[i].texture = renderTexture;
+            }
 
-            // Configure video player settings BEFORE assigning clip
             buttonVideoPlayers[i].source = VideoSource.VideoClip;
             buttonVideoPlayers[i].isLooping = true;
             buttonVideoPlayers[i].playOnAwake = false;
@@ -121,10 +193,8 @@ public class MainMenuPanelPhone : MonoBehaviour
             buttonVideoPlayers[i].skipOnDrop = true;
             buttonVideoPlayers[i].playbackSpeed = 1f;
             
-            // Assign the specific clip for this button
             buttonVideoPlayers[i].clip = buttonVideoClips[i];
             
-            // Capture index for coroutine
             int index = i;
             StartCoroutine(PlayVideoAfterFrame(buttonVideoPlayers[index]));
 
@@ -140,13 +210,11 @@ public class MainMenuPanelPhone : MonoBehaviour
             yield break;
         }
 
-        // Prepare the video if not already prepared
         if (!videoPlayer.isPrepared)
         {
             videoPlayer.Prepare();
         }
 
-        // Wait until the video is prepared
         float timeout = 5f;
         float elapsed = 0f;
         
@@ -162,7 +230,6 @@ public class MainMenuPanelPhone : MonoBehaviour
             yield break;
         }
 
-        // Now play the video
         videoPlayer.Play();
         Debug.Log($"▶️ Playing video: {videoPlayer.clip.name}");
     }
