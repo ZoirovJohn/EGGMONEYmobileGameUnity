@@ -15,6 +15,15 @@ public class DailyDutyManager : MonoBehaviour
     [Header("Mini Game Manager Reference")]
     public MiniGamePanelManager miniGameManager;
 
+    [Header("Full Summary")]
+    public FullSummaryManager fullSummaryManager;
+    public PlayerWallet playerWallet;
+
+    [Header("Status Images")]
+    public GameObject hensWithEggReadyImage;
+    public GameObject hensNeedingFoodImage;
+    public GameObject hensNeedingCleanImage;
+
     private void Start()
     {
         // Assign main panel button listeners
@@ -22,8 +31,85 @@ public class DailyDutyManager : MonoBehaviour
         collectButton.onClick.AddListener(OpenCollect);
         matchingButton.onClick.AddListener(OpenMatching);
 
+        // Load full summary data
+        LoadFullSummary();
+
         // Start with only the main panel visible
         OpenMainPanel();
+    }
+
+    private void OnEnable()
+    {
+        // Subscribe to profile changes to update images
+        if (playerWallet != null)
+        {
+            playerWallet.OnProfileChanged += UpdateStatusImages;
+        }
+    }
+
+    private void OnDisable()
+    {
+        // Unsubscribe when disabled
+        if (playerWallet != null)
+        {
+            playerWallet.OnProfileChanged -= UpdateStatusImages;
+        }
+    }
+
+    // =========================
+    // Load Full Summary
+    // =========================
+    private void LoadFullSummary()
+    {
+        if (fullSummaryManager == null)
+        {
+            Debug.LogWarning("⚠️ FullSummaryManager not assigned!");
+            return;
+        }
+
+        fullSummaryManager.GetFullSummary(
+            onSuccess: (response) =>
+            {
+                Debug.Log("✅ Full Summary loaded successfully!");
+                UpdateStatusImages();
+            },
+            onError: (error) =>
+            {
+                Debug.LogError($"❌ Failed to load full summary: {error}");
+                // Hide all images on error
+                if (hensWithEggReadyImage != null) hensWithEggReadyImage.SetActive(false);
+                if (hensNeedingFoodImage != null) hensNeedingFoodImage.SetActive(false);
+                if (hensNeedingCleanImage != null) hensNeedingCleanImage.SetActive(false);
+            }
+        );
+    }
+
+    // =========================
+    // Update Status Images
+    // =========================
+    private void UpdateStatusImages()
+    {
+        if (playerWallet == null) return;
+
+        // Show image when count is 0 (nothing to collect/do)
+        // Hide image when count > 0 (work available)
+        
+        if (hensWithEggReadyImage != null)
+        {
+            hensWithEggReadyImage.SetActive(playerWallet.HensWithEggReady == 0);
+        }
+
+        if (hensNeedingFoodImage != null)
+        {
+            hensNeedingFoodImage.SetActive(playerWallet.HensNeedingFood == 0);
+        }
+
+        if (hensNeedingCleanImage != null)
+        {
+            hensNeedingCleanImage.SetActive(playerWallet.HensNeedingClean == 0);
+        }
+
+        Debug.Log($"📊 Status Updated - Egg Ready: {playerWallet.HensWithEggReady}, Food: {playerWallet.HensNeedingFood}, Clean: {playerWallet.HensNeedingClean}");
     }
 
     // =========================
@@ -57,5 +143,8 @@ public class DailyDutyManager : MonoBehaviour
     {
         gamesPanel.SetActive(false);
         mainPanel.SetActive(true);
+        
+        // Refresh summary when returning to main panel
+        LoadFullSummary();
     }
 }

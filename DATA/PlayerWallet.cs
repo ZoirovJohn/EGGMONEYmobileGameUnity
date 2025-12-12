@@ -52,6 +52,12 @@ public class PlayerWallet : MonoBehaviour
     [SerializeField, Min(0)] int superFarmKey = 0;
     [SerializeField, Min(0)] int superNest = 0;
 
+
+    [Header("Farm Summary Stats")]
+    [SerializeField, Min(0)] int hensWithEggReady = 0;
+    [SerializeField, Min(0)] int hensNeedingFood = 0;
+    [SerializeField, Min(0)] int hensNeedingClean = 0;
+
     // =========================
     // Public getters
     // =========================
@@ -86,6 +92,10 @@ public class PlayerWallet : MonoBehaviour
     public int SuperRedEgg => superRedEgg;
     public int SuperFarmKey => superFarmKey;
     public int SuperNest => superNest;
+
+    public int HensWithEggReady => hensWithEggReady;
+    public int HensNeedingFood => hensNeedingFood;
+    public int HensNeedingClean => hensNeedingClean;
 
     // =========================
     // Events
@@ -210,11 +220,38 @@ public class PlayerWallet : MonoBehaviour
         OnProfileChanged?.Invoke();
     }
 
-    // ✅ NEW: Set referral code
     public void SetReferralCode(string code)
     {
         if (string.IsNullOrEmpty(code) || referralCode == code) return;
         referralCode = code;
+        OnProfileChanged?.Invoke();
+    }
+
+    // =========================
+    // Farm Summary Stats setters
+    // =========================
+
+    public void SetHensWithEggReady(int value)
+    {
+        value = Mathf.Max(0, value);
+        if (hensWithEggReady == value) return;
+        hensWithEggReady = value;
+        OnProfileChanged?.Invoke();
+    }
+
+    public void SetHensNeedingFood(int value)
+    {
+        value = Mathf.Max(0, value);
+        if (hensNeedingFood == value) return;
+        hensNeedingFood = value;
+        OnProfileChanged?.Invoke();
+    }
+
+    public void SetHensNeedingClean(int value)
+    {
+        value = Mathf.Max(0, value);
+        if (hensNeedingClean == value) return;
+        hensNeedingClean = value;
         OnProfileChanged?.Invoke();
     }
 
@@ -448,6 +485,10 @@ public class PlayerWallet : MonoBehaviour
         superBlueEgg = Mathf.Max(0, superBlueEgg);
         superRedEgg = Mathf.Max(0, superRedEgg);
         superFarmKey = Mathf.Max(0, superFarmKey);
+
+        hensWithEggReady = Mathf.Max(0, hensWithEggReady);
+        hensNeedingFood = Mathf.Max(0, hensNeedingFood);
+        hensNeedingClean = Mathf.Max(0, hensNeedingClean);
     }
 #endif
 }
