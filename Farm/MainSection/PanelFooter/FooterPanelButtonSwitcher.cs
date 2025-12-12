@@ -17,31 +17,88 @@ public class FooterPanelSwitcher : MonoBehaviour
     [SerializeField] Button btnInventory;
     [SerializeField] Button btnDuties;
     [SerializeField] Button btnStore;
+    [SerializeField] Button footerStart; // ✅ NEW: Alternative button when work is available (also opens Duties)
 
     [Header("Button Background Images")]
     [SerializeField] GameObject bgInventory;
     [SerializeField] GameObject bgDuties;
     [SerializeField] GameObject bgStore;
 
+    [Header("Player Wallet Reference")]
+    [SerializeField] PlayerWallet playerWallet;
+
     public enum Panel { None, Inventory, Duties, Store }
     
     [Header("Default on enable")]
     [SerializeField] Panel defaultPanel = Panel.None;
+
+    private Panel currentPanel = Panel.None;
 
     void Awake()
     {
         if (btnInventory) btnInventory.onClick.AddListener(ShowInventory);
         if (btnDuties) btnDuties.onClick.AddListener(ShowDuties);
         if (btnStore) btnStore.onClick.AddListener(ShowStore);
+        if (footerStart) footerStart.onClick.AddListener(ShowDuties); // ✅ Also opens Duties panel
+        
+        // Auto-find PlayerWallet if not assigned
+        if (!playerWallet) 
+            playerWallet = FindAnyObjectByType<PlayerWallet>(FindObjectsInactive.Include);
     }
 
     void OnEnable()
     {
+        // Subscribe to wallet changes
+        if (playerWallet != null)
+        {
+            playerWallet.OnProfileChanged += UpdateDutiesButtonVisibility;
+        }
+        
+        // Initial check
+        UpdateDutiesButtonVisibility();
+        
+        // ✅ RESTORED: Default panel on enable
         SwitchTo(defaultPanel);
+    }
+
+    void OnDisable()
+    {
+        // Unsubscribe when disabled
+        if (playerWallet != null)
+        {
+            playerWallet.OnProfileChanged -= UpdateDutiesButtonVisibility;
+        }
+    }
+
+    // ✅ NEW: Check if there's any work to do
+    private void UpdateDutiesButtonVisibility()
+    {
+        if (playerWallet == null) return;
+
+        // Check if there's ANY work available (even one > 0)
+        bool hasWork = playerWallet.HensWithEggReady > 0 || 
+                       playerWallet.HensNeedingFood > 0 || 
+                       playerWallet.HensNeedingClean > 0;
+
+        // When there's work: HIDE btnDuties, SHOW footerStart button
+        // When no work: SHOW btnDuties, HIDE footerStart button
+        if (btnDuties != null)
+        {
+            btnDuties.gameObject.SetActive(!hasWork);
+        }
+        
+        if (footerStart != null)
+        {
+            footerStart.gameObject.SetActive(hasWork);
+        }
+
+        Debug.Log($"🔔 Footer Button Update - Work Available: {hasWork} → btnDuties: {!hasWork}, footerStart: {hasWork}");
     }
 
     void SwitchTo(Panel p)
     {
+        currentPanel = p;
+        
         // Footer mode: show FarmTabs, hide Management tabs
         if (panelButtonsRoot) panelButtonsRoot.SetActive(false);
         if (farmTabsRoot) farmTabsRoot.SetActive(true);
@@ -65,6 +122,20 @@ public class FooterPanelSwitcher : MonoBehaviour
         if (bgDuties) bgDuties.SetActive(p == Panel.Duties);
         if (bgStore) bgStore.SetActive(p == Panel.Store);
 
+        // ✅ When Duties panel is shown, show bgDuties background
+        // ALWAYS show btnDuties and HIDE footerStart button when panel is open
+        if (p == Panel.Duties)
+        {
+            if (bgDuties != null) bgDuties.SetActive(true);
+            if (btnDuties != null) btnDuties.gameObject.SetActive(true); // Show normal button when panel open
+            if (footerStart != null) footerStart.gameObject.SetActive(false); // Always hide when panel is open
+        }
+        else
+        {
+            // For other panels, update button visibility based on work status
+            UpdateDutiesButtonVisibility();
+        }
+
         // Clear UI focus (removes highlighted state)
         UnityEngine.EventSystems.EventSystem.current?.SetSelectedGameObject(null);
     }
@@ -75,6 +146,8 @@ public class FooterPanelSwitcher : MonoBehaviour
     /// <param name="closePanels">If true, also closes the footer panels</param>
     public void ClearFooterSelection(bool closePanels = false)
     {
+        currentPanel = Panel.None;
+        
         // Optionally close footer panels too
         if (closePanels)
         {
@@ -87,6 +160,9 @@ public class FooterPanelSwitcher : MonoBehaviour
         if (bgInventory) bgInventory.SetActive(false);
         if (bgDuties) bgDuties.SetActive(false);
         if (bgStore) bgStore.SetActive(false);
+
+        // Update button visibility
+        UpdateDutiesButtonVisibility();
 
         // Clear UI focus (removes highlighted state)
         UnityEngine.EventSystems.EventSystem.current?.SetSelectedGameObject(null);
