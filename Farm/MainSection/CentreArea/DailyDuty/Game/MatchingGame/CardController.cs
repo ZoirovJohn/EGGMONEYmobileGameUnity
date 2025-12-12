@@ -25,6 +25,9 @@ public class CardController : MonoBehaviour
     [Header("Cleanup Manager")]
     [SerializeField] private CleanupManager cleanupManager;
 
+    [Header("Close Button")]
+    [SerializeField] private Button closeBtn;
+
     private List<Sprite> spritePairs;
     private Card firstSelected;
     private Card secondSelected;
@@ -34,6 +37,8 @@ public class CardController : MonoBehaviour
     private int matchedPairs = 0;
     private int gamesCompleted = 0;
     private int totalGamesNeeded = 1;
+    
+    private bool isWaitingForClose = false;
 
     private void Start()
     {
@@ -57,6 +62,9 @@ public class CardController : MonoBehaviour
 
     private void StartNewGame()
     {
+        // Don't start new game if waiting for close button
+        if (isWaitingForClose) return;
+
         // Clear existing cards
         foreach (Transform child in gridTransform)
         {
@@ -100,7 +108,7 @@ public class CardController : MonoBehaviour
 
     public void SetSelected(Card card)
     {
-        if (isChecking || card.isSelected) return;
+        if (isChecking || card.isSelected || isWaitingForClose) return;
 
         PlaySound(cardFlipSound);
 
@@ -162,20 +170,42 @@ public class CardController : MonoBehaviour
                 // 🧹 Call cleanup API when 100% complete
                 if (cleanupManager != null)
                 {
+                    isWaitingForClose = true;
+                    
                     cleanupManager.CleanAll(
-                        onSuccess: (response) => Debug.Log("Cleanup successful after game completion"),
-                        onError: (error) => Debug.LogError("Cleanup failed: " + error)
+                        onSuccess: (response) => 
+                        {
+                            Debug.Log("Cleanup successful after game completion");
+                            // Click the close button after cleanup
+                            if (closeBtn != null)
+                            {
+                                closeBtn.onClick.Invoke();
+                            }
+                        },
+                        onError: (error) => 
+                        {
+                            Debug.LogError("Cleanup failed: " + error);
+                            // Click the close button even on error
+                            if (closeBtn != null)
+                            {
+                                closeBtn.onClick.Invoke();
+                            }
+                        }
                     );
                 }
             }
         }
         
-        if (gamesCompleted >= totalGamesNeeded)
+        if (gamesCompleted >= totalGamesNeeded && !isWaitingForClose)
         {
             Debug.Log("🎉 ALL GAMES COMPLETE! 100% Progress!");
         }
         
-        StartNewGame();
+        // Only start new game if not waiting for close button
+        if (!isWaitingForClose)
+        {
+            StartNewGame();
+        }
     }
 
     private void UpdateProgress()
