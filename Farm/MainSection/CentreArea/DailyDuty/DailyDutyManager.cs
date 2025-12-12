@@ -29,6 +29,8 @@ public class DailyDutyManager : MonoBehaviour
 
     private void Start()
     {
+        Debug.Log("🎮 DailyDutyManager Start()");
+        
         // Assign main panel button listeners
         simonButton.onClick.AddListener(OpenSimon);
         collectButton.onClick.AddListener(OpenCollect);
@@ -39,49 +41,88 @@ public class DailyDutyManager : MonoBehaviour
 
         // Start with only the main panel visible
         OpenMainPanel();
+        
+        // 🔍 Initial check
+        CheckFoodInventory();
     }
 
     private void OnEnable()
     {
+        Debug.Log("🎮 DailyDutyManager OnEnable()");
+        
         // Subscribe to profile changes to update images
         if (playerWallet != null)
         {
             playerWallet.OnProfileChanged += UpdateStatusImages;
             playerWallet.OnItemChanged += OnInventoryItemChanged;
+            Debug.Log("✅ Subscribed to PlayerWallet events");
+            
+            // ✅ CHECK FOOD STATUS WHEN PANEL OPENS (in case user bought food while panel was closed)
+            CheckFoodInventory();
+        }
+        else
+        {
+            Debug.LogError("❌ PlayerWallet is NULL in OnEnable!");
         }
     }
 
     private void OnDisable()
     {
+        Debug.Log("🎮 DailyDutyManager OnDisable()");
+        
         // Unsubscribe when disabled
         if (playerWallet != null)
         {
             playerWallet.OnProfileChanged -= UpdateStatusImages;
             playerWallet.OnItemChanged -= OnInventoryItemChanged;
+            Debug.Log("✅ Unsubscribed from PlayerWallet events");
         }
     }
 
     private void OnInventoryItemChanged(string itemId, int newValue)
     {
+        Debug.Log($"🔔 OnInventoryItemChanged called - itemId: '{itemId}', newValue: {newValue}");
+        
         // Check if the changed item is food or superFood
         if (itemId == "food" || itemId == "super_food")
         {
+            Debug.Log($"🍗 FOOD ITEM CHANGED! Calling CheckFoodInventory()");
             CheckFoodInventory();
-            Debug.Log($"🔄 Food inventory changed - {itemId}: {newValue}");
+        }
+        else
+        {
+            Debug.Log($"⚪ Item '{itemId}' is not food-related, skipping check");
         }
     }
 
     private void CheckFoodInventory()
     {
-        if (playerWallet == null || warningMessage == null) return;
+        if (playerWallet == null)
+        {
+            Debug.LogError("❌ CheckFoodInventory: PlayerWallet is NULL!");
+            return;
+        }
+        
+        if (warningMessage == null)
+        {
+            Debug.LogError("❌ CheckFoodInventory: warningMessage GameObject is NULL!");
+            return;
+        }
+
+        int foodCount = playerWallet.Food;
+        int superFoodCount = playerWallet.SuperFood;
+        
+        Debug.Log($"🍗 CheckFoodInventory - Food: {foodCount}, SuperFood: {superFoodCount}");
 
         // Check if both food and superFood are 0
-        bool noFood = (playerWallet.Food == 0 && playerWallet.SuperFood == 0);
+        bool noFood = (foodCount == 0 && superFoodCount == 0);
+        
+        Debug.Log($"🚨 No Food Status: {noFood} (should show warning: {noFood})");
         
         // Turn warning ON if no food, OFF if there is food
         warningMessage.SetActive(noFood);
         
-        Debug.Log($"🍗 Food Check - Food: {playerWallet.Food}, SuperFood: {playerWallet.SuperFood}, Warning: {noFood}");
+        Debug.Log($"✅ Warning message SetActive({noFood}) - GameObject active: {warningMessage.activeSelf}");
     }
 
     // =========================
@@ -137,7 +178,7 @@ public class DailyDutyManager : MonoBehaviour
             hensNeedingCleanImage.SetActive(playerWallet.HensNeedingClean == 0);
         }
 
-        // ✅ NEW: Check food inventory
+        // ✅ Check food inventory
         CheckFoodInventory();
 
         Debug.Log($"📊 Status Updated - Egg Ready: {playerWallet.HensWithEggReady}, Food: {playerWallet.HensNeedingFood}, Clean: {playerWallet.HensNeedingClean}");

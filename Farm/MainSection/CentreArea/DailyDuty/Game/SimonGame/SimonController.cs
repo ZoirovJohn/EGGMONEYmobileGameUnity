@@ -49,6 +49,9 @@ public class SimonController : MonoBehaviour
     [Header("Full Summary")]
     [SerializeField] private FullSummaryManager fullSummaryManager;
 
+    [Header("Inventory Manager")]
+    [SerializeField] private InventoryManager inventoryManager;
+
     private List<int> sequence = new List<int>();
     private List<int> playerInput = new List<int>();
     private bool isPlayerTurn = false;
@@ -227,36 +230,101 @@ public class SimonController : MonoBehaviour
                         {
                             Debug.Log("Feeding successful after game completion");
                             
-                            // Refresh FullSummary to update UI immediately
-                            if (fullSummaryManager != null)
+                            // ✅ STEP 1: Refresh Inventory first (updates food counts)
+                            if (inventoryManager != null)
                             {
-                                fullSummaryManager.GetFullSummary(
-                                    onSuccess: (summaryResponse) => 
+                                inventoryManager.GetInventory(
+                                    onSuccess: (inventoryResponse) =>
                                     {
-                                        Debug.Log("✅ Full Summary refreshed after feeding");
-                                        // Click the close button after summary refresh
-                                        if (closeBtn != null)
+                                        Debug.Log("✅ Inventory refreshed after feeding");
+                                        
+                                        // ✅ STEP 2: Then refresh FullSummary
+                                        if (fullSummaryManager != null)
                                         {
-                                            closeBtn.onClick.Invoke();
+                                            fullSummaryManager.GetFullSummary(
+                                                onSuccess: (summaryResponse) => 
+                                                {
+                                                    Debug.Log("✅ Full Summary refreshed after feeding");
+                                                    // Click the close button after both refreshes
+                                                    if (closeBtn != null)
+                                                    {
+                                                        closeBtn.onClick.Invoke();
+                                                    }
+                                                },
+                                                onError: (summaryError) => 
+                                                {
+                                                    Debug.LogError($"Failed to refresh summary: {summaryError}");
+                                                    // Click close button anyway
+                                                    if (closeBtn != null)
+                                                    {
+                                                        closeBtn.onClick.Invoke();
+                                                    }
+                                                }
+                                            );
+                                        }
+                                        else
+                                        {
+                                            // No summary manager, just click close button
+                                            if (closeBtn != null)
+                                            {
+                                                closeBtn.onClick.Invoke();
+                                            }
                                         }
                                     },
-                                    onError: (summaryError) => 
+                                    onError: (inventoryError) =>
                                     {
-                                        Debug.LogError($"Failed to refresh summary: {summaryError}");
-                                        // Click close button anyway
-                                        if (closeBtn != null)
+                                        Debug.LogError($"Failed to refresh inventory: {inventoryError}");
+                                        // Continue to summary refresh anyway
+                                        if (fullSummaryManager != null)
                                         {
-                                            closeBtn.onClick.Invoke();
+                                            fullSummaryManager.GetFullSummary(
+                                                onSuccess: (summaryResponse) => 
+                                                {
+                                                    if (closeBtn != null) closeBtn.onClick.Invoke();
+                                                },
+                                                onError: (summaryError) => 
+                                                {
+                                                    if (closeBtn != null) closeBtn.onClick.Invoke();
+                                                }
+                                            );
+                                        }
+                                        else
+                                        {
+                                            if (closeBtn != null) closeBtn.onClick.Invoke();
                                         }
                                     }
                                 );
                             }
                             else
                             {
-                                // No summary manager, just click close button
-                                if (closeBtn != null)
+                                // No inventory manager, just do summary
+                                if (fullSummaryManager != null)
                                 {
-                                    closeBtn.onClick.Invoke();
+                                    fullSummaryManager.GetFullSummary(
+                                        onSuccess: (summaryResponse) => 
+                                        {
+                                            Debug.Log("✅ Full Summary refreshed after feeding");
+                                            if (closeBtn != null)
+                                            {
+                                                closeBtn.onClick.Invoke();
+                                            }
+                                        },
+                                        onError: (summaryError) => 
+                                        {
+                                            Debug.LogError($"Failed to refresh summary: {summaryError}");
+                                            if (closeBtn != null)
+                                            {
+                                                closeBtn.onClick.Invoke();
+                                            }
+                                        }
+                                    );
+                                }
+                                else
+                                {
+                                    if (closeBtn != null)
+                                    {
+                                        closeBtn.onClick.Invoke();
+                                    }
                                 }
                             }
                         },
