@@ -328,6 +328,24 @@ public class PlayerWallet : MonoBehaviour
         OnProfileChanged?.Invoke(); 
     }
 
+    public void SetFood(int v) 
+    { 
+        v = Mathf.Max(0, v); 
+        if (food == v) return; 
+        food = v;
+        OnItemChanged?.Invoke("food", v); 
+        OnProfileChanged?.Invoke(); 
+    }
+
+    public void SetSuperFood(int v) 
+    { 
+        v = Mathf.Max(0, v); 
+        if (superFood == v) return; 
+        superFood = v;
+        OnItemChanged?.Invoke("super_food", v); 
+        OnProfileChanged?.Invoke(); 
+    }
+
     // =========================
     // Inventory
     // =========================

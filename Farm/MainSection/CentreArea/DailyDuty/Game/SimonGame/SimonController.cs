@@ -46,6 +46,9 @@ public class SimonController : MonoBehaviour
     [Header("Close Button")]
     [SerializeField] private Button closeBtn;
 
+    [Header("Full Summary")]
+    [SerializeField] private FullSummaryManager fullSummaryManager;
+
     private List<int> sequence = new List<int>();
     private List<int> playerInput = new List<int>();
     private bool isPlayerTurn = false;
@@ -223,10 +226,38 @@ public class SimonController : MonoBehaviour
                         onSuccess: (response) => 
                         {
                             Debug.Log("Feeding successful after game completion");
-                            // Click the close button after feeding
-                            if (closeBtn != null)
+                            
+                            // Refresh FullSummary to update UI immediately
+                            if (fullSummaryManager != null)
                             {
-                                closeBtn.onClick.Invoke();
+                                fullSummaryManager.GetFullSummary(
+                                    onSuccess: (summaryResponse) => 
+                                    {
+                                        Debug.Log("✅ Full Summary refreshed after feeding");
+                                        // Click the close button after summary refresh
+                                        if (closeBtn != null)
+                                        {
+                                            closeBtn.onClick.Invoke();
+                                        }
+                                    },
+                                    onError: (summaryError) => 
+                                    {
+                                        Debug.LogError($"Failed to refresh summary: {summaryError}");
+                                        // Click close button anyway
+                                        if (closeBtn != null)
+                                        {
+                                            closeBtn.onClick.Invoke();
+                                        }
+                                    }
+                                );
+                            }
+                            else
+                            {
+                                // No summary manager, just click close button
+                                if (closeBtn != null)
+                                {
+                                    closeBtn.onClick.Invoke();
+                                }
                             }
                         },
                         onError: (error) => 

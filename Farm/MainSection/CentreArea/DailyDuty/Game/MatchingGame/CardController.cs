@@ -28,6 +28,9 @@ public class CardController : MonoBehaviour
     [Header("Close Button")]
     [SerializeField] private Button closeBtn;
 
+    [Header("Full Summary")]
+    [SerializeField] private FullSummaryManager fullSummaryManager;
+
     private List<Sprite> spritePairs;
     private Card firstSelected;
     private Card secondSelected;

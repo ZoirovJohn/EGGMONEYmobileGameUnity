@@ -24,6 +24,9 @@ public class DailyDutyManager : MonoBehaviour
     public GameObject hensNeedingFoodImage;
     public GameObject hensNeedingCleanImage;
 
+    [Header("Warning Message")]
+    public GameObject warningMessage;
+
     private void Start()
     {
         // Assign main panel button listeners
@@ -44,6 +47,7 @@ public class DailyDutyManager : MonoBehaviour
         if (playerWallet != null)
         {
             playerWallet.OnProfileChanged += UpdateStatusImages;
+            playerWallet.OnItemChanged += OnInventoryItemChanged;
         }
     }
 
@@ -53,7 +57,31 @@ public class DailyDutyManager : MonoBehaviour
         if (playerWallet != null)
         {
             playerWallet.OnProfileChanged -= UpdateStatusImages;
+            playerWallet.OnItemChanged -= OnInventoryItemChanged;
         }
+    }
+
+    private void OnInventoryItemChanged(string itemId, int newValue)
+    {
+        // Check if the changed item is food or superFood
+        if (itemId == "food" || itemId == "super_food")
+        {
+            CheckFoodInventory();
+            Debug.Log($"🔄 Food inventory changed - {itemId}: {newValue}");
+        }
+    }
+
+    private void CheckFoodInventory()
+    {
+        if (playerWallet == null || warningMessage == null) return;
+
+        // Check if both food and superFood are 0
+        bool noFood = (playerWallet.Food == 0 && playerWallet.SuperFood == 0);
+        
+        // Turn warning ON if no food, OFF if there is food
+        warningMessage.SetActive(noFood);
+        
+        Debug.Log($"🍗 Food Check - Food: {playerWallet.Food}, SuperFood: {playerWallet.SuperFood}, Warning: {noFood}");
     }
 
     // =========================
@@ -108,6 +136,9 @@ public class DailyDutyManager : MonoBehaviour
         {
             hensNeedingCleanImage.SetActive(playerWallet.HensNeedingClean == 0);
         }
+
+        // ✅ NEW: Check food inventory
+        CheckFoodInventory();
 
         Debug.Log($"📊 Status Updated - Egg Ready: {playerWallet.HensWithEggReady}, Food: {playerWallet.HensNeedingFood}, Clean: {playerWallet.HensNeedingClean}");
     }

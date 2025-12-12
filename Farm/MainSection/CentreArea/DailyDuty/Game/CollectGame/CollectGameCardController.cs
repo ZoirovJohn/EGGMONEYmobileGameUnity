@@ -31,6 +31,9 @@ public class CollectGameCardController : MonoBehaviour
     [Header("Close Button")]
     [SerializeField] private Button closeBtn;
 
+    [Header("Full Summary")]
+    [SerializeField] private FullSummaryManager fullSummaryManager;
+
     private List<CollectGameCard> cards = new List<CollectGameCard>();
     private int nextNumber = 1; // User must click this number next
     private bool isLocked = false;
@@ -184,10 +187,38 @@ public class CollectGameCardController : MonoBehaviour
                         onSuccess: (response) => 
                         {
                             Debug.Log($"✅ Collection successful! Collected: {response.collected} eggs, Basket total: {response.basketEggCount}");
-                            // Click the close button after collecting
-                            if (closeBtn != null)
+                            
+                            // Refresh FullSummary to update UI immediately
+                            if (fullSummaryManager != null)
                             {
-                                closeBtn.onClick.Invoke();
+                                fullSummaryManager.GetFullSummary(
+                                    onSuccess: (summaryResponse) => 
+                                    {
+                                        Debug.Log("✅ Full Summary refreshed after collecting");
+                                        // Click the close button after summary refresh
+                                        if (closeBtn != null)
+                                        {
+                                            closeBtn.onClick.Invoke();
+                                        }
+                                    },
+                                    onError: (summaryError) => 
+                                    {
+                                        Debug.LogError($"Failed to refresh summary: {summaryError}");
+                                        // Click close button anyway
+                                        if (closeBtn != null)
+                                        {
+                                            closeBtn.onClick.Invoke();
+                                        }
+                                    }
+                                );
+                            }
+                            else
+                            {
+                                // No summary manager, just click close button
+                                if (closeBtn != null)
+                                {
+                                    closeBtn.onClick.Invoke();
+                                }
                             }
                         },
                         onError: (error) => 
