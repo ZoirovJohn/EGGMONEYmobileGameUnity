@@ -18,6 +18,7 @@ public class PurchasePopupUI : MonoBehaviour
     [SerializeField] Button btnPlus;
     [SerializeField] Button btnBuy;
     [SerializeField] Button btnCancel;
+    [SerializeField] GameObject inventoryButton; // ⭐ Reference to inventory button
 
     [Header("Limits")]
     [SerializeField] int minQty = 1;
@@ -28,6 +29,11 @@ public class PurchasePopupUI : MonoBehaviour
 
     [Header("Market Manager")]
     [SerializeField] MarketManager marketManager;
+
+    [Header("Bounce Settings")]
+    [SerializeField] float bounceHeight = 40f;
+    [SerializeField] float bounceSpeed = 5f;
+    [SerializeField] AnimationCurve bounceCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
     StoreDB.Item item;
     int unitPrice = 0;
@@ -125,7 +131,7 @@ public class PurchasePopupUI : MonoBehaviour
     // ------------------------------
     // UI Refresh with Localization
     // ------------------------------
-        public void RefreshUI()
+    public void RefreshUI()
     {
         if (item == null) return;
 
@@ -223,6 +229,13 @@ public class PurchasePopupUI : MonoBehaviour
                 wallet.AddItem(productId, qty);
 
                 FlashMsg("Store_Purchased", new Color(0.2f, 0.6f, 1f), 3f);
+                
+                // ⭐ Bounce inventory button 3 times
+                if (inventoryButton != null)
+                {
+                    StartCoroutine(BounceInventoryButton(3));
+                }
+                
                 btnBuy.interactable = true;
             },
             onError: (err) =>
@@ -231,6 +244,53 @@ public class PurchasePopupUI : MonoBehaviour
                 btnBuy.interactable = true;
                 RefreshUI();
             });
+    }
+
+    // ------------------------------
+    // Bounce Animation for Inventory Button
+    // ------------------------------
+    IEnumerator BounceInventoryButton(int bounceCount)
+    {
+        if (inventoryButton == null) yield break;
+
+        RectTransform rectTransform = inventoryButton.GetComponent<RectTransform>();
+        if (rectTransform == null) yield break;
+
+        Vector2 originalPosition = rectTransform.anchoredPosition;
+
+        for (int i = 0; i < bounceCount; i++)
+        {
+            float time = 0f;
+
+            while (time < Mathf.PI)
+            {
+                time += Time.deltaTime * bounceSpeed;
+                
+                // Calculate bounce using sine wave (0 to PI for upward motion only)
+                float bounce = Mathf.Max(0, Mathf.Sin(time)) * bounceHeight;
+                
+                // Apply curve for more natural movement
+                float curveValue = bounceCurve.Evaluate(Mathf.Sin(time));
+                bounce = bounce * curveValue;
+                
+                // Update position (only upward from original position)
+                rectTransform.anchoredPosition = originalPosition + new Vector2(0, bounce);
+                
+                yield return null;
+            }
+
+            // Ensure it returns to original position after each bounce
+            rectTransform.anchoredPosition = originalPosition;
+            
+            // Small delay between bounces
+            if (i < bounceCount - 1)
+            {
+                yield return new WaitForSeconds(0.15f);
+            }
+        }
+
+        // Final position reset
+        rectTransform.anchoredPosition = originalPosition;
     }
 
     // ------------------------------
