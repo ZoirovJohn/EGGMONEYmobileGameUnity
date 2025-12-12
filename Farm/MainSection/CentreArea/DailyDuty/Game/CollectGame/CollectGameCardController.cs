@@ -28,12 +28,17 @@ public class CollectGameCardController : MonoBehaviour
     [Header("Collecting Manager")]
     [SerializeField] private CollectingManager collectingManager;
 
+    [Header("Close Button")]
+    [SerializeField] private Button closeBtn;
+
     private List<CollectGameCard> cards = new List<CollectGameCard>();
     private int nextNumber = 1; // User must click this number next
     private bool isLocked = false;
 
     private int gamesCompleted = 0;
     private int totalGamesNeeded = 1;
+    
+    private bool isWaitingForClose = false;
 
     private void Start()
     {
@@ -56,6 +61,9 @@ public class CollectGameCardController : MonoBehaviour
 
     private void StartNewGame()
     {
+        // Don't start new game if waiting for close button
+        if (isWaitingForClose) return;
+
         // Clear previous cards
         foreach (Transform child in gridTransform)
             Destroy(child.gameObject);
@@ -105,6 +113,7 @@ public class CollectGameCardController : MonoBehaviour
     private void OnCardClicked(CollectGameCard card, int number)
     {
         if (isLocked) return;
+        if (isWaitingForClose) return;
 
         // ✅ Don't click already revealed cards
         if (card.IsRevealed()) return;
@@ -164,28 +173,42 @@ public class CollectGameCardController : MonoBehaviour
             {
                 PlaySound(completeSound);
                 
+                Debug.Log("🎉 100% COMPLETE!");
+                
                 // 🥚 Call collecting API when 100% complete
                 if (collectingManager != null)
                 {
+                    isWaitingForClose = true;
+                    
                     collectingManager.CollectAll(
-                        onSuccess: (response) => {
+                        onSuccess: (response) => 
+                        {
                             Debug.Log($"✅ Collection successful! Collected: {response.collected} eggs, Basket total: {response.basketEggCount}");
+                            // Click the close button after collecting
+                            if (closeBtn != null)
+                            {
+                                closeBtn.onClick.Invoke();
+                            }
                         },
-                        onError: (error) => {
+                        onError: (error) => 
+                        {
                             Debug.LogError("Collection failed: " + error);
+                            // Click the close button even on error
+                            if (closeBtn != null)
+                            {
+                                closeBtn.onClick.Invoke();
+                            }
                         }
                     );
                 }
             }
         }
 
-        if (gamesCompleted >= totalGamesNeeded)
+        // Only start new game if not waiting for close button
+        if (!isWaitingForClose)
         {
-            Debug.Log("🎉 ALL GAMES COMPLETE (100%)");
-            // Keep progress at 100%, but allow replay
+            StartNewGame();
         }
-
-        StartNewGame();
     }
 
     private void UpdateProgress()

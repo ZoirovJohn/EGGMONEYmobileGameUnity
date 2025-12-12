@@ -43,6 +43,9 @@ public class SimonController : MonoBehaviour
     [Header("Feeding Manager")]
     [SerializeField] private FeedingManager feedingManager;
 
+    [Header("Close Button")]
+    [SerializeField] private Button closeBtn;
+
     private List<int> sequence = new List<int>();
     private List<int> playerInput = new List<int>();
     private bool isPlayerTurn = false;
@@ -52,6 +55,8 @@ public class SimonController : MonoBehaviour
     private int totalGamesNeeded = 1;
     private int currentSequenceLength = 4;
     private int[] sequenceLengths = new int[] { 4, 4, 5, 5, 6 };
+    
+    private bool isWaitingForClose = false;
 
     private void Start()
     {
@@ -89,6 +94,9 @@ public class SimonController : MonoBehaviour
 
     private IEnumerator StartRound()
     {
+        // Don't start new round if waiting for close button
+        if (isWaitingForClose) yield break;
+
         if (isPlayingSequence) yield break;
 
         isPlayingSequence = true;
@@ -140,6 +148,7 @@ public class SimonController : MonoBehaviour
     {
         if (isPlayingSequence) return;
         if (!isPlayerTurn) return;
+        if (isWaitingForClose) return;
 
         playerInput.Add(index);
         StartCoroutine(HandleButtonPress(index));
@@ -202,17 +211,35 @@ public class SimonController : MonoBehaviour
             {
                 PlaySound(completeSound);
                 
+                if (statusText != null)
+                    statusText.text = "🎉 100% COMPLETE!";
+                
                 // 🍗 Call feeding API when 100% complete
                 if (feedingManager != null)
                 {
+                    isWaitingForClose = true;
+                    
                     feedingManager.FeedAll(
-                        onSuccess: (response) => Debug.Log("Feeding successful after game completion"),
-                        onError: (error) => Debug.LogError("Feeding failed: " + error)
+                        onSuccess: (response) => 
+                        {
+                            Debug.Log("Feeding successful after game completion");
+                            // Click the close button after feeding
+                            if (closeBtn != null)
+                            {
+                                closeBtn.onClick.Invoke();
+                            }
+                        },
+                        onError: (error) => 
+                        {
+                            Debug.LogError("Feeding failed: " + error);
+                            // Click the close button even on error
+                            if (closeBtn != null)
+                            {
+                                closeBtn.onClick.Invoke();
+                            }
+                        }
                     );
                 }
-                
-                if (statusText != null)
-                    statusText.text = "🎉 100% COMPLETE!";
             }
         }
         else
@@ -221,7 +248,11 @@ public class SimonController : MonoBehaviour
                 statusText.text = "🎉 100% COMPLETE!";
         }
         
-        StartCoroutine(StartRound());
+        // Only start new round if not waiting for close button
+        if (!isWaitingForClose)
+        {
+            StartCoroutine(StartRound());
+        }
     }
 
     private void UpdateProgress()
