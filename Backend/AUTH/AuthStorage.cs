@@ -6,7 +6,7 @@ public static class AuthStorage
     private const string AccessTokenKey = "access_token";
     private const string ExpiryKey = "access_token_expiry";
 
-    private static readonly TimeSpan tokenLifetime = TimeSpan.FromDays(3);
+    private static readonly TimeSpan tokenLifetime = TimeSpan.FromMinutes(30);
 
     public static void SaveAccessToken(string token)
     {
