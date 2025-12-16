@@ -1,6 +1,7 @@
 using UnityEngine;
 using System;
 using UnityEngine.SceneManagement;
+using System.Collections.Generic;
 
 public class PlayerDataLoader : MonoBehaviour
 {
@@ -8,7 +9,7 @@ public class PlayerDataLoader : MonoBehaviour
     public AuthManager authManager;
     public BasketManager basketManager;
     public PlayerWallet playerWallet;
-    
+
     [Header("Farm Data Loading")]
     public FarmAPIManager farmAPIManager;
     public FarmDatabase farmDatabase;
@@ -42,7 +43,7 @@ public class PlayerDataLoader : MonoBehaviour
                     playerWallet.SetVideo(userData.video);
                     playerWallet.SetUserFarms(userData.userFarms);
                     playerWallet.SetReferralCode(userData.referralCode);
-                    
+
                     if (int.TryParse(userData.userFP, out int fp))
                         playerWallet.SetFP(fp);
                     else
@@ -100,15 +101,9 @@ public class PlayerDataLoader : MonoBehaviour
             return;
         }
 
-        if (farmAPIManager == null)
+        if (farmAPIManager == null || farmDatabase == null)
         {
-            Debug.LogWarning("⚠️ FarmAPIManager not assigned, skipping farm data load");
-            return;
-        }
-
-        if (farmDatabase == null)
-        {
-            Debug.LogError("❌ FarmDatabase not assigned!");
+            Debug.LogError("❌ FarmAPIManager or FarmDatabase not assigned!");
             return;
         }
 
@@ -145,10 +140,13 @@ public class PlayerDataLoader : MonoBehaviour
             FarmData farmData = ConvertSummaryToFarmData(summary, i);
             farmDatabase.farms.Add(farmData);
 
-            // store nest details for cage generation
             if (summary.nests != null && summary.nests.details != null)
             {
-                farmDatabase.SetFarmNestDetails(i, summary.nests.details);
+                List<NestDetail> nestList =
+                    new List<NestDetail>(summary.nests.details);
+
+                farmDatabase.SetFarmNestDetails(i, nestList);
+                farmDatabase.SetHenLifetimeSummary(i, nestList);
             }
         }
 
@@ -168,16 +166,14 @@ public class PlayerDataLoader : MonoBehaviour
             isPremium = summary.farm.isPremium,
             maxCapacity = summary.farm.maxCapacity,
             nestsOccupied = summary.nests.total,
-            cages = new System.Collections.Generic.List<CageData>()
+            cages = new List<CageData>()
         };
 
-        // Chick counts
         farm.normalChicks = summary.henStats.byKind.Normal;
         farm.champChicks = summary.henStats.byKind.Champ;
         farm.legendChicks = summary.henStats.byKind.Legend;
         farm.superLegendChicks = summary.henStats.byKind.SuperLegend;
 
-        // PREMIUM / NORMAL NEST COUNTS (THE FIX YOU NEEDED)
         int premiumNests = 0;
         int normalNests = 0;
 
@@ -185,25 +181,20 @@ public class PlayerDataLoader : MonoBehaviour
         {
             foreach (var nest in summary.nests.details)
             {
-                if (nest.isPremium)
-                    premiumNests++;
-                else
-                    normalNests++;
+                if (nest.isPremium) premiumNests++;
+                else normalNests++;
             }
         }
 
-        farm.premiumNests = premiumNests;   // 🌟 STORED CORRECTLY HERE
+        farm.premiumNests = premiumNests;
         farm.normalNests = normalNests;
 
-        // Robot
         if (summary.robot != null)
         {
             farm.hasRobot = !string.IsNullOrEmpty(summary.robot.id);
             farm.robotActive = summary.robot.isActive;
             farm.robotPoweredUntil = summary.robot.poweredUntil ?? "";
-
-            if (farm.hasRobot)
-                farm.robotType = "robot";
+            farm.robotType = farm.hasRobot ? "robot" : "none";
         }
         else
         {
@@ -224,18 +215,10 @@ public class PlayerDataLoader : MonoBehaviour
         public string id;
         public string nickName;
         public string email;
-        public string phoneNumber;
-        public string firebaseUid;
         public string nation;
         public int video;
-        public bool emailVerified;
-        public string totpSecret;
-        public bool is2FAEnabled;
-        public string createdAt;
-        public string updatedAt;
         public string userFP;
         public string referralCode;
-        public string referredByCode;
         public int userFarms;
     }
 

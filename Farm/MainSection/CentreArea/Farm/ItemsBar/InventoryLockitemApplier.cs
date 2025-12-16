@@ -377,7 +377,8 @@ public class InventoryLockItemApplier : MonoBehaviour
         // ✅ Store nest details in FarmDatabase for proper egg mapping
         if (summary.nests != null && summary.nests.details != null)
         {
-            farmDatabase.SetFarmNestDetails(newFarmIndex, summary.nests.details);
+            var nestList = new System.Collections.Generic.List<NestDetail>(summary.nests.details);
+            farmDatabase.SetFarmNestDetails(newFarmIndex, nestList);
         }
         
         // Initialize empty cages (will be populated by FarmDatabase.DistributeFarmDataToCages)

@@ -522,9 +522,12 @@ public class ManyToFarm : MonoBehaviour
                     // ✅ IMPORTANT: Pass the nestDetails to FarmDatabase BEFORE updating
                     if (summary.nests != null && summary.nests.details != null)
                     {
-                        farmDatabase.SetFarmNestDetails(farmIndex, summary.nests.details);
-                        Debug.Log($"✅ Stored {summary.nests.details.Count} nest details for Farm {targetFarmNumber}");
+                        var nestList = new System.Collections.Generic.List<NestDetail>(summary.nests.details);
+
+                        farmDatabase.SetFarmNestDetails(farmIndex, nestList);
+                        Debug.Log($"✅ Stored {nestList.Count} nest details for Farm {targetFarmNumber}");
                     }
+
                     
                     farmDatabase.UpdateFarmFromBackend(
                         farmIndex: farmIndex,

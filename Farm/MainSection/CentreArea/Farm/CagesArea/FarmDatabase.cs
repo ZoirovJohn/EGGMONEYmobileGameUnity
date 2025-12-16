@@ -5,15 +5,29 @@ using UnityEngine;
 public class FarmDatabase : ScriptableObject
 {
     public int currentFarmIndex = 0;
-    
+
     [Header("Load Data From JSON (Fallback Only)")]
     public TextAsset farmDataJSON;
-    
+
     [HideInInspector]
     public List<FarmData> farms = new List<FarmData>();
-    
-    // ✅ NEW: Store nest details from backend for proper egg ready mapping
-    private Dictionary<int, List<NestDetail>> farmNestDetails = new Dictionary<int, List<NestDetail>>();
+
+    // ==================================================
+    // BACKEND STORAGE
+    // ==================================================
+
+    // Store nest details per farm (used for eggs + premium)
+    private Dictionary<int, List<NestDetail>> farmNestDetails =
+        new Dictionary<int, List<NestDetail>>();
+
+    // Store hen lifetime summary per farm
+    // farmIndex -> (daysRemaining -> count)
+    private Dictionary<int, Dictionary<int, int>> farmHenLifetimeMap =
+        new Dictionary<int, Dictionary<int, int>>();
+
+    // ==================================================
+    // JSON FALLBACK
+    // ==================================================
 
     public void LoadFromJSON()
     {
@@ -25,24 +39,22 @@ public class FarmDatabase : ScriptableObject
 
         try
         {
-            FarmDatabaseWrapper wrapper = JsonUtility.FromJson<FarmDatabaseWrapper>(farmDataJSON.text);
+            FarmDatabaseWrapper wrapper =
+                JsonUtility.FromJson<FarmDatabaseWrapper>(farmDataJSON.text);
+
             if (wrapper != null && wrapper.farms != null)
             {
                 farms = wrapper.farms;
-                
+
                 for (int i = 0; i < farms.Count; i++)
                 {
                     if (string.IsNullOrEmpty(farms[i].farmId))
-                    {
                         farms[i].farmId = $"farm_{(i + 1):D3}";
-                    }
                 }
-                
+
                 foreach (var farm in farms)
-                {
                     farm.ResetAppliedItems();
-                }
-                
+
                 GenerateCagesFromFarmData();
             }
         }
@@ -52,218 +64,55 @@ public class FarmDatabase : ScriptableObject
         }
     }
 
+    // ==================================================
+    // BACKEND SETTERS
+    // ==================================================
+
     /// <summary>
-    /// ✅ UPDATED: Store nest details before generating cages
+    /// Store raw nest details from backend
     /// </summary>
     public void SetFarmNestDetails(int farmIndex, List<NestDetail> nestDetails)
     {
-        if (!farmNestDetails.ContainsKey(farmIndex))
-        {
-            farmNestDetails.Add(farmIndex, nestDetails);
-        }
-        else
-        {
-            farmNestDetails[farmIndex] = nestDetails;
-        }
-    }
-
-    public void GenerateCagesFromFarmData()
-    {
-        foreach (var farm in farms)
-        {
-            farm.cages.Clear();
-            
-            for (int i = 0; i < 100; i++)
-            {
-                CageData cage = new CageData
-                {
-                    id = i + 1,
-                    farmIndex = farm.farmIndex,
-                    nestCapacity = 16,
-                    nestsOccupied = 0,
-                    normalChicks = 0,
-                    champChicks = 0,
-                    legendChicks = 0,
-                    superLegendChicks = 0,
-                    hasEgg = false,
-                    eggReady = false, // ✅ NEW: Initialize as false
-                    remainingTime = 0f,
-                    upgradeLevel = 0
-                };
-                farm.cages.Add(cage);
-            }
-            
-            DistributeFarmDataToCages(farm);
-        }
-        
-        Debug.Log($"✅ Generated cages for {farms.Count} farms");
-    }
-
-    private void DistributeFarmDataToCages(FarmData farm)
-    {
-        List<int> cagesWithNests = new List<int>();
-        
-        // Step 1: Distribute nests
-        for (int i = 0; i < farm.nestsOccupied && i < 100; i++)
-        {
-            farm.cages[i].nestsOccupied = 1;
-            cagesWithNests.Add(i);
-        }
-
-        // ⭐ STEP 1B — APPLY PREMIUM FLAG TO CAGES ⭐
-        if (farmNestDetails.ContainsKey(farm.farmIndex))
-        {
-            var nests = farmNestDetails[farm.farmIndex];
-
-            for (int i = 0; i < nests.Count && i < farm.cages.Count; i++)
-            {
-                farm.cages[i].isPremium = nests[i].isPremium;  
-            }
-        }
-
-        // Step 2: Count eggs from backend
-        int totalEggsReady = 0;
-        
-        if (farmNestDetails.ContainsKey(farm.farmIndex))
-        {
-            List<NestDetail> nestDetails = farmNestDetails[farm.farmIndex];
-
-            foreach (var nest in nestDetails)
-            {
-                if (nest.hen != null && nest.hen.hasEggReady)
-                {
-                    totalEggsReady++;
-                }
-            }
-        }
-        else
-        {
-            totalEggsReady = Mathf.RoundToInt(cagesWithNests.Count * 0.5f);
-        }
-
-        int currentIndex = 0;
-
-        // SuperLegend
-        for (int i = 0; i < farm.superLegendChicks && currentIndex < cagesWithNests.Count; i++)
-        {
-            int cageIndex = cagesWithNests[currentIndex];
-            farm.cages[cageIndex].superLegendChicks = 1;
-            farm.cages[cageIndex].hasEgg = currentIndex < totalEggsReady;
-            farm.cages[cageIndex].eggReady = currentIndex < totalEggsReady;
-            farm.cages[cageIndex].remainingTime = Random.Range(30f, 300f);
-            currentIndex++;
-        }
-
-        // Legend
-        for (int i = 0; i < farm.legendChicks && currentIndex < cagesWithNests.Count; i++)
-        {
-            int cageIndex = cagesWithNests[currentIndex];
-            farm.cages[cageIndex].legendChicks = 1;
-            farm.cages[cageIndex].hasEgg = currentIndex < totalEggsReady;
-            farm.cages[cageIndex].eggReady = currentIndex < totalEggsReady;
-            farm.cages[cageIndex].remainingTime = Random.Range(30f, 300f);
-            currentIndex++;
-        }
-
-        // Champ
-        for (int i = 0; i < farm.champChicks && currentIndex < cagesWithNests.Count; i++)
-        {
-            int cageIndex = cagesWithNests[currentIndex];
-            farm.cages[cageIndex].champChicks = 1;
-            farm.cages[cageIndex].hasEgg = currentIndex < totalEggsReady;
-            farm.cages[cageIndex].eggReady = currentIndex < totalEggsReady;
-            farm.cages[cageIndex].remainingTime = Random.Range(30f, 300f);
-            currentIndex++;
-        }
-
-        // Normal
-        for (int i = 0; i < farm.normalChicks && currentIndex < cagesWithNests.Count; i++)
-        {
-            int cageIndex = cagesWithNests[currentIndex];
-            farm.cages[cageIndex].normalChicks = 1;
-            farm.cages[cageIndex].hasEgg = currentIndex < totalEggsReady;
-            farm.cages[cageIndex].eggReady = currentIndex < totalEggsReady;
-            farm.cages[cageIndex].remainingTime = Random.Range(30f, 300f);
-            currentIndex++;
-        }
-
-        // Counts
-        farm.premiumNests = farmNestDetails[farm.farmIndex].FindAll(n => n.isPremium).Count;
-        farm.normalNests = farmNestDetails[farm.farmIndex].FindAll(n => !n.isPremium).Count;
-    }
-
-    #region BACKEND INTEGRATION
-
-    /// <summary>
-    /// Load farms from backend JSON string
-    /// </summary>
-    public void LoadFromBackend(string jsonData)
-    {
-        try
-        {
-            FarmDatabaseWrapper wrapper = JsonUtility.FromJson<FarmDatabaseWrapper>(jsonData);
-            if (wrapper != null && wrapper.farms != null)
-            {
-                farms = wrapper.farms;
-                GenerateCagesFromFarmData();
-            }
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError($"❌ Failed to load backend data: {e.Message}");
-        }
+        if (nestDetails == null) return;
+        farmNestDetails[farmIndex] = nestDetails;
     }
 
     /// <summary>
-    /// Update a single farm from backend data
+    /// Store hen lifetime distribution (1–15 days)
     /// </summary>
-    public void UpdateFarmFromBackend(int farmIndex, int nests, int champChicks, int normalChicks, int legendChicks = 0, int superLegendChicks = 0)
+    public void SetHenLifetimeSummary(int farmIndex, List<NestDetail> nestDetails)
     {
-        if (farmIndex >= 0 && farmIndex < farms.Count)
+        if (nestDetails == null) return;
+
+        Dictionary<int, int> lifetimeCounts = new Dictionary<int, int>();
+
+        for (int d = 1; d <= 15; d++)
+            lifetimeCounts[d] = 0;
+
+        foreach (var nest in nestDetails)
         {
-            farms[farmIndex].nestsOccupied = nests;
-            farms[farmIndex].champChicks = champChicks;
-            farms[farmIndex].normalChicks = normalChicks;
-            farms[farmIndex].legendChicks = legendChicks;
-            farms[farmIndex].superLegendChicks = superLegendChicks;
-            
-            // Regenerate cages for this farm
-            farms[farmIndex].cages.Clear();
-            for (int i = 0; i < 100; i++)
+            if (nest.hen != null && nest.hen.alive)
             {
-                farms[farmIndex].cages.Add(new CageData
-                {
-                    id = i + 1,
-                    farmIndex = farmIndex,
-                    nestCapacity = 16,
-                    nestsOccupied = 0,
-                    normalChicks = 0,
-                    champChicks = 0,
-                    legendChicks = 0,
-                    superLegendChicks = 0,
-                    hasEgg = false,
-                    eggReady = false,
-                    remainingTime = 0f,
-                    upgradeLevel = 0
-                });
+                int days = Mathf.Clamp(
+                    nest.hen.lifetimeDaysRemaining, 1, 15);
+                lifetimeCounts[days]++;
             }
-            
-            DistributeFarmDataToCages(farms[farmIndex]);
         }
+
+        farmHenLifetimeMap[farmIndex] = lifetimeCounts;
     }
 
-    /// <summary>
-    /// Export current farm data as JSON
-    /// </summary>
-    public string ToJson()
+    // ==================================================
+    // GETTERS
+    // ==================================================
+
+    public Dictionary<int, int> GetHenLifetimeSummary(int farmIndex)
     {
-        FarmDatabaseWrapper wrapper = new FarmDatabaseWrapper { farms = farms };
-        return JsonUtility.ToJson(wrapper, true);
+        if (farmHenLifetimeMap.TryGetValue(farmIndex, out var map))
+            return map;
+
+        return null;
     }
-
-    #endregion
-
-    #region GETTERS
 
     public FarmData GetCurrentFarmCages()
     {
@@ -282,22 +131,172 @@ public class FarmDatabase : ScriptableObject
     public CageData GetCageData(int farmIndex, int cageId)
     {
         if (farmIndex >= 0 && farmIndex < farms.Count)
-        {
             return farms[farmIndex].cages.Find(c => c.id == cageId);
-        }
         return null;
     }
 
-    #endregion
+    // ==================================================
+    // CAGE GENERATION
+    // ==================================================
+
+    public void GenerateCagesFromFarmData()
+    {
+        foreach (var farm in farms)
+        {
+            farm.cages.Clear();
+
+            for (int i = 0; i < 100; i++)
+            {
+                farm.cages.Add(new CageData
+                {
+                    id = i + 1,
+                    farmIndex = farm.farmIndex,
+                    nestCapacity = 16,
+                    nestsOccupied = 0,
+                    normalChicks = 0,
+                    champChicks = 0,
+                    legendChicks = 0,
+                    superLegendChicks = 0,
+                    hasEgg = false,
+                    eggReady = false,
+                    remainingTime = 0f,
+                    upgradeLevel = 0
+                });
+            }
+
+            DistributeFarmDataToCages(farm);
+        }
+
+        Debug.Log($"✅ Generated cages for {farms.Count} farms");
+    }
+
+    private void DistributeFarmDataToCages(FarmData farm)
+    {
+        List<int> cagesWithNests = new List<int>();
+
+        // Step 1: distribute nests
+        for (int i = 0; i < farm.nestsOccupied && i < 100; i++)
+        {
+            farm.cages[i].nestsOccupied = 1;
+            cagesWithNests.Add(i);
+        }
+
+        // Step 2: apply premium flags
+        if (farmNestDetails.TryGetValue(farm.farmIndex, out var nests))
+        {
+            int premium = 0;
+            int normal = 0;
+
+            for (int i = 0; i < nests.Count && i < farm.cages.Count; i++)
+            {
+                farm.cages[i].isPremium = nests[i].isPremium;
+                if (nests[i].isPremium) premium++;
+                else normal++;
+            }
+
+            farm.premiumNests = premium;
+            farm.normalNests = normal;
+        }
+
+        // Step 3: count eggs
+        int totalEggsReady = 0;
+        if (farmNestDetails.TryGetValue(farm.farmIndex, out var nestDetails))
+        {
+            foreach (var nest in nestDetails)
+            {
+                if (nest.hen != null && nest.hen.hasEggReady)
+                    totalEggsReady++;
+            }
+        }
+
+        int index = 0;
+
+        void Assign(int count, System.Action<CageData> setter)
+        {
+            for (int i = 0; i < count && index < cagesWithNests.Count; i++)
+            {
+                CageData cage = farm.cages[cagesWithNests[index]];
+                setter(cage);
+                cage.hasEgg = index < totalEggsReady;
+                cage.eggReady = cage.hasEgg;
+                cage.remainingTime = Random.Range(30f, 300f);
+                index++;
+            }
+        }
+
+        Assign(farm.superLegendChicks, c => c.superLegendChicks = 1);
+        Assign(farm.legendChicks, c => c.legendChicks = 1);
+        Assign(farm.champChicks, c => c.champChicks = 1);
+        Assign(farm.normalChicks, c => c.normalChicks = 1);
+    }
+
+    // ==================================================
+    // BACKEND SUPPORT
+    // ==================================================
+
+    public void LoadFromBackend(string jsonData)
+    {
+        try
+        {
+            FarmDatabaseWrapper wrapper =
+                JsonUtility.FromJson<FarmDatabaseWrapper>(jsonData);
+
+            if (wrapper != null && wrapper.farms != null)
+            {
+                farms = wrapper.farms;
+                GenerateCagesFromFarmData();
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"❌ Failed to load backend data: {e.Message}");
+        }
+    }
+
+    public void UpdateFarmFromBackend(
+        int farmIndex,
+        int nests,
+        int champChicks,
+        int normalChicks,
+        int legendChicks = 0,
+        int superLegendChicks = 0)
+    {
+        if (farmIndex < 0 || farmIndex >= farms.Count)
+            return;
+
+        FarmData farm = farms[farmIndex];
+        farm.nestsOccupied = nests;
+        farm.champChicks = champChicks;
+        farm.normalChicks = normalChicks;
+        farm.legendChicks = legendChicks;
+        farm.superLegendChicks = superLegendChicks;
+
+        farm.cages.Clear();
+
+        for (int i = 0; i < 100; i++)
+        {
+            farm.cages.Add(new CageData
+            {
+                id = i + 1,
+                farmIndex = farmIndex,
+                nestCapacity = 16,
+                nestsOccupied = 0,
+                hasEgg = false,
+                eggReady = false,
+                remainingTime = 0f,
+                upgradeLevel = 0
+            });
+        }
+
+        DistributeFarmDataToCages(farm);
+    }
+
+    // ==================================================
+    // FARM SWITCH
+    // ==================================================
 
     public void SwitchToFarm(int targetFarmIndex)
     {
-        if (farms == null || farms.Count == 0)
-        {
-            Debug.LogError("❌ Farm list is empty!");
-            return;
-        }
-
         if (targetFarmIndex < 0 || targetFarmIndex >= farms.Count)
         {
             Debug.LogWarning("⚠️ Invalid farm index!");
@@ -307,6 +306,8 @@ public class FarmDatabase : ScriptableObject
         currentFarmIndex = targetFarmIndex;
         Debug.Log($"✅ Switched to farm: {currentFarmIndex}");
     }
+
+    // ==================================================
 
     [System.Serializable]
     private class FarmDatabaseWrapper

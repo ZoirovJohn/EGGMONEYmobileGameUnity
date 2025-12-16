@@ -37,7 +37,7 @@ public class NestsInfo
     public int occupied;
     public int empty;
     public int availableSlots;
-    public List<NestDetail> details;
+    public NestDetail[] details;
 }
 
 [Serializable]
