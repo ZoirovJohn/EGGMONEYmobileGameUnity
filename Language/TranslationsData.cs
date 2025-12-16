@@ -470,7 +470,7 @@ public static class TranslationsData
 
         translations["Store_nest_Desc"] = new Dictionary<string, string> {
             { "English", "Chickens can’t lay eggs without this." },
-            { "Korean", "닭은 이게 없으면 알 못낳요" }
+            { "Korean", "닭들이 알을 낳으려면 둥지를 먼저 깔아줘야 해요" }
         };
 
         translations["Store_battery_Title"] = new Dictionary<string, string> {
@@ -480,7 +480,7 @@ public static class TranslationsData
 
         translations["Store_battery_Desc"] = new Dictionary<string, string> {
             { "English", "Batteries are a food to moving a robot." },
-            { "Korean", "로봇 움직이려면 배터리가 밥이죠" }
+            { "Korean", "로봇을 작동하려면 배터리가 필요해요" }
         };
 
         translations["Store_vitamin_Title"] = new Dictionary<string, string> {
@@ -490,17 +490,17 @@ public static class TranslationsData
 
         translations["Store_vitamin_Desc"] = new Dictionary<string, string> {
             { "English", "Egg laying speed increases" },
-            { "Korean", "알 낳는 속도가 증가해요" }
+            { "Korean", "닭들에게 주면 알을 낳는 속도가 증가해요." }
         };
 
         translations["Store_food_Title"] = new Dictionary<string, string> {
             { "English", "Prey" },
-            { "Korean", "먹이" }
+            { "Korean", "닭 모이" }
         };
 
         translations["Store_food_Desc"] = new Dictionary<string, string> {
             { "English", "If you don’t feed a chicken, it will die." },
-            { "Korean", "닭에게 밥 안주면 죽어요." }
+            { "Korean", "먹이가 떨어지지 않도록 충분히 준비하세요." }
         };
 
         translations["Store_robot_Title"] = new Dictionary<string, string> {
@@ -510,7 +510,7 @@ public static class TranslationsData
 
         translations["Store_robot_Desc"] = new Dictionary<string, string> {
             { "English", "The farm’s all–rounder" },
-            { "Korean", "농장의 만능 일꾼" }
+            { "Korean", "청소하기, 먹이주기,  달걀모으기 나에게 맡겨주세요." }
         };
 
         translations["Store_silver_egg_Title"] = new Dictionary<string, string> {
@@ -520,47 +520,47 @@ public static class TranslationsData
 
         translations["Store_silver_egg_Desc"] = new Dictionary<string, string> {
             { "English", "Growing up from a chick to a gentle hen" },
-            { "Korean", "병아리 후 순둥이로 성장한다." }
+            { "Korean", "부화시키면 얘쁜 순둥이를 만날 수 있어요." }
         };
 
         translations["Store_gold_egg_Title"] = new Dictionary<string, string> {
             { "English", "Ggg" },
-            { "Korean", "골드 알" }
+            { "Korean", "황금 알" }
         };
 
         translations["Store_gold_egg_Desc"] = new Dictionary<string, string> {
             { "English", "Growing up from a chick to a Champ" },
-            { "Korean", "병아리 후 챔프로 성장한다." }
+            { "Korean", "부화시키면 멋진 챔프를 만날 수 있어." }
         };
 
         translations["Store_super_blue_egg_Title"] = new Dictionary<string, string> {
             { "English", "Blue Egg" },
-            { "Korean", "블루 이벤트 알" }
+            { "Korean", "파란 알" }
         };
 
         translations["Store_super_blue_egg_Desc"] = new Dictionary<string, string> {
             { "English", "You can get premium items." },
-            { "Korean", "고급 아이템을 얻을 수 있는 알" }
+            { "Korean", "부화 시키면 여러가지 고급 아이템들을 얻을 수 있어요." }
         };
 
         translations["Store_super_red_egg_Title"] = new Dictionary<string, string> {
             { "English", "Red Egg" },
-            { "Korean", "레드 이벤트 알" }
+            { "Korean", "빨간 알" }
         };
 
         translations["Store_super_red_egg_Desc"] = new Dictionary<string, string> {
             { "English", "You can get a special chicken." },
-            { "Korean", "레전드 꼬꼬 등을 기대해볼 수 있다." }
+            { "Korean", "부화키시면 희귀한 닭을 얻을 수 있답니다." }
         };
 
         translations["Store_farmKey_Title"] = new Dictionary<string, string> {
             { "English", "Farm Key" },
-            { "Korean", "농장 열쇠" }
+            { "Korean", "농장 오픈키" }
         };
 
         translations["Store_farmKey_Desc"] = new Dictionary<string, string> {
             { "English", "Opens a new farm." },
-            { "Korean", "새 농장을 열 수 있어요." }
+            { "Korean", "잠겨있는 농장을 열수 더 많은 닭을 키울 수 있어요." }
         };
 
         translations["BUY"] = new Dictionary<string, string> {
