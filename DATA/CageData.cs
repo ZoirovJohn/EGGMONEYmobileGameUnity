@@ -13,8 +13,9 @@ public class CageData
     public int legendChicks = 0;
     public int superLegendChicks = 0;
     public bool hasEgg = false;
-    public bool eggReady = false; // ✅ NEW: Indicates if egg is ready to collect (from hen.hasEggReady)
+    public bool eggReady = false;
     public float remainingTime = 0f;
+    public int lifetimeDaysRemaining = 0;
     public int upgradeLevel = 0;
     public bool isPremium = false;
 }

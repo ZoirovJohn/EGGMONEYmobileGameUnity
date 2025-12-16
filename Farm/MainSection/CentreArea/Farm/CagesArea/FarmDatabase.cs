@@ -16,12 +16,11 @@ public class FarmDatabase : ScriptableObject
     // BACKEND STORAGE
     // ==================================================
 
-    // Store nest details per farm (used for eggs + premium)
+    // Store nest details per farm (index -> nests)
     private Dictionary<int, List<NestDetail>> farmNestDetails =
         new Dictionary<int, List<NestDetail>>();
 
-    // Store hen lifetime summary per farm
-    // farmIndex -> (daysRemaining -> count)
+    // Store hen lifetime summary (for debug / charts)
     private Dictionary<int, Dictionary<int, int>> farmHenLifetimeMap =
         new Dictionary<int, Dictionary<int, int>>();
 
@@ -78,7 +77,7 @@ public class FarmDatabase : ScriptableObject
     }
 
     /// <summary>
-    /// Store hen lifetime distribution (1–15 days)
+    /// Store hen lifetime distribution (for debug view)
     /// </summary>
     public void SetHenLifetimeSummary(int farmIndex, List<NestDetail> nestDetails)
     {
@@ -93,8 +92,7 @@ public class FarmDatabase : ScriptableObject
         {
             if (nest.hen != null && nest.hen.alive)
             {
-                int days = Mathf.Clamp(
-                    nest.hen.lifetimeDaysRemaining, 1, 15);
+                int days = Mathf.Clamp(nest.hen.lifetimeDaysRemaining, 1, 15);
                 lifetimeCounts[days]++;
             }
         }
@@ -160,7 +158,9 @@ public class FarmDatabase : ScriptableObject
                     hasEgg = false,
                     eggReady = false,
                     remainingTime = 0f,
-                    upgradeLevel = 0
+                    lifetimeDaysRemaining = 0, // ✅ IMPORTANT
+                    upgradeLevel = 0,
+                    isPremium = false
                 });
             }
 
@@ -209,17 +209,71 @@ public class FarmDatabase : ScriptableObject
             }
         }
 
+        // ✅ NEW: Group hens by lifetime in custom display order
+        int[] lifetimeDisplayOrder = { 3, 2, 5, 7, 9, 1, 4, 6, 8, 10, 11, 12, 13, 14, 15 };
+        List<NestDetail> sortedNests = new List<NestDetail>();
+
+        if (farmNestDetails.TryGetValue(farm.farmIndex, out var nestsForSorting))
+        {
+            // Group nests by lifetime day
+            Dictionary<int, List<NestDetail>> nestsByLifetime = new Dictionary<int, List<NestDetail>>();
+            
+            foreach (var nest in nestsForSorting)
+            {
+                if (nest.hen != null && nest.hen.alive)
+                {
+                    int day = Mathf.Clamp(nest.hen.lifetimeDaysRemaining, 1, 15);
+                    
+                    if (!nestsByLifetime.ContainsKey(day))
+                        nestsByLifetime[day] = new List<NestDetail>();
+                    
+                    nestsByLifetime[day].Add(nest);
+                }
+            }
+
+            // Add nests to sortedNests in display order
+            Debug.Log($"🐔 Farm {farm.farmIndex + 1} - Sorting hens by lifetime:");
+            foreach (int day in lifetimeDisplayOrder)
+            {
+                if (nestsByLifetime.ContainsKey(day))
+                {
+                    int count = nestsByLifetime[day].Count;
+                    Debug.Log($"   📅 Day {day}: {count} hens");
+                    sortedNests.AddRange(nestsByLifetime[day]);
+                }
+            }
+
+            // Add any remaining nests that don't have hens or have invalid lifetime
+            foreach (var nest in nestsForSorting)
+            {
+                if (nest.hen == null || !nest.hen.alive)
+                {
+                    sortedNests.Add(nest);
+                }
+            }
+        }
+
         int index = 0;
 
         void Assign(int count, System.Action<CageData> setter)
         {
             for (int i = 0; i < count && index < cagesWithNests.Count; i++)
             {
-                CageData cage = farm.cages[cagesWithNests[index]];
+                int cageIndex = cagesWithNests[index];
+                CageData cage = farm.cages[cageIndex];
+
                 setter(cage);
+
+                // ✅ Use sorted nests list for lifetime assignment
+                if (sortedNests.Count > 0 && index < sortedNests.Count && sortedNests[index].hen != null)
+                {
+                    cage.lifetimeDaysRemaining = Mathf.Clamp(sortedNests[index].hen.lifetimeDaysRemaining, 1, 15);
+                    Debug.Log($"🐔 Cage {cageIndex + 1}: Assigned lifetime = {cage.lifetimeDaysRemaining} days");
+                }
+
                 cage.hasEgg = index < totalEggsReady;
                 cage.eggReady = cage.hasEgg;
-                cage.remainingTime = Random.Range(30f, 300f);
+
                 index++;
             }
         }
@@ -229,7 +283,7 @@ public class FarmDatabase : ScriptableObject
         Assign(farm.champChicks, c => c.champChicks = 1);
         Assign(farm.normalChicks, c => c.normalChicks = 1);
     }
-
+    
     // ==================================================
     // BACKEND SUPPORT
     // ==================================================
@@ -284,6 +338,7 @@ public class FarmDatabase : ScriptableObject
                 hasEgg = false,
                 eggReady = false,
                 remainingTime = 0f,
+                lifetimeDaysRemaining = 0,
                 upgradeLevel = 0
             });
         }

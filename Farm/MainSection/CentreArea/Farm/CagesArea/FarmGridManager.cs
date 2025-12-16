@@ -16,6 +16,10 @@ public class FarmGridManager : MonoBehaviour
 
     private List<CageData> currentCages;
 
+    [Header("Lifetime Sprites")]
+    public Sprite[] lifetimeSprites = new Sprite[15];
+
+
     void Start()
     {
         StartCoroutine(InitializeAfterFrame());
@@ -257,8 +261,20 @@ public class FarmGridManager : MonoBehaviour
         Transform lifeTime = cageRoot.Find("LifeTime");
         if (lifeTime != null && hasAnyChick)
         {
-            lifeTime.gameObject.SetActive(true);
-            lifeTime.SetAsLastSibling();
+            Image img = lifeTime.GetComponent<Image>();
+            if (img != null && data.lifetimeDaysRemaining > 0)
+            {
+                int day = Mathf.Clamp(data.lifetimeDaysRemaining, 1, 15);
+
+                int[] order = { 3,2,5,7,9,1,4,6,8,10,11,12,13,14,15 };
+                int index = System.Array.IndexOf(order, day);
+
+                if (index >= 0)
+                {
+                    img.sprite = lifetimeSprites[index];
+                    lifeTime.gameObject.SetActive(true);
+                }
+            }
         }
     }
 

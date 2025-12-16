@@ -67,6 +67,8 @@ public class FarmAPIManager : MonoBehaviour
                         nestList
                     );
 
+                    farmDatabase.GenerateCagesFromFarmData();
+
                     Debug.Log($"✅ Stored nest & hen lifetime data for farm {farmNumber}");
                 }
                 else
