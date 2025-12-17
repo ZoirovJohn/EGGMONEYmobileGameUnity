@@ -5,19 +5,31 @@ public class DailyDutyManager : MonoBehaviour
 {
     [Header("Main Panels")]
     public GameObject mainPanel;
-    public GameObject gamesPanel;
+    public GameObject panelAnim;
+
+    [Header("Single Video Player Setup")]
+    public UnityEngine.Video.VideoPlayer videoPlayer;
+    public RawImage rawImage; // ← Add RawImage reference
+    public UnityEngine.Video.VideoClip afterFeedingVideo;
+    public UnityEngine.Video.VideoClip afterCollectingVideo;
+    public UnityEngine.Video.VideoClip afterCleanupVideo;
 
     [Header("Buttons (on Main Panel)")]
     public Button simonButton;
     public Button collectButton;
     public Button matchingButton;
 
-    [Header("Mini Game Manager Reference")]
-    public MiniGamePanelManager miniGameManager;
+    [Header("API Managers")]
+    public FeedingManager feedingManager;
+    public CleanupManager cleanupManager;
+    public CollectingManager collectingManager;
 
     [Header("Full Summary")]
     public FullSummaryManager fullSummaryManager;
     public PlayerWallet playerWallet;
+
+    [Header("Inventory Manager")]
+    public InventoryManager inventoryManager;
 
     [Header("Status Images")]
     public GameObject hensWithEggReadyImage;
@@ -32,18 +44,28 @@ public class DailyDutyManager : MonoBehaviour
         Debug.Log("🎮 DailyDutyManager Start()");
         
         // Assign main panel button listeners
-        simonButton.onClick.AddListener(OpenSimon);
-        collectButton.onClick.AddListener(OpenCollect);
-        matchingButton.onClick.AddListener(OpenMatching);
+        simonButton.onClick.AddListener(OnFeedButtonClicked);
+        collectButton.onClick.AddListener(OnCollectButtonClicked);
+        matchingButton.onClick.AddListener(OnCleanButtonClicked);
 
         // Load full summary data
         LoadFullSummary();
 
         // Start with only the main panel visible
-        OpenMainPanel();
+        mainPanel.SetActive(true);
+        panelAnim.SetActive(false);
         
         // 🔍 Initial check
         CheckFoodInventory();
+        
+        // Setup video player listener
+        if (videoPlayer != null)
+        {
+            videoPlayer.loopPointReached += OnVideoFinished;
+            
+            // ✅ Create RenderTexture dynamically
+            SetupVideoPlayerRenderTexture();
+        }
     }
 
     private void OnEnable()
@@ -185,38 +207,233 @@ public class DailyDutyManager : MonoBehaviour
     }
 
     // =========================
-    // Open Methods
+    // Button Click Handlers
     // =========================
-    public void OpenSimon()
+    
+    // 🍗 FEED BUTTON (Simon Button)
+    private void OnFeedButtonClicked()
     {
-        mainPanel.SetActive(false);
-        gamesPanel.SetActive(true);
-        miniGameManager.OpenSimon();
+        Debug.Log("🍗 Feed button clicked");
+
+        if (feedingManager == null)
+        {
+            Debug.LogError("❌ FeedingManager is not assigned!");
+            return;
+        }
+
+        // Disable button to prevent multiple clicks
+        simonButton.interactable = false;
+
+        feedingManager.FeedAll(
+            onSuccess: (response) => 
+            {
+                Debug.Log("✅ Feeding successful!");
+                
+                // ✅ STEP 1: Refresh Inventory first (updates food counts)
+                if (inventoryManager != null)
+                {
+                    inventoryManager.GetInventory(
+                        onSuccess: (inventoryResponse) =>
+                        {
+                            Debug.Log("✅ Inventory refreshed after feeding");
+                            
+                            // ✅ STEP 2: Then refresh FullSummary
+                            RefreshSummaryAndPlayAnimation(simonButton, afterFeedingVideo);
+                        },
+                        onError: (inventoryError) =>
+                        {
+                            Debug.LogError($"❌ Failed to refresh inventory: {inventoryError}");
+                            // Continue to summary refresh anyway
+                            RefreshSummaryAndPlayAnimation(simonButton, afterFeedingVideo);
+                        }
+                    );
+                }
+                else
+                {
+                    // No inventory manager, just do summary
+                    RefreshSummaryAndPlayAnimation(simonButton, afterFeedingVideo);
+                }
+            },
+            onError: (error) => 
+            {
+                Debug.LogError($"❌ Feeding failed: {error}");
+                // Re-enable button on error
+                simonButton.interactable = true;
+            }
+        );
     }
 
-    public void OpenCollect()
+    // 🥚 COLLECT BUTTON
+    private void OnCollectButtonClicked()
     {
-        mainPanel.SetActive(false);
-        gamesPanel.SetActive(true);
-        miniGameManager.OpenCollect();
+        Debug.Log("🥚 Collect button clicked");
+
+        if (collectingManager == null)
+        {
+            Debug.LogError("❌ CollectingManager is not assigned!");
+            return;
+        }
+
+        // Disable button to prevent multiple clicks
+        collectButton.interactable = false;
+
+        collectingManager.CollectAll(
+            onSuccess: (response) => 
+            {
+                Debug.Log($"✅ Collection successful! Collected: {response.collected} eggs, Basket total: {response.basketEggCount}");
+                
+                // Refresh FullSummary to update UI and play animation
+                RefreshSummaryAndPlayAnimation(collectButton, afterCollectingVideo);
+            },
+            onError: (error) => 
+            {
+                Debug.LogError($"❌ Collection failed: {error}");
+                // Re-enable button on error
+                collectButton.interactable = true;
+            }
+        );
     }
 
-    public void OpenMatching()
+    // 🧹 CLEAN BUTTON (Matching Button)
+    private void OnCleanButtonClicked()
     {
-        mainPanel.SetActive(false);
-        gamesPanel.SetActive(true);
-        miniGameManager.OpenMatching();
+        Debug.Log("🧹 Clean button clicked");
+
+        if (cleanupManager == null)
+        {
+            Debug.LogError("❌ CleanupManager is not assigned!");
+            return;
+        }
+
+        // Disable button to prevent multiple clicks
+        matchingButton.interactable = false;
+
+        cleanupManager.CleanAll(
+            onSuccess: (response) => 
+            {
+                Debug.Log("✅ Cleanup successful!");
+                
+                // Refresh FullSummary to update UI and play animation
+                RefreshSummaryAndPlayAnimation(matchingButton, afterCleanupVideo);
+            },
+            onError: (error) => 
+            {
+                Debug.LogError($"❌ Cleanup failed: {error}");
+                // Re-enable button on error
+                matchingButton.interactable = true;
+            }
+        );
     }
 
     // =========================
-    // Open Main Panel
+    // Helper Methods
     // =========================
-    public void OpenMainPanel()
+    private void RefreshSummaryAndPlayAnimation(Button button, UnityEngine.Video.VideoClip videoClip)
     {
-        gamesPanel.SetActive(false);
+        if (fullSummaryManager != null)
+        {
+            fullSummaryManager.GetFullSummary(
+                onSuccess: (summaryResponse) => 
+                {
+                    Debug.Log("✅ Full Summary refreshed");
+                    // Play animation after successful refresh
+                    PlayAnimationVideo(videoClip);
+                    // Re-enable button
+                    button.interactable = true;
+                },
+                onError: (summaryError) => 
+                {
+                    Debug.LogError($"❌ Failed to refresh summary: {summaryError}");
+                    // Play animation even on error
+                    PlayAnimationVideo(videoClip);
+                    // Re-enable button
+                    button.interactable = true;
+                }
+            );
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ FullSummaryManager not assigned!");
+            // Play animation anyway
+            PlayAnimationVideo(videoClip);
+            // Re-enable button
+            button.interactable = true;
+        }
+    }
+    
+    private void PlayAnimationVideo(UnityEngine.Video.VideoClip videoClip)
+    {
+        if (videoPlayer == null)
+        {
+            Debug.LogWarning("⚠️ VideoPlayer is not assigned! Skipping animation.");
+            return;
+        }
+        
+        if (videoClip == null)
+        {
+            Debug.LogWarning("⚠️ VideoClip is not assigned! Skipping animation.");
+            return;
+        }
+        
+        Debug.Log($"🎬 Playing video: {videoClip.name}");
+        
+        // Hide main panel, show animation panel
+        mainPanel.SetActive(false);
+        panelAnim.SetActive(true);
+        
+        // Stop any currently playing video
+        videoPlayer.Stop();
+        
+        // Set the new video clip and play
+        videoPlayer.clip = videoClip;
+        videoPlayer.Play();
+    }
+    
+    private void OnVideoFinished(UnityEngine.Video.VideoPlayer vp)
+    {
+        Debug.Log($"🎬 Video finished");
+        
+        // Hide animation panel, show main panel
+        panelAnim.SetActive(false);
         mainPanel.SetActive(true);
         
-        // Refresh summary when returning to main panel
-        LoadFullSummary();
+        // Stop the video
+        vp.Stop();
+    }
+    
+    // =========================
+    // Setup RenderTexture
+    // =========================
+    private void SetupVideoPlayerRenderTexture()
+    {
+        if (videoPlayer == null)
+        {
+            Debug.LogError("❌ VideoPlayer is not assigned!");
+            return;
+        }
+        
+        if (rawImage == null)
+        {
+            Debug.LogError("❌ RawImage is not assigned!");
+            return;
+        }
+        
+        // Check if RenderTexture already exists
+        if (videoPlayer.targetTexture == null)
+        {
+            // Create a new RenderTexture
+            RenderTexture renderTexture = new RenderTexture(1920, 1080, 24);
+            renderTexture.name = "VideoRenderTexture";
+            
+            // Assign to VideoPlayer
+            videoPlayer.targetTexture = renderTexture;
+            
+            Debug.Log("✅ Created RenderTexture for VideoPlayer: 1920x1080");
+        }
+        
+        // Assign the same RenderTexture to RawImage
+        rawImage.texture = videoPlayer.targetTexture;
+        
+        Debug.Log("✅ VideoPlayer and RawImage connected via RenderTexture");
     }
 }

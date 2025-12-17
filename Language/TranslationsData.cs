@@ -601,8 +601,8 @@ public static class TranslationsData
         };
 
         translations["Store_Processing"] = new() {
-            { "English", "Processing purchase..." },
-            { "Korean", "구매 처리 중..." }
+            { "English", "Purchased" },
+            { "Korean", "구매 완료" }
         };
 
         translations["Store_PurchaseFailed"] = new() {
