@@ -5,9 +5,9 @@ using UnityEngine.Video;
 public class SimpleVideoPlayer : MonoBehaviour
 {
     [Header("Assign in Inspector")]
-    public VideoPlayer videoPlayer;      // VideoPlayer component
-    public RawImage rawImage;            // RawImage UI
-    public AudioSource audioSource;      // Optional (for audio)
+    public VideoPlayer videoPlayer;
+    public RawImage rawImage;
+    public AudioSource audioSource;
 
     void Start()
     {
