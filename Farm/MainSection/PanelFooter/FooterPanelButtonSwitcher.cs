@@ -17,7 +17,7 @@ public class FooterPanelSwitcher : MonoBehaviour
     [SerializeField] Button btnInventory;
     [SerializeField] Button btnDuties;
     [SerializeField] Button btnStore;
-    [SerializeField] Button footerStart; // ✅ NEW: Alternative button when work is available (also opens Duties)
+    [SerializeField] Button footerStart; // ✅ Icon that appears when work is available (also opens Duties)
 
     [Header("Button Background Images")]
     [SerializeField] GameObject bgInventory;
@@ -39,7 +39,7 @@ public class FooterPanelSwitcher : MonoBehaviour
         if (btnInventory) btnInventory.onClick.AddListener(ShowInventory);
         if (btnDuties) btnDuties.onClick.AddListener(ShowDuties);
         if (btnStore) btnStore.onClick.AddListener(ShowStore);
-        if (footerStart) footerStart.onClick.AddListener(ShowDuties); // ✅ Also opens Duties panel
+        if (footerStart) footerStart.onClick.AddListener(ShowDuties); // Also opens Duties panel
         
         // Auto-find PlayerWallet if not assigned
         if (!playerWallet) 
@@ -57,7 +57,7 @@ public class FooterPanelSwitcher : MonoBehaviour
         // Initial check
         UpdateDutiesButtonVisibility();
         
-        // ✅ RESTORED: Default panel on enable
+        // Default panel on enable
         SwitchTo(defaultPanel);
     }
 
@@ -70,7 +70,7 @@ public class FooterPanelSwitcher : MonoBehaviour
         }
     }
 
-    // ✅ NEW: Check if there's any work to do
+    // ✅ Check if there's any work to do and show/hide the start icon
     private void UpdateDutiesButtonVisibility()
     {
         if (playerWallet == null) return;
@@ -80,19 +80,19 @@ public class FooterPanelSwitcher : MonoBehaviour
                        playerWallet.HensNeedingFood > 0 || 
                        playerWallet.HensNeedingClean > 0;
 
-        // When there's work: HIDE btnDuties, SHOW footerStart button
-        // When no work: SHOW btnDuties, HIDE footerStart button
+        // btnDuties is ALWAYS visible (like other footer buttons)
         if (btnDuties != null)
         {
-            btnDuties.gameObject.SetActive(!hasWork);
+            btnDuties.gameObject.SetActive(true);
         }
         
+        // Only show footerStart icon when there's work
         if (footerStart != null)
         {
             footerStart.gameObject.SetActive(hasWork);
         }
 
-        Debug.Log($"🔔 Footer Button Update - Work Available: {hasWork} → btnDuties: {!hasWork}, footerStart: {hasWork}");
+        Debug.Log($"🔔 Footer Button Update - Work Available: {hasWork} → footerStart icon: {hasWork}");
     }
 
     void SwitchTo(Panel p)
@@ -122,17 +122,15 @@ public class FooterPanelSwitcher : MonoBehaviour
         if (bgDuties) bgDuties.SetActive(p == Panel.Duties);
         if (bgStore) bgStore.SetActive(p == Panel.Store);
 
-        // ✅ When Duties panel is shown, show bgDuties background
-        // ALWAYS show btnDuties and HIDE footerStart button when panel is open
+        // ✅ When Duties panel is shown, show bgDuties background and HIDE the start icon
         if (p == Panel.Duties)
         {
             if (bgDuties != null) bgDuties.SetActive(true);
-            if (btnDuties != null) btnDuties.gameObject.SetActive(true); // Show normal button when panel open
-            if (footerStart != null) footerStart.gameObject.SetActive(false); // Always hide when panel is open
+            if (footerStart != null) footerStart.gameObject.SetActive(false); // Hide icon when panel is open
         }
         else
         {
-            // For other panels, update button visibility based on work status
+            // For other panels, update icon visibility based on work status
             UpdateDutiesButtonVisibility();
         }
 
