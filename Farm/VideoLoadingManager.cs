@@ -45,7 +45,7 @@ public class VideoLoadingManager : MonoBehaviour
         loadingPanel.SetActive(true);
 
         // Non-linear steps (visual only)
-        int[] steps = { 10, 20, 35, 50, 70, 85, 100 };
+        int[] steps = { 10, 35, 50, 70, 85, 100 };
 
         float totalDuration = 4f; // ⏱ fixed 4 seconds
         float stepTime = totalDuration / steps.Length;
@@ -57,7 +57,7 @@ public class VideoLoadingManager : MonoBehaviour
             dotCount++;
             if (dotCount > 3) dotCount = 1;
 
-            string dots = new string('.', dotCount).PadRight(3, ' ');
+            string dots = new string('.', dotCount).PadRight(4, ' ');
 
             loadingText.text = $"Loading{dots} {steps[i]}%";
 
