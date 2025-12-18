@@ -13,7 +13,6 @@ public class VideoLoadingManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI loadingText;
 
     private readonly List<VideoPlayer> registeredPlayers = new();
-    private int preparedCount = 0;
 
     private void Awake()
     {
@@ -27,31 +26,14 @@ public class VideoLoadingManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
+    // ✅ Still allowed to register videos (NO waiting)
     public void RegisterVideo(VideoPlayer player)
     {
         if (player == null) return;
         if (registeredPlayers.Contains(player)) return;
 
         registeredPlayers.Add(player);
-
-        // ❌ DO NOT prepare disabled players
-        if (!player.gameObject.activeInHierarchy || !player.enabled)
-        {
-            Debug.Log($"⏭ Skipping prepare (disabled): {player.name}");
-            return;
-        }
-
-        if (player.isPrepared)
-        {
-            preparedCount++;
-        }
-        else
-        {
-            player.prepareCompleted += OnVideoPrepared;
-            player.Prepare();
-        }
     }
-
 
     private void Start()
     {
@@ -62,50 +44,26 @@ public class VideoLoadingManager : MonoBehaviour
     {
         loadingPanel.SetActive(true);
 
-        // Loading steps (not sequential)
-        int[] steps = { 1, 5, 7, 14, 23, 35, 50, 68, 82, 100 };
+        // Non-linear steps (visual only)
+        int[] steps = { 10, 20, 35, 50, 70, 85, 100 };
 
-        float totalDuration = 10f;
+        float totalDuration = 4f; // ⏱ fixed 4 seconds
         float stepTime = totalDuration / steps.Length;
 
         int dotCount = 0;
 
         for (int i = 0; i < steps.Length; i++)
         {
-            // 👇 dotCount cycles: 1 → 2 → 3 → 1 ...
             dotCount++;
             if (dotCount > 3) dotCount = 1;
 
-            string dots = new string('.', dotCount);
+            string dots = new string('.', dotCount).PadRight(3, ' ');
 
             loadingText.text = $"Loading{dots} {steps[i]}%";
 
             yield return new WaitForSeconds(stepTime);
         }
 
-        yield return StartCoroutine(WaitForVideos());
-
         loadingPanel.SetActive(false);
-    }
-
-    private IEnumerator WaitForVideos()
-    {
-        if (registeredPlayers.Count == 0)
-            yield break;
-
-        float timeout = 5f;
-        float elapsed = 0f;
-
-        while (preparedCount < registeredPlayers.Count && elapsed < timeout)
-        {
-            elapsed += Time.deltaTime;
-            yield return null;
-        }
-    }
-
-    private void OnVideoPrepared(VideoPlayer vp)
-    {
-        preparedCount++;
-        vp.prepareCompleted -= OnVideoPrepared;
     }
 }
