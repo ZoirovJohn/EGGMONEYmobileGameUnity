@@ -2,30 +2,30 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-public class HeaderPager : MonoBehaviour
+public class HeaderPager : MonoBehaviour, IBeginDragHandler, IEndDragHandler
 {
     [Header("Scroll / Content")]
     public ScrollRect scrollRect;
     public RectTransform content;
 
     [Header("Dots")]
-    public Transform dotContainer;      // panel that will hold dots
-    public GameObject dotPrefab;        // optional; if null we create a simple Image
+    public Transform dotContainer;
+    public GameObject dotPrefab;
     public Vector2 dotSize = new Vector2(16, 16);
     public Color activeColor = Color.white;
     public Color inactiveColor = Color.gray;
 
     [Header("Pages")]
-    public int pageCount = 3;           // will still use this array for positions
+    public int pageCount = 3;
+
     private int currentPage = 0;
     private float[] pagePositions;
-
-    // internal
     private Image[] dots;
+
+    private bool isDragging = false; // ✅ NEW
 
     void Start()
     {
-        // Recommended for stability
         if (scrollRect)
         {
             scrollRect.horizontal = true;
@@ -34,15 +34,16 @@ public class HeaderPager : MonoBehaviour
             scrollRect.inertia = false;
         }
 
-        // If your content actually has N pages, you can sync like this:
-        if (content) pageCount = Mathf.Max(1, content.childCount);
+        if (content)
+            pageCount = Mathf.Max(1, content.childCount);
 
-        // Ensure we have enough dots; if not, create them
         EnsureDots();
 
-        // Precompute normalized positions (assumes equal-width pages laid out horizontally)
         pagePositions = new float[pageCount];
-        if (pageCount == 1) pagePositions[0] = 0f;
+        if (pageCount == 1)
+        {
+            pagePositions[0] = 0f;
+        }
         else
         {
             for (int i = 0; i < pageCount; i++)
@@ -56,6 +57,8 @@ public class HeaderPager : MonoBehaviour
 
     void Update()
     {
+        if (scrollRect == null || pagePositions == null) return;
+
         float pos = scrollRect.horizontalNormalizedPosition;
         int nearestPage = 0;
         float nearestDistance = Mathf.Abs(pos - pagePositions[0]);
@@ -70,8 +73,8 @@ public class HeaderPager : MonoBehaviour
             }
         }
 
-        // Snap when dragging ends
-        if (!Input.GetMouseButton(0))
+        // ✅ SNAP ONLY WHEN NOT DRAGGING
+        if (!isDragging)
         {
             float target = pagePositions[nearestPage];
             scrollRect.horizontalNormalizedPosition = Mathf.Lerp(
@@ -88,61 +91,30 @@ public class HeaderPager : MonoBehaviour
         }
     }
 
-    // ---------------- Public API for your buttons ----------------
-    // Hook these from your "Next" / "Mini" / etc. buttons.
-
-    /// <summary>Go to the next page (clamped).</summary>
-    public void NextPage()
+    // ✅ INPUT SYSTEM SAFE
+    public void OnBeginDrag(PointerEventData eventData)
     {
-        GoToPage(currentPage + 1);
+        isDragging = true;
     }
 
-    /// <summary>Go to the previous page (clamped).</summary>
-    public void PrevPage()
+    public void OnEndDrag(PointerEventData eventData)
     {
-        GoToPage(currentPage - 1);
+        isDragging = false;
     }
 
-    /// <summary>Go to a page by zero-based index (0..pageCount-1).</summary>
+    // ---------------- Navigation API ----------------
+
+    public void NextPage() => GoToPage(currentPage + 1);
+    public void PrevPage() => GoToPage(currentPage - 1);
+
     public void GoToPage(int target)
     {
         if (pageCount <= 0) return;
+
         target = Mathf.Clamp(target, 0, pageCount - 1);
         currentPage = target;
-        if (pagePositions == null || pagePositions.Length == 0) return;
         scrollRect.horizontalNormalizedPosition = pagePositions[currentPage];
         UpdateDots(currentPage);
-    }
-
-    /// <summary>
-    /// Go to the page that corresponds to this panel (child of content).
-    /// Useful if your Button sits on Panel2 and you drag Panel3 here to jump there.
-    /// </summary>
-    public void GoToPanel(RectTransform panel)
-    {
-        if (!content || !panel) return;
-
-        int idx = panel.GetSiblingIndex();
-        GoToPage(idx);
-    }
-
-
-
-    /// <summary>
-    /// Go to the page whose GameObject name matches (direct child of content).
-    /// Handy if you want to target by name via UnityEvent.
-    /// </summary>
-    public void GoToPanelByName(string childName)
-    {
-        if (!content || string.IsNullOrEmpty(childName)) return;
-        for (int i = 0; i < content.childCount; i++)
-        {
-            if (content.GetChild(i).name == childName)
-            {
-                GoToPage(i);
-                return;
-            }
-        }
     }
 
     // ---------------- Dots ----------------
@@ -151,14 +123,13 @@ public class HeaderPager : MonoBehaviour
     {
         if (!dotContainer) return;
 
-        // Count current child Images (direct children only)
         int have = 0;
         for (int i = 0; i < dotContainer.childCount; i++)
         {
-            if (dotContainer.GetChild(i).GetComponent<Image>() != null) have++;
+            if (dotContainer.GetChild(i).GetComponent<Image>())
+                have++;
         }
 
-        // Create missing dots
         for (int i = have; i < pageCount; i++)
         {
             GameObject go;
@@ -168,39 +139,25 @@ public class HeaderPager : MonoBehaviour
             }
             else
             {
-                go = new GameObject($"Dot{i+1}", typeof(RectTransform), typeof(Image));
+                go = new GameObject($"Dot{i + 1}", typeof(RectTransform), typeof(Image));
                 var rt = go.GetComponent<RectTransform>();
                 rt.SetParent(dotContainer, false);
                 rt.sizeDelta = dotSize;
 
-                // Give it a default sprite if needed (built-in UI sprite)
                 var img = go.GetComponent<Image>();
-                if (img.sprite == null)
-                {
-                    img.sprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/UISprite.psd");
-                    img.type = Image.Type.Simple;
-                    img.preserveAspect = true;
-                }
+                img.sprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/UISprite.psd");
+                img.preserveAspect = true;
             }
 
-            // Optional: make dot clickable to jump
             var btn = go.GetComponent<Button>();
-            if (btn != null)
+            if (btn)
             {
                 int idx = i;
                 btn.onClick.AddListener(() => GoToPage(idx));
             }
         }
 
-        // Cache all child Images as dots array
-        dots = new Image[dotContainer.childCount];
-        int k = 0;
-        for (int i = 0; i < dotContainer.childCount; i++)
-        {
-            var img = dotContainer.GetChild(i).GetComponent<Image>();
-            if (img != null) dots[k++] = img;
-        }
-        System.Array.Resize(ref dots, k);
+        dots = dotContainer.GetComponentsInChildren<Image>();
     }
 
     void UpdateDots(int index)
@@ -209,9 +166,7 @@ public class HeaderPager : MonoBehaviour
 
         for (int i = 0; i < dots.Length; i++)
         {
-            if (!dots[i]) continue;
-            dots[i].color = (i == index ? activeColor : inactiveColor);
-            dots[i].fillAmount = (i == index ? 1f : 0f);
+            dots[i].color = (i == index) ? activeColor : inactiveColor;
         }
     }
 }

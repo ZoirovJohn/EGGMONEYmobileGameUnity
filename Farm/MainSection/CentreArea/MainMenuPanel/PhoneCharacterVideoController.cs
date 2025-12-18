@@ -41,7 +41,15 @@ public class PhoneCharacterVideoController : MonoBehaviour
         // Set VideoPlayer aspect ratio to fit inside
         centerVideoPlayer.aspectRatio = VideoAspectRatio.FitInside;
     }
-    
+
+    private void OnEnable()
+    {
+        if (VideoLoadingManager.Instance != null)
+        {
+            VideoLoadingManager.Instance.RegisterVideo(centerVideoPlayer);
+        }
+    }
+
     private void Start()
     {
         // Initially hide the video section

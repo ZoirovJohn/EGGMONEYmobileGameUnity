@@ -143,6 +143,11 @@ public class MainMenuPanelTablet : MonoBehaviour
 
         mainScreenVideoPlayer.Play();
 
+        if (VideoLoadingManager.Instance != null)
+        {
+            VideoLoadingManager.Instance.RegisterVideo(mainScreenVideoPlayer);
+        }
+
         Debug.Log($"✅ [Tablet] Main screen video loaded ({width}x{height})");
     }
 
@@ -192,6 +197,11 @@ public class MainMenuPanelTablet : MonoBehaviour
             
             int index = i;
             StartCoroutine(PlayVideoAfterFrame(buttonVideoPlayers[index]));
+
+            if (VideoLoadingManager.Instance != null)
+            {
+                VideoLoadingManager.Instance.RegisterVideo(buttonVideoPlayers[i]);
+            }
 
             Debug.Log($"✅ [Tablet] Button {i + 1} video setup: {buttonVideoClips[i].name} ({width}x{height})");
         }

@@ -132,7 +132,6 @@ public class MainMenuPanelPhone : MonoBehaviour
         int width = 1080;
         int height = 1080;
         
-        // ✅ Check if RenderTexture already exists
         if (mainScreenVideoPlayer.targetTexture == null)
         {
             RenderTexture renderTexture = new RenderTexture(width, height, 0);
@@ -147,6 +146,12 @@ public class MainMenuPanelPhone : MonoBehaviour
         mainScreenVideoPlayer.aspectRatio = VideoAspectRatio.FitInside;
 
         mainScreenVideoPlayer.Play();
+
+        if (VideoLoadingManager.Instance != null)
+        {
+            VideoLoadingManager.Instance.RegisterVideo(mainScreenVideoPlayer);
+        }
+
 
         Debug.Log($"✅ [Phone] Main screen video loaded ({width}x{height})");
     }
@@ -197,6 +202,12 @@ public class MainMenuPanelPhone : MonoBehaviour
             
             int index = i;
             StartCoroutine(PlayVideoAfterFrame(buttonVideoPlayers[index]));
+
+            if (VideoLoadingManager.Instance != null)
+            {
+                VideoLoadingManager.Instance.RegisterVideo(buttonVideoPlayers[i]);
+            }
+
 
             Debug.Log($"✅ [Phone] Button {i + 1} video setup: {buttonVideoClips[i].name} ({width}x{height})");
         }

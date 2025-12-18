@@ -9,40 +9,45 @@ public class CentreAreaPager : MonoBehaviour
     public RectTransform content;
 
     [Header("Dots")]
-    public Transform dotContainer;      // panel that will hold dots
-    public GameObject dotPrefab;        // optional; if null we create a simple Image
+    public Transform dotContainer;
+    public GameObject dotPrefab;
     public Vector2 dotSize = new Vector2(16, 16);
     public Color activeColor = Color.white;
     public Color inactiveColor = Color.gray;
 
     [Header("Pages")]
-    public int pageCount = 4;           // will still use this array for positions
+    public int pageCount = 4;
+
     private int currentPage = 0;
     private float[] pagePositions;
-
-    // internal
     private Image[] dots;
+
+    // ✅ NEW INPUT SYSTEM SAFE
+    private bool isDragging = false;
 
     void Start()
     {
-        // Recommended for stability
-        if (scrollRect)
-        {
-            scrollRect.horizontal = true;
-            scrollRect.vertical = false;
-            scrollRect.movementType = ScrollRect.MovementType.Clamped;
-            scrollRect.inertia = false;
-        }
+        if (!scrollRect) return;
 
-        // If your content actually has N pages, you can sync like this:
-        if (content) pageCount = Mathf.Max(1, content.childCount);
+        // ScrollRect setup
+        scrollRect.horizontal = true;
+        scrollRect.vertical = false;
+        scrollRect.movementType = ScrollRect.MovementType.Clamped;
+        scrollRect.inertia = false;
 
-        // Ensure we have enough dots; if not, create them
+        // Auto page count from content
+        if (content)
+            pageCount = Mathf.Max(1, content.childCount);
+
+        // Create dots
         EnsureDots();
 
-        // Precompute normalized positions
+        // Precompute positions
         pagePositions = new float[pageCount];
-        if (pageCount == 1) pagePositions[0] = 0f;
+        if (pageCount == 1)
+        {
+            pagePositions[0] = 0f;
+        }
         else
         {
             for (int i = 0; i < pageCount; i++)
@@ -56,7 +61,10 @@ public class CentreAreaPager : MonoBehaviour
 
     void Update()
     {
+        if (!scrollRect || pagePositions == null) return;
+
         float pos = scrollRect.horizontalNormalizedPosition;
+
         int nearestPage = 0;
         float nearestDistance = Mathf.Abs(pos - pagePositions[0]);
 
@@ -70,8 +78,8 @@ public class CentreAreaPager : MonoBehaviour
             }
         }
 
-        // Snap when dragging ends
-        if (!Input.GetMouseButton(0))
+        // ✅ SNAP ONLY WHEN NOT DRAGGING
+        if (!isDragging)
         {
             float target = pagePositions[nearestPage];
             scrollRect.horizontalNormalizedPosition = Mathf.Lerp(
@@ -88,45 +96,54 @@ public class CentreAreaPager : MonoBehaviour
         }
     }
 
-    // ---------------- Dots ----------------
+    // ---------------- DRAG EVENTS (NEW INPUT SAFE) ----------------
+
+    public void OnBeginDrag(BaseEventData data)
+    {
+        isDragging = true;
+    }
+
+    public void OnEndDrag(BaseEventData data)
+    {
+        isDragging = false;
+    }
+
+    // ---------------- DOTS ----------------
 
     void EnsureDots()
     {
         if (!dotContainer) return;
 
-        // Count current child Images (direct children only)
-        int have = 0;
-        for (int i = 0; i < dotContainer.childCount; i++)
-        {
-            if (dotContainer.GetChild(i).GetComponent<Image>() != null) have++;
-        }
+        // Remove old dots
+        for (int i = dotContainer.childCount - 1; i >= 0; i--)
+            Destroy(dotContainer.GetChild(i).gameObject);
 
-        // Create missing dots
-        for (int i = have; i < pageCount; i++)
+        dots = new Image[pageCount];
+
+        for (int i = 0; i < pageCount; i++)
         {
             GameObject go;
+
             if (dotPrefab)
             {
                 go = Instantiate(dotPrefab, dotContainer);
             }
             else
             {
-                go = new GameObject($"Dot{i+1}", typeof(RectTransform), typeof(Image));
+                go = new GameObject($"Dot{i + 1}", typeof(RectTransform), typeof(Image));
+                go.transform.SetParent(dotContainer, false);
+
                 var rt = go.GetComponent<RectTransform>();
-                rt.SetParent(dotContainer, false);
                 rt.sizeDelta = dotSize;
 
-                // Give it a default sprite if needed (built-in UI sprite)
                 var img = go.GetComponent<Image>();
-                if (img.sprite == null)
-                {
-                    img.sprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/UISprite.psd");
-                    img.type = Image.Type.Simple;
-                    img.preserveAspect = true;
-                }
+                img.sprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/UISprite.psd");
+                img.preserveAspect = true;
             }
 
-            // Optional: make dot clickable to jump
+            dots[i] = go.GetComponent<Image>();
+
+            // Optional click support
             var btn = go.GetComponent<Button>();
             if (btn != null)
             {
@@ -134,17 +151,6 @@ public class CentreAreaPager : MonoBehaviour
                 btn.onClick.AddListener(() => GoToPage(idx));
             }
         }
-
-        // Cache all child Images as dots array
-        dots = new Image[dotContainer.childCount];
-        int k = 0;
-        for (int i = 0; i < dotContainer.childCount; i++)
-        {
-            var img = dotContainer.GetChild(i).GetComponent<Image>();
-            if (img != null) dots[k++] = img;
-        }
-        // Trim nulls if some children lacked Image
-        System.Array.Resize(ref dots, k);
     }
 
     void UpdateDots(int index)
@@ -154,15 +160,14 @@ public class CentreAreaPager : MonoBehaviour
         for (int i = 0; i < dots.Length; i++)
         {
             if (!dots[i]) continue;
-            dots[i].color = (i == index ? activeColor : inactiveColor);
-            // if your dot sprite supports fill, show filled vs empty
-            dots[i].fillAmount = (i == index ? 1f : 0f);
+            dots[i].color = (i == index) ? activeColor : inactiveColor;
         }
     }
 
     public void GoToPage(int target)
     {
-        if (pageCount <= 0) return;
+        if (pagePositions == null) return;
+
         target = Mathf.Clamp(target, 0, pageCount - 1);
         currentPage = target;
         scrollRect.horizontalNormalizedPosition = pagePositions[currentPage];
