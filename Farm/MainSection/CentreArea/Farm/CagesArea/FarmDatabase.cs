@@ -158,7 +158,7 @@ public class FarmDatabase : ScriptableObject
                     hasEgg = false,
                     eggReady = false,
                     remainingTime = 0f,
-                    lifetimeDaysRemaining = 0, // ✅ IMPORTANT
+                    lifetimeDaysRemaining = 0,
                     upgradeLevel = 0,
                     isPremium = false
                 });
@@ -283,7 +283,7 @@ public class FarmDatabase : ScriptableObject
         Assign(farm.champChicks, c => c.champChicks = 1);
         Assign(farm.normalChicks, c => c.normalChicks = 1);
     }
-    
+
     // ==================================================
     // BACKEND SUPPORT
     // ==================================================

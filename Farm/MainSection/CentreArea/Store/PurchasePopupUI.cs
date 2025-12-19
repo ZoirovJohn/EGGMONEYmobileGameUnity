@@ -14,8 +14,9 @@ public class PurchasePopupUI : MonoBehaviour
     [SerializeField] TMP_InputField qtyInput;
     [SerializeField] TMP_Text totalText;
     [SerializeField] TMP_Text messageText;
-    [SerializeField] Button btnMinus;
-    [SerializeField] Button btnPlus;
+    [SerializeField] Button btnPlus1;
+    [SerializeField] Button btnPlus5;
+    [SerializeField] Button btnPlus10;
     [SerializeField] Button btnBuy;
     [SerializeField] Button btnCancel;
     [SerializeField] GameObject inventoryButton; // ⭐ Reference to inventory button
@@ -59,8 +60,9 @@ public class PurchasePopupUI : MonoBehaviour
         if (!wallet) wallet = FindAnyObjectByType<PlayerWallet>(FindObjectsInactive.Include);
         if (!marketManager) marketManager = FindAnyObjectByType<MarketManager>(FindObjectsInactive.Include);
 
-        btnMinus?.onClick.RemoveAllListeners();
-        btnPlus?.onClick.RemoveAllListeners();
+        btnPlus1?.onClick.RemoveAllListeners();
+        btnPlus5?.onClick.RemoveAllListeners();
+        btnPlus10?.onClick.RemoveAllListeners();
         btnBuy?.onClick.RemoveAllListeners();
         btnCancel?.onClick.RemoveAllListeners();
 
@@ -84,8 +86,9 @@ public class PurchasePopupUI : MonoBehaviour
 
         SetQty(Mathf.Clamp(1, minQty, maxQty));
 
-        btnMinus?.onClick.AddListener(() => SetQty(qty - 1));
-        btnPlus?.onClick.AddListener(() => SetQty(qty + 1));
+        btnPlus1?.onClick.AddListener(() => SetQty(qty + 1));
+        btnPlus5?.onClick.AddListener(() => SetQty(qty + 5));
+        btnPlus10?.onClick.AddListener(() => SetQty(qty + 10));
 
         if (btnBuy)
         {
@@ -98,7 +101,7 @@ public class PurchasePopupUI : MonoBehaviour
         }
 
         if (btnCancel)
-            btnCancel.onClick.AddListener(Close);
+            btnCancel.onClick.AddListener(() => SetQty(0));
 
         RefreshUI();
     }
@@ -152,8 +155,9 @@ public class PurchasePopupUI : MonoBehaviour
             totalText.text = string.Format(totalFormat, total);
         }
 
-        btnMinus.interactable = qty > minQty;
-        btnPlus.interactable = qty < maxQty;
+        btnPlus1.interactable = qty < maxQty;
+        btnPlus5.interactable = qty < maxQty;
+        btnPlus10.interactable = qty < maxQty;
 
         bool canBuyNow;
 
@@ -178,8 +182,7 @@ public class PurchasePopupUI : MonoBehaviour
                 LocalizeMsg("Store_InsufficientFP", false);
         }
 
-        btnBuy?.gameObject.SetActive(canBuyNow);
-        btnCancel?.gameObject.SetActive(!canBuyNow);
+        if (btnBuy) btnBuy.interactable = canBuyNow;
     }
 
     // ------------------------------
@@ -314,8 +317,7 @@ public class PurchasePopupUI : MonoBehaviour
         messageText.text = LanguageManager.Instance.GetTranslation(key);
         messageText.color = new Color(0.85f, 0.2f, 0.2f);
 
-        btnBuy?.gameObject.SetActive(false);
-        btnCancel?.gameObject.SetActive(true);
+        if (btnBuy) btnBuy.interactable = false;
     }
 
     IEnumerator FlashMsg(string key, Color col, float sec)

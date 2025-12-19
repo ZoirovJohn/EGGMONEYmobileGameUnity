@@ -591,8 +591,8 @@ public static class TranslationsData
         };
 
         translations["Store_ClickToBuy"] = new() {
-            { "English", "Click to purchase →" },
-            { "Korean", "구매하려면 클릭하세요 →" }
+            { "English", "Available for purchase" },
+            { "Korean", "구매 가능" }
         };
 
         translations["Store_InsufficientFP"] = new() {
