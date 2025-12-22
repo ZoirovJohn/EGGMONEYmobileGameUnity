@@ -8,11 +8,13 @@ public class InfoHatchManager : MonoBehaviour
     [SerializeField] GameObject infoHatchPanel;
 
     [Header("UI Elements")]
-    [SerializeField] Button btnMinus;
-    [SerializeField] Button btnPlus;
     [SerializeField] TMP_InputField inputCount;
-    [SerializeField] TMP_Text infoText;
-    [SerializeField] TMP_Text messageText;
+
+    [Header("Add Buttons")]
+    [SerializeField] Button btnAdd1;
+    [SerializeField] Button btnAdd5;
+    [SerializeField] Button btnAdd10;
+
     [SerializeField] Button btnOk;
     [SerializeField] Button btnCancel;
 
@@ -21,13 +23,12 @@ public class InfoHatchManager : MonoBehaviour
     [SerializeField] EggHatchAPI hatchAPI;
 
     [Header("Limits")]
-    [SerializeField] int minQty = 1;
     [SerializeField] int maxQty = 999;
 
     [Header("Auto Find")]
     [SerializeField] bool autoFind = true;
 
-    private int currentQty = 1;
+    private int currentQty = 0;
     private int availableEggs = 0;
     private string eggType = "";
 
@@ -60,10 +61,10 @@ public class InfoHatchManager : MonoBehaviour
 
         this.eggType = eggType;
         this.availableEggs = availableEggs;
-        this.currentQty = 1;
+        this.currentQty = 0;
 
         SetupButtons();
-        RefreshUI();
+        RefreshUI(); // ✅ correct call
 
         infoHatchPanel.SetActive(true);
         infoHatchPanel.transform.SetAsLastSibling();
@@ -71,14 +72,17 @@ public class InfoHatchManager : MonoBehaviour
 
     void SetupButtons()
     {
-        btnMinus?.onClick.RemoveAllListeners();
-        btnPlus?.onClick.RemoveAllListeners();
+        btnAdd1?.onClick.RemoveAllListeners();
+        btnAdd5?.onClick.RemoveAllListeners();
+        btnAdd10?.onClick.RemoveAllListeners();
         btnCancel?.onClick.RemoveAllListeners();
         inputCount?.onEndEdit.RemoveAllListeners();
 
-        btnMinus?.onClick.AddListener(() => SetQuantity(currentQty - 1));
-        btnPlus?.onClick.AddListener(() => SetQuantity(currentQty + 1));
-        btnCancel?.onClick.AddListener(OnCancelClicked);
+        btnAdd1?.onClick.AddListener(() => AddQuantity(1));
+        btnAdd5?.onClick.AddListener(() => AddQuantity(5));
+        btnAdd10?.onClick.AddListener(() => AddQuantity(10));
+
+        btnCancel?.onClick.AddListener(ResetQuantity);
 
         if (inputCount)
         {
@@ -93,58 +97,36 @@ public class InfoHatchManager : MonoBehaviour
         }
     }
 
+    void AddQuantity(int amount)
+    {
+        SetQuantity(currentQty + amount);
+    }
+
     void SetQuantity(int newQty)
     {
-        currentQty = Mathf.Clamp(newQty, minQty, Mathf.Min(maxQty, availableEggs));
+        currentQty = Mathf.Clamp(newQty, 0, Mathf.Min(maxQty, availableEggs));
         RefreshUI();
     }
 
+    void ResetQuantity()
+    {
+        currentQty = 0;
+        RefreshUI();
+    }
+
+    // ✅ MUST be public (used by LanguagePanelManager)
     public void RefreshUI()
     {
         if (inputCount)
             inputCount.text = currentQty.ToString();
 
-        if (infoText)
-        {
-            string eggName = GetEggDisplayName(eggType);
-            string format = LanguageManager.Instance.GetTranslation("Hatch_YouHave");
-            infoText.text = string.Format(format, availableEggs, eggName);
-        }
-
-        bool canHatch = currentQty > 0 && currentQty <= availableEggs && availableEggs > 0;
-
-        if (messageText)
-        {
-            if (canHatch)
-            {
-                messageText.text = LanguageManager.Instance.GetTranslation("Hatch_Available");
-                messageText.color = new Color(0.16f, 0.6f, 0.2f);
-            }
-            else
-            {
-                messageText.text = LanguageManager.Instance.GetTranslation("Hatch_NotEnough");
-                messageText.color = new Color(0.85f, 0.2f, 0.2f);
-            }
-        }
+        bool canHatch = currentQty > 0 && currentQty <= availableEggs;
 
         if (btnOk)
-        {
-            btnOk.gameObject.SetActive(canHatch);
             btnOk.interactable = canHatch;
-        }
-
-        if (btnCancel)
-            btnCancel.gameObject.SetActive(!canHatch);
-
-        btnMinus.interactable = currentQty > minQty;
-        btnPlus.interactable = currentQty < Mathf.Min(maxQty, availableEggs);
     }
 
-    void OnCancelClicked()
-    {
-        infoHatchPanel?.SetActive(false);
-    }
-
+    // ❗ DO NOT CHANGE — hatch logic preserved
     public void OnHatchBtnClick()
     {
         if (currentQty <= 0 || currentQty > availableEggs)
@@ -184,18 +166,6 @@ public class InfoHatchManager : MonoBehaviour
                 btnOk.interactable = true;
             }
         );
-    }
-
-    string GetEggDisplayName(string eggId)
-    {
-        string key = eggId switch
-        {
-            "silver_egg" => "Egg_Silver",
-            "gold_egg" => "Egg_Gold",
-            _ => "Egg_Generic"
-        };
-
-        return LanguageManager.Instance.GetTranslation(key);
     }
 
     // ⭐ CALLED BY LANGUAGE MANAGER
