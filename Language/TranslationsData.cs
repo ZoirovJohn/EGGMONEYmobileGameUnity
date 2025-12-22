@@ -662,6 +662,21 @@ public static class TranslationsData
             { "Korean", "30개를 채워서 배송 주문하세요" }
         };
 
+        translations["Confirm"] = new Dictionary<string, string>
+        {
+            { "English", "Confirm" },
+            { "Korean", "확인" }
+        };
+
+        translations["Cancel"] = new Dictionary<string, string>
+        {
+            { "English", "Cancel" },
+            { "Korean", "취소" }
+        };
+
+
+
+
         return translations;
     }
 }
