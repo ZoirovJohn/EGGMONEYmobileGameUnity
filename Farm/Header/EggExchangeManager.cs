@@ -13,24 +13,26 @@ public class EggExchangeManager : MonoBehaviour
     [SerializeField] private PlayerWallet wallet;
     [SerializeField] private InfoErrorChanger infoErrorChanger;
     [SerializeField] private BasketManager basketManager;
-    [SerializeField] private Button topButton; // The button that opens/closes this panel
+    [SerializeField] private Button topButton;
     [SerializeField] private Button topButton2;
 
     [Header("UI Elements")]
     [SerializeField] private TMP_InputField eggInputField;
-    [SerializeField] private Button btnLeft;
-    [SerializeField] private Button btnRight;
-    [SerializeField] private TMP_Text txtFP; // Shows calculated FP amount
-    [SerializeField] private Button btnYes;
-    [SerializeField] private Button btnNo;
 
-    [Header("Localized Text Elements")]
-    [SerializeField] private TMP_Text swapText1; // "You can get "
-    [SerializeField] private TMP_Text swapText2; // "Would you like to exchange..."
-    [SerializeField] private TMP_Text deliveryText1; // "Fill in 30 and order delivery"
+    [Header("Add Buttons")]
+    [SerializeField] private Button btnAdd1;
+    [SerializeField] private Button btnAdd5;
+    [SerializeField] private Button btnAdd10;
+    [SerializeField] private Button btnReset; // acts like minus → reset to 0
+
+    [SerializeField] private TMP_Text txtFP;
+    [SerializeField] private Button btnYes;
+
+    [Header("Localized Text")]
+    [SerializeField] private TMP_Text swapText1; // "You can get {FP} FP"
 
     [Header("Exchange Settings")]
-    [SerializeField] private int fpPerEgg = 400; // 1 egg = 400 FP
+    [SerializeField] private int fpPerEgg = 400;
 
     private int availableEggs = 0;
     private int currentInputAmount = 0;
@@ -38,206 +40,95 @@ public class EggExchangeManager : MonoBehaviour
 
     private void Start()
     {
-        // Setup button listeners
-        if (btnLeft != null)
-            btnLeft.onClick.AddListener(OnLeftButtonClicked);
-        
-        if (btnRight != null)
-            btnRight.onClick.AddListener(OnRightButtonClicked);
-        
-        if (btnYes != null)
-            btnYes.onClick.AddListener(OnYesButtonClicked);
-        
-        if (btnNo != null)
-            btnNo.onClick.AddListener(OnNoButtonClicked);
-        
-        if (eggInputField != null)
-        {
-            eggInputField.onValueChanged.AddListener(OnInputValueChanged);
-            eggInputField.contentType = TMP_InputField.ContentType.IntegerNumber;
-        }
+        btnAdd1?.onClick.AddListener(() => AddEggs(1));
+        btnAdd5?.onClick.AddListener(() => AddEggs(5));
+        btnAdd10?.onClick.AddListener(() => AddEggs(10));
+        btnReset?.onClick.AddListener(ResetInput);
 
-        // Setup top button listener
+        btnYes?.onClick.AddListener(OnYesButtonClicked);
+
+        eggInputField.contentType = TMP_InputField.ContentType.IntegerNumber;
+        eggInputField.onValueChanged.AddListener(OnInputValueChanged);
+
         if (topButton != null && topButton2 != null)
         {
             topButton.onClick.AddListener(OnTopButtonClicked);
             topButton2.onClick.AddListener(OnTopButtonClicked);
         }
 
-        // Initialize localized texts
-        UpdateLocalizedTexts();
+        UpdateSwapText();
     }
 
     private void OnEnable()
     {
-        // Update texts when panel becomes active (in case language changed)
-        UpdateLocalizedTexts();
-    }
-
-    public void UpdateLocalizedTexts()
-    {
-        if (LanguageManager.Instance == null) return;
-
-        if (swapText1 != null)
-            swapText1.text = LanguageManager.Instance.GetTranslation("SwapText1");
-
-        if (swapText2 != null)
-            swapText2.text = LanguageManager.Instance.GetTranslation("SwapText2");
-
-        if (deliveryText1 != null)
-            deliveryText1.text = LanguageManager.Instance.GetTranslation("DeliveryText1");
+        UpdateSwapText();
     }
 
     private void OnTopButtonClicked()
     {
         if (isPanelOpen)
-        {
             CloseExchangePanel();
-        }
         else
-        {
             OpenExchangePanel();
-        }
     }
 
     private void OpenExchangePanel()
     {
         isPanelOpen = true;
-        
-        // Update texts when opening
-        UpdateLocalizedTexts();
-        
-        // Fetch available eggs from backend using BasketManager
-        if (basketManager != null)
-        {
-            basketManager.GetBasket(
-                onSuccess: OnBasketFetchSuccess,
-                onError: OnBasketFetchError
-            );
-        }
-        else
-        {
-            Debug.LogError("❌ BasketManager reference is missing!");
-            if (infoErrorChanger != null)
-                infoErrorChanger.OpenErrorDefault("System error: BasketManager not found");
-            isPanelOpen = false;
-        }
-    }
 
-    private void OnBasketFetchSuccess(string jsonResponse)
-    {
-        try
-        {
-            BasketResponse response = JsonUtility.FromJson<BasketResponse>(jsonResponse);
-            availableEggs = response.eggCount;
-            
-            // Open the panel with the data
-            if (infoErrorChanger != null)
-                infoErrorChanger.OpenInfoExchangeFPCoin();
-            
-            ResetInput();
-        }
-        catch (Exception e)
-        {
-            Debug.LogError($"❌ Failed to parse basket response: {e.Message}");
-            OnBasketFetchError("Invalid response from server");
-        }
-    }
-
-    private void OnBasketFetchError(string error)
-    {
-        Debug.LogError($"❌ Failed to fetch basket: {error}");
-        
-        if (infoErrorChanger != null)
-            infoErrorChanger.OpenErrorDefault("Failed to load egg data. Please try again.");
-        
-        isPanelOpen = false;
+        basketManager.GetBasket(
+            onSuccess: OnBasketFetchSuccess,
+            onError: OnBasketFetchError
+        );
     }
 
     private void CloseExchangePanel()
     {
         isPanelOpen = false;
-        
-        if (infoErrorChanger != null)
-            infoErrorChanger.CloseAllInfoErrorMethod();
-        
+        infoErrorChanger?.CloseAllInfoErrorMethod();
         ResetInput();
     }
 
-    private void OnLeftButtonClicked()
+    private void OnBasketFetchSuccess(string json)
     {
-        if (currentInputAmount > 0)
-        {
-            currentInputAmount--;
-            UpdateInputDisplay();
-        }
+        BasketResponse response = JsonUtility.FromJson<BasketResponse>(json);
+        availableEggs = response.eggCount;
+
+        infoErrorChanger?.OpenInfoExchangeFPCoin();
+        ResetInput();
     }
 
-    private void OnRightButtonClicked()
+    private void OnBasketFetchError(string error)
     {
-        if (currentInputAmount < availableEggs)
+        infoErrorChanger?.OpenErrorDefault("Failed to load egg data.");
+        isPanelOpen = false;
+    }
+
+    // =====================
+    // Egg Logic
+    // =====================
+
+    private void AddEggs(int amount)
+    {
+        int newValue = currentInputAmount + amount;
+
+        if (newValue > availableEggs)
         {
-            currentInputAmount++;
-            UpdateInputDisplay();
+            infoErrorChanger?.OpenErrorDefault($"You only have {availableEggs} eggs");
+            newValue = availableEggs;
         }
-        else
-        {
-            // Optional: Show a message when user tries to go beyond available eggs
-            if (infoErrorChanger != null)
-                infoErrorChanger.OpenErrorDefault($"Maximum eggs available: {availableEggs}");
-        }
+
+        currentInputAmount = newValue;
+        UpdateInputDisplay();
     }
 
     private void OnInputValueChanged(string value)
     {
-        if (string.IsNullOrEmpty(value))
-        {
-            currentInputAmount = 0;
-            UpdateFPDisplay();
-            return;
-        }
+        if (!int.TryParse(value, out int parsed))
+            parsed = 0;
 
-        if (int.TryParse(value, out int inputValue))
-        {
-            // Clamp to available eggs
-            int clampedValue = Mathf.Clamp(inputValue, 0, availableEggs);
-            
-            if (clampedValue != inputValue)
-            {
-                // User tried to enter more than available
-                if (infoErrorChanger != null)
-                    infoErrorChanger.OpenErrorDefault($"You only have {availableEggs} eggs available");
-            }
-            
-            currentInputAmount = clampedValue;
-            
-            // Update display if clamped
-            if (currentInputAmount != inputValue)
-            {
-                UpdateInputDisplay();
-            }
-            else
-            {
-                UpdateFPDisplay();
-            }
-        }
-    }
-
-    private void UpdateInputDisplay()
-    {
-        if (eggInputField != null)
-            eggInputField.text = currentInputAmount.ToString();
-        
+        currentInputAmount = Mathf.Clamp(parsed, 0, availableEggs);
         UpdateFPDisplay();
-    }
-
-    private void UpdateFPDisplay()
-    {
-        if (txtFP != null)
-        {
-            long totalFP = (long)currentInputAmount * fpPerEgg;
-            txtFP.text = totalFP.ToString("N0"); // Format with thousand separators
-        }
     }
 
     private void ResetInput()
@@ -246,51 +137,64 @@ public class EggExchangeManager : MonoBehaviour
         UpdateInputDisplay();
     }
 
+    private void UpdateInputDisplay()
+    {
+        eggInputField.text = currentInputAmount.ToString();
+        UpdateFPDisplay();
+    }
+
+    private void UpdateFPDisplay()
+    {
+        long totalFP = (long)currentInputAmount * fpPerEgg;
+        txtFP.text = totalFP.ToString("N0");
+        UpdateSwapText();
+    }
+
+    private void UpdateSwapText()
+    {
+        UpdateLocalizedTexts();
+    }
+
+    public void UpdateLocalizedTexts()
+    {
+        if (LanguageManager.Instance == null) return;
+
+        // Base localized text like "You can get {0} FP"
+        string baseText = LanguageManager.Instance.GetTranslation("SwapText1");
+
+        long totalFP = (long)currentInputAmount * fpPerEgg;
+
+        // Supports {0} formatting if you want later
+        swapText1.text = string.Format(baseText, totalFP.ToString("N0"));
+    }
+
+    // =====================
+    // Confirm / Cancel
+    // =====================
+
     private void OnYesButtonClicked()
     {
         if (currentInputAmount <= 0)
         {
-            if (infoErrorChanger != null)
-                infoErrorChanger.OpenErrorDefault("Please enter amount of eggs to exchange");
+            infoErrorChanger?.OpenErrorDefault("Please select eggs to exchange");
             return;
         }
 
-        if (currentInputAmount > availableEggs)
-        {
-            if (infoErrorChanger != null)
-                infoErrorChanger.OpenErrorDefault($"Not enough eggs! You have {availableEggs} eggs");
-            return;
-        }
+        int eggs = currentInputAmount;
+        int fp = eggs * fpPerEgg;
 
-        // ✅ IMMEDIATE IN-GAME EXCHANGE (Optimistic Update)
-        int eggsToExchange = currentInputAmount;
-        int fpToAdd = eggsToExchange * fpPerEgg;
+        wallet.TrySpendEggs(eggs);
+        wallet.Add(fp);
 
-        // Update wallet immediately in game
-        if (wallet != null)
-        {
-            wallet.TrySpendEggs(eggsToExchange);  // ✅ Use this instead
-            wallet.Add(fpToAdd);
-        }
+        availableEggs -= eggs;
 
-        // Update available eggs
-        availableEggs -= eggsToExchange;
+        infoErrorChanger?.OpenErrorDefault(
+            $"Success! Exchanged {eggs} eggs for {fp:N0} FP"
+        );
 
-        // Show success message
-        if (infoErrorChanger != null)
-            infoErrorChanger.OpenErrorDefault($"Success! Exchanged {eggsToExchange} eggs for {fpToAdd:N0} FP");
-
-        // Reset and close
         ResetInput();
         StartCoroutine(ClosePanelAfterDelay(2f));
-
-        // ✅ NOW CALL BACKEND to sync
-        StartCoroutine(SyncExchangeWithBackend(eggsToExchange));
-    }
-
-    private void OnNoButtonClicked()
-    {
-        CloseExchangePanel();
+        StartCoroutine(SyncExchangeWithBackend(eggs));
     }
 
     private IEnumerator ClosePanelAfterDelay(float delay)
@@ -299,74 +203,28 @@ public class EggExchangeManager : MonoBehaviour
         CloseExchangePanel();
     }
 
-    // ✅ Backend sync - happens AFTER in-game exchange
+    // =====================
+    // Backend Sync
+    // =====================
+
     private IEnumerator SyncExchangeWithBackend(int eggAmount)
     {
-        string accessToken = AuthStorage.GetAccessToken();
-        
-        if (string.IsNullOrEmpty(accessToken))
-        {
-            Debug.LogError("❌ No access token - backend sync failed (but in-game exchange already happened)");
-            yield break;
-        }
+        string token = AuthStorage.GetAccessToken();
+        if (string.IsNullOrEmpty(token)) yield break;
 
         string url = config.baseUrl + "/economy/basket-to-fp";
-        
-        BasketToFPRequest requestData = new BasketToFPRequest
-        {
-            eggs = eggAmount
-        };
-        
-        string jsonData = JsonUtility.ToJson(requestData);
-        
-        using (UnityEngine.Networking.UnityWebRequest request = 
-               new UnityEngine.Networking.UnityWebRequest(url, "POST"))
-        {
-            byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonData);
-            request.uploadHandler = new UnityEngine.Networking.UploadHandlerRaw(bodyRaw);
-            request.downloadHandler = new UnityEngine.Networking.DownloadHandlerBuffer();
-            request.SetRequestHeader("Content-Type", "application/json");
-            request.SetRequestHeader("Authorization", "Bearer " + accessToken);
 
-            yield return request.SendWebRequest();
+        var body = JsonUtility.ToJson(new BasketToFPRequest { eggs = eggAmount });
 
-            if (request.result == UnityEngine.Networking.UnityWebRequest.Result.Success)
-            {
-                Debug.Log($"✅ Backend sync successful: {request.downloadHandler.text}");
-            }
-            else
-            {
-                Debug.LogError($"❌ Backend sync failed: {request.error}");
-                Debug.LogError($"Response Code: {request.responseCode}");
-                Debug.LogError($"Response: {request.downloadHandler.text}");
-                // Note: In-game exchange already happened, so we don't rollback here
-                // You may want to implement a retry mechanism or queue system
-            }
-        }
-    }
+        using var req = new UnityEngine.Networking.UnityWebRequest(url, "POST");
+        req.uploadHandler = new UnityEngine.Networking.UploadHandlerRaw(
+            System.Text.Encoding.UTF8.GetBytes(body)
+        );
+        req.downloadHandler = new UnityEngine.Networking.DownloadHandlerBuffer();
+        req.SetRequestHeader("Content-Type", "application/json");
+        req.SetRequestHeader("Authorization", "Bearer " + token);
 
-    private void OnDestroy()
-    {
-        // Cleanup listeners
-        if (btnLeft != null)
-            btnLeft.onClick.RemoveListener(OnLeftButtonClicked);
-        
-        if (btnRight != null)
-            btnRight.onClick.RemoveListener(OnRightButtonClicked);
-        
-        if (btnYes != null)
-            btnYes.onClick.RemoveListener(OnYesButtonClicked);
-        
-        if (btnNo != null)
-            btnNo.onClick.RemoveListener(OnNoButtonClicked);
-        
-        if (eggInputField != null)
-            eggInputField.onValueChanged.RemoveListener(OnInputValueChanged);
-        
-        if (topButton != null)
-        {
-            topButton.onClick.RemoveListener(OnTopButtonClicked);
-        }
+        yield return req.SendWebRequest();
     }
 
     [Serializable]
@@ -374,5 +232,4 @@ public class EggExchangeManager : MonoBehaviour
     {
         public int eggCount;
     }
-
 }
