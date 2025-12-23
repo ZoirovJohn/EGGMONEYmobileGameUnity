@@ -43,6 +43,9 @@ public class PurchasePopupUI : MonoBehaviour
     bool updatingFromCode = false;
 
     Coroutine tempMsgCo;
+    Coroutine bounceCoroutine; // ⭐ Track the bounce animation
+    Vector2 inventoryOriginalPosition; // ⭐ Store original position once
+    bool originalPositionSet = false; // ⭐ Track if we've stored the position
 
     void Awake()
     {
@@ -54,11 +57,36 @@ public class PurchasePopupUI : MonoBehaviour
         }
     }
 
+    void Start()
+    {
+        // ⭐ Store inventory button's original position ONCE at the very start
+        if (inventoryButton != null && !originalPositionSet)
+        {
+            RectTransform rectTransform = inventoryButton.GetComponent<RectTransform>();
+            if (rectTransform != null)
+            {
+                inventoryOriginalPosition = rectTransform.anchoredPosition;
+                originalPositionSet = true;
+            }
+        }
+    }
+
     void OnEnable()
     {
         if (!store) store = StoreDB.Instance;
         if (!wallet) wallet = FindAnyObjectByType<PlayerWallet>(FindObjectsInactive.Include);
         if (!marketManager) marketManager = FindAnyObjectByType<MarketManager>(FindObjectsInactive.Include);
+
+        // ⭐ Store original position only if not set yet (fallback)
+        if (inventoryButton != null && !originalPositionSet)
+        {
+            RectTransform rectTransform = inventoryButton.GetComponent<RectTransform>();
+            if (rectTransform != null)
+            {
+                inventoryOriginalPosition = rectTransform.anchoredPosition;
+                originalPositionSet = true;
+            }
+        }
 
         btnPlus1?.onClick.RemoveAllListeners();
         btnPlus5?.onClick.RemoveAllListeners();
@@ -234,9 +262,25 @@ public class PurchasePopupUI : MonoBehaviour
                 FlashMsg("Store_Purchased", new Color(0.2f, 0.6f, 1f), 3f);
                 FXManager.Instance?.PlayPurchaseFX_Center();
 
+                // ⭐ Stop any existing bounce animation before starting a new one
+                if (bounceCoroutine != null)
+                {
+                    StopCoroutine(bounceCoroutine);
+                    
+                    // Reset position immediately
+                    if (inventoryButton != null)
+                    {
+                        RectTransform rectTransform = inventoryButton.GetComponent<RectTransform>();
+                        if (rectTransform != null)
+                        {
+                            rectTransform.anchoredPosition = inventoryOriginalPosition;
+                        }
+                    }
+                }
+
                 if (inventoryButton != null)
                 {
-                    StartCoroutine(BounceInventoryButton(3));
+                    bounceCoroutine = StartCoroutine(BounceInventoryButton(3));
                 }
                 
                 btnBuy.interactable = true;
@@ -259,7 +303,8 @@ public class PurchasePopupUI : MonoBehaviour
         RectTransform rectTransform = inventoryButton.GetComponent<RectTransform>();
         if (rectTransform == null) yield break;
 
-        Vector2 originalPosition = rectTransform.anchoredPosition;
+        // ⭐ Force position to original before starting animation
+        rectTransform.anchoredPosition = inventoryOriginalPosition;
 
         for (int i = 0; i < bounceCount; i++)
         {
@@ -267,6 +312,13 @@ public class PurchasePopupUI : MonoBehaviour
 
             while (time < Mathf.PI)
             {
+                // ⭐ Check if button was clicked (position changed externally)
+                if (rectTransform == null || inventoryButton == null)
+                {
+                    bounceCoroutine = null;
+                    yield break;
+                }
+
                 time += Time.deltaTime * bounceSpeed;
                 
                 // Calculate bounce using sine wave (0 to PI for upward motion only)
@@ -276,14 +328,14 @@ public class PurchasePopupUI : MonoBehaviour
                 float curveValue = bounceCurve.Evaluate(Mathf.Sin(time));
                 bounce = bounce * curveValue;
                 
-                // Update position (only upward from original position)
-                rectTransform.anchoredPosition = originalPosition + new Vector2(0, bounce);
+                // ⭐ Update position using stored original position
+                rectTransform.anchoredPosition = inventoryOriginalPosition + new Vector2(0, bounce);
                 
                 yield return null;
             }
 
-            // Ensure it returns to original position after each bounce
-            rectTransform.anchoredPosition = originalPosition;
+            // ⭐ Return to stored original position after each bounce
+            rectTransform.anchoredPosition = inventoryOriginalPosition;
             
             // Small delay between bounces
             if (i < bounceCount - 1)
@@ -292,8 +344,28 @@ public class PurchasePopupUI : MonoBehaviour
             }
         }
 
-        // Final position reset
-        rectTransform.anchoredPosition = originalPosition;
+        // ⭐ Final position reset to stored original
+        rectTransform.anchoredPosition = inventoryOriginalPosition;
+        bounceCoroutine = null; // ⭐ Clear the coroutine reference
+    }
+
+    void OnDisable()
+    {
+        // ⭐ Clean up animation when popup closes
+        if (bounceCoroutine != null)
+        {
+            StopCoroutine(bounceCoroutine);
+            bounceCoroutine = null;
+        }
+
+        if (inventoryButton != null && originalPositionSet)
+        {
+            RectTransform rectTransform = inventoryButton.GetComponent<RectTransform>();
+            if (rectTransform != null)
+            {
+                rectTransform.anchoredPosition = inventoryOriginalPosition;
+            }
+        }
     }
 
     // ------------------------------
