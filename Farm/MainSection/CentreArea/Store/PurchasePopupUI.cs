@@ -22,7 +22,7 @@ public class PurchasePopupUI : MonoBehaviour
     [SerializeField] GameObject inventoryButton; // ⭐ Reference to inventory button
 
     [Header("Limits")]
-    [SerializeField] int minQty = 1;
+    [SerializeField] int minQty = 0; // ⭐ Changed to 0 so it can be reset
     [SerializeField] int maxQty = 999;
 
     [Header("Wallet (required)")]
@@ -112,7 +112,7 @@ public class PurchasePopupUI : MonoBehaviour
             unitPriceText.text = string.Format(priceFormat, unitPrice);
         }
 
-        SetQty(Mathf.Clamp(1, minQty, maxQty));
+        SetQty(Mathf.Clamp(0, minQty, maxQty));
 
         btnPlus1?.onClick.AddListener(() => SetQty(qty + 1));
         btnPlus5?.onClick.AddListener(() => SetQty(qty + 5));
@@ -129,7 +129,20 @@ public class PurchasePopupUI : MonoBehaviour
         }
 
         if (btnCancel)
-            btnCancel.onClick.AddListener(() => SetQty(0));
+        {
+            btnCancel.onClick.AddListener(() =>
+            {
+                // ⭐ If qty is already 0, close the panel. Otherwise set to 0
+                if (qty == 0)
+                {
+                    ClosePanel();
+                }
+                else
+                {
+                    SetQty(0);
+                }
+            });
+        }
 
         RefreshUI();
     }
@@ -189,7 +202,13 @@ public class PurchasePopupUI : MonoBehaviour
 
         bool canBuyNow;
 
-        if (!purchasable)
+        // ⭐ Check if quantity is 0 first
+        if (qty == 0)
+        {
+            canBuyNow = false;
+            LocalizeMsg("Store_SelectQuantity", false); // You can add this translation key
+        }
+        else if (!purchasable)
         {
             canBuyNow = false;
             LocalizeMsg("Store_NotPurchasable", false);
@@ -411,6 +430,14 @@ public class PurchasePopupUI : MonoBehaviour
     }
 
     public void Close() { }
+
+    // ⭐ Close panel method
+    void ClosePanel()
+    {
+        gameObject.SetActive(false);
+        // Or if you have a specific close method, call it here:
+        // Close();
+    }
 
     // ------------------------------
     // Mapping
