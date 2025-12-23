@@ -9,7 +9,7 @@ public class DailyDutyManager : MonoBehaviour
 
     [Header("Single Video Player Setup")]
     public UnityEngine.Video.VideoPlayer videoPlayer;
-    public RawImage rawImage; // ← Add RawImage reference
+    public RawImage rawImage;
     public UnityEngine.Video.VideoClip afterFeedingVideo;
     public UnityEngine.Video.VideoClip afterCollectingVideo;
     public UnityEngine.Video.VideoClip afterCleanupVideo;
@@ -43,43 +43,33 @@ public class DailyDutyManager : MonoBehaviour
     {
         Debug.Log("🎮 DailyDutyManager Start()");
         
-        // Assign main panel button listeners
         simonButton.onClick.AddListener(OnFeedButtonClicked);
         collectButton.onClick.AddListener(OnCollectButtonClicked);
         matchingButton.onClick.AddListener(OnCleanButtonClicked);
 
-        // Load full summary data
         LoadFullSummary();
 
-        // Start with only the main panel visible
         mainPanel.SetActive(true);
         panelAnim.SetActive(false);
         
-        // 🔍 Initial check
         CheckFoodInventory();
         
-        // Setup video player listener
         if (videoPlayer != null)
         {
             videoPlayer.loopPointReached += OnVideoFinished;
             
-            // ✅ Create RenderTexture dynamically
             SetupVideoPlayerRenderTexture();
         }
     }
 
     private void OnEnable()
     {
-        Debug.Log("🎮 DailyDutyManager OnEnable()");
-        
-        // Subscribe to profile changes to update images
         if (playerWallet != null)
         {
             playerWallet.OnProfileChanged += UpdateStatusImages;
             playerWallet.OnItemChanged += OnInventoryItemChanged;
             Debug.Log("✅ Subscribed to PlayerWallet events");
             
-            // ✅ CHECK FOOD STATUS WHEN PANEL OPENS (in case user bought food while panel was closed)
             CheckFoodInventory();
         }
         else
@@ -92,7 +82,6 @@ public class DailyDutyManager : MonoBehaviour
     {
         Debug.Log("🎮 DailyDutyManager OnDisable()");
         
-        // Unsubscribe when disabled
         if (playerWallet != null)
         {
             playerWallet.OnProfileChanged -= UpdateStatusImages;
@@ -105,7 +94,6 @@ public class DailyDutyManager : MonoBehaviour
     {
         Debug.Log($"🔔 OnInventoryItemChanged called - itemId: '{itemId}', newValue: {newValue}");
         
-        // Check if the changed item is food or superFood
         if (itemId == "food" || itemId == "super_food")
         {
             Debug.Log($"🍗 FOOD ITEM CHANGED! Calling CheckFoodInventory()");
@@ -136,12 +124,10 @@ public class DailyDutyManager : MonoBehaviour
         
         Debug.Log($"🍗 CheckFoodInventory - Food: {foodCount}, SuperFood: {superFoodCount}");
 
-        // Check if both food and superFood are 0
         bool noFood = (foodCount == 0 && superFoodCount == 0);
         
         Debug.Log($"🚨 No Food Status: {noFood} (should show warning: {noFood})");
         
-        // Turn warning ON if no food, OFF if there is food
         warningMessage.SetActive(noFood);
         
         Debug.Log($"✅ Warning message SetActive({noFood}) - GameObject active: {warningMessage.activeSelf}");
@@ -161,13 +147,11 @@ public class DailyDutyManager : MonoBehaviour
         fullSummaryManager.GetFullSummary(
             onSuccess: (response) =>
             {
-                Debug.Log("✅ Full Summary loaded successfully!");
                 UpdateStatusImages();
             },
             onError: (error) =>
             {
                 Debug.LogError($"❌ Failed to load full summary: {error}");
-                // Hide all images on error
                 if (hensWithEggReadyImage != null) hensWithEggReadyImage.SetActive(false);
                 if (hensNeedingFoodImage != null) hensNeedingFoodImage.SetActive(false);
                 if (hensNeedingCleanImage != null) hensNeedingCleanImage.SetActive(false);
@@ -182,9 +166,6 @@ public class DailyDutyManager : MonoBehaviour
     {
         if (playerWallet == null) return;
 
-        // Show image when count is 0 (nothing to collect/do)
-        // Hide image when count > 0 (work available)
-        
         if (hensWithEggReadyImage != null)
         {
             hensWithEggReadyImage.SetActive(playerWallet.HensWithEggReady == 0);
@@ -200,7 +181,6 @@ public class DailyDutyManager : MonoBehaviour
             hensNeedingCleanImage.SetActive(playerWallet.HensNeedingClean == 0);
         }
 
-        // ✅ Check food inventory
         CheckFoodInventory();
 
         Debug.Log($"📊 Status Updated - Egg Ready: {playerWallet.HensWithEggReady}, Food: {playerWallet.HensNeedingFood}, Clean: {playerWallet.HensNeedingClean}");
@@ -221,7 +201,22 @@ public class DailyDutyManager : MonoBehaviour
             return;
         }
 
-        // Disable button to prevent multiple clicks
+        if (playerWallet == null)
+        {
+            Debug.LogError("❌ PlayerWallet is NULL!");
+            return;
+        }
+
+        bool noFood = playerWallet.Food == 0 && playerWallet.SuperFood == 0;
+        if (noFood)
+        {
+            Debug.Log("🚫 Cannot feed: no food available");
+
+            if (warningMessage != null)
+                warningMessage.SetActive(true);
+            return;
+        }
+
         simonButton.interactable = false;
 
         feedingManager.FeedAll(
@@ -229,7 +224,6 @@ public class DailyDutyManager : MonoBehaviour
             {
                 Debug.Log("✅ Feeding successful!");
                 
-                // ✅ STEP 1: Refresh Inventory first (updates food counts)
                 if (inventoryManager != null)
                 {
                     inventoryManager.GetInventory(
@@ -237,27 +231,23 @@ public class DailyDutyManager : MonoBehaviour
                         {
                             Debug.Log("✅ Inventory refreshed after feeding");
                             
-                            // ✅ STEP 2: Then refresh FullSummary
                             RefreshSummaryAndPlayAnimation(simonButton, afterFeedingVideo);
                         },
                         onError: (inventoryError) =>
                         {
                             Debug.LogError($"❌ Failed to refresh inventory: {inventoryError}");
-                            // Continue to summary refresh anyway
                             RefreshSummaryAndPlayAnimation(simonButton, afterFeedingVideo);
                         }
                     );
                 }
                 else
                 {
-                    // No inventory manager, just do summary
                     RefreshSummaryAndPlayAnimation(simonButton, afterFeedingVideo);
                 }
             },
             onError: (error) => 
             {
                 Debug.LogError($"❌ Feeding failed: {error}");
-                // Re-enable button on error
                 simonButton.interactable = true;
             }
         );
@@ -274,15 +264,11 @@ public class DailyDutyManager : MonoBehaviour
             return;
         }
 
-        // Disable button to prevent multiple clicks
         collectButton.interactable = false;
 
         collectingManager.CollectAll(
             onSuccess: (response) => 
             {
-                Debug.Log($"✅ Collection successful! Collected: {response.collected} eggs, Basket total: {response.basketEggCount}");
-                
-                // Refresh FullSummary to update UI and play animation
                 RefreshSummaryAndPlayAnimation(collectButton, afterCollectingVideo);
             },
             onError: (error) => 
@@ -305,7 +291,6 @@ public class DailyDutyManager : MonoBehaviour
             return;
         }
 
-        // Disable button to prevent multiple clicks
         matchingButton.interactable = false;
 
         cleanupManager.CleanAll(
@@ -313,13 +298,11 @@ public class DailyDutyManager : MonoBehaviour
             {
                 Debug.Log("✅ Cleanup successful!");
                 
-                // Refresh FullSummary to update UI and play animation
                 RefreshSummaryAndPlayAnimation(matchingButton, afterCleanupVideo);
             },
             onError: (error) => 
             {
                 Debug.LogError($"❌ Cleanup failed: {error}");
-                // Re-enable button on error
                 matchingButton.interactable = true;
             }
         );
@@ -335,28 +318,19 @@ public class DailyDutyManager : MonoBehaviour
             fullSummaryManager.GetFullSummary(
                 onSuccess: (summaryResponse) => 
                 {
-                    Debug.Log("✅ Full Summary refreshed");
-                    // Play animation after successful refresh
                     PlayAnimationVideo(videoClip);
-                    // Re-enable button
                     button.interactable = true;
                 },
                 onError: (summaryError) => 
                 {
-                    Debug.LogError($"❌ Failed to refresh summary: {summaryError}");
-                    // Play animation even on error
                     PlayAnimationVideo(videoClip);
-                    // Re-enable button
                     button.interactable = true;
                 }
             );
         }
         else
         {
-            Debug.LogWarning("⚠️ FullSummaryManager not assigned!");
-            // Play animation anyway
             PlayAnimationVideo(videoClip);
-            // Re-enable button
             button.interactable = true;
         }
     }
@@ -377,14 +351,11 @@ public class DailyDutyManager : MonoBehaviour
         
         Debug.Log($"🎬 Playing video: {videoClip.name}");
         
-        // Hide main panel, show animation panel
         mainPanel.SetActive(false);
         panelAnim.SetActive(true);
         
-        // Stop any currently playing video
         videoPlayer.Stop();
         
-        // Set the new video clip and play
         videoPlayer.clip = videoClip;
         videoPlayer.Play();
     }
@@ -393,12 +364,15 @@ public class DailyDutyManager : MonoBehaviour
     {
         Debug.Log($"🎬 Video finished");
         
-        // Hide animation panel, show main panel
         panelAnim.SetActive(false);
         mainPanel.SetActive(true);
         
-        // Stop the video
         vp.Stop();
+
+        if (FXManager.Instance != null)
+        {
+            FXManager.Instance.PlayGameFX_Center_4Times();
+        }
     }
     
     // =========================
@@ -418,20 +392,16 @@ public class DailyDutyManager : MonoBehaviour
             return;
         }
         
-        // Check if RenderTexture already exists
         if (videoPlayer.targetTexture == null)
         {
-            // Create a new RenderTexture
             RenderTexture renderTexture = new RenderTexture(1920, 1080, 24);
             renderTexture.name = "VideoRenderTexture";
             
-            // Assign to VideoPlayer
             videoPlayer.targetTexture = renderTexture;
             
             Debug.Log("✅ Created RenderTexture for VideoPlayer: 1920x1080");
         }
         
-        // Assign the same RenderTexture to RawImage
         rawImage.texture = videoPlayer.targetTexture;
         
         Debug.Log("✅ VideoPlayer and RawImage connected via RenderTexture");

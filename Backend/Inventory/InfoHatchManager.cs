@@ -158,6 +158,8 @@ public class InfoHatchManager : MonoBehaviour
             currentQty,
             onSuccess: (response) =>
             {
+                FXManager.Instance?.PlayPurchaseFX_Center();
+                
                 infoHatchPanel?.SetActive(false);
             },
             onError: (err) =>
