@@ -519,9 +519,12 @@ public class InventoryLockItemApplier : MonoBehaviour
             }
         }
         
-        // Clear pending data
+        if (FXManager.Instance != null)
+        {
+            FXManager.Instance.PlayGameFX_Center_4Times();
+        }
+
         pendingKeyId = "";
-        
         Debug.Log($"✅ Farm unlock sequence complete!");
     }
     
