@@ -232,8 +232,8 @@ public class PurchasePopupUI : MonoBehaviour
                 wallet.AddItem(productId, qty);
 
                 FlashMsg("Store_Purchased", new Color(0.2f, 0.6f, 1f), 3f);
-                
-                // ⭐ Bounce inventory button 3 times
+                FXManager.Instance?.PlayPurchaseFX_Center();
+
                 if (inventoryButton != null)
                 {
                     StartCoroutine(BounceInventoryButton(3));
