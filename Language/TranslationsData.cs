@@ -258,6 +258,12 @@ public static class TranslationsData
             { "Korean", "아니요" }
         };
 
+        translations["BatteryNeedRobot"] = new()
+        {
+            { "English", "You need a robot first to use batteries!" },
+            { "Korean", "배터리를 사용하려면 먼저 로봇이 필요합니다!" }
+        };
+
         translations["PutAllVitamins"] = new Dictionary<string, string>
         {
             { "English", "Press the button if you want to put all of your vitamins to hens!" },
@@ -341,6 +347,30 @@ public static class TranslationsData
         {
             { "English", "Farm Key" },
             { "Korean", "농장 열쇠" }
+        };
+
+        translations["Item_SuperBattery"] = new()
+        {
+            { "English", "Super Battery" },
+            { "Korean", "슈퍼 배터리" }
+        };
+
+        translations["Item_SuperVitamin"] = new()
+        {
+            { "English", "Super Vitamin" },
+            { "Korean", "슈퍼 비타민" }
+        };
+
+        translations["Item_Unknown"] = new()
+        {
+            { "English", "this item" },
+            { "Korean", "이 아이템" }
+        };
+
+        translations["RobotTakesBattery"] = new()
+        {
+            { "English", "Robot takes battery itself, don't worry!" },
+            { "Korean", "로봇이 배터리를 자동으로 사용하니 걱정하지 마세요!" }
         };
 
         // 🔹 Chickens / hens

@@ -18,7 +18,7 @@ public class LocalizedText : MonoBehaviour
         tmpText = GetComponent<TextMeshProUGUI>();
     }
 
-    private void Start()
+    private void OnEnable()
     {
         UpdateText();
     }

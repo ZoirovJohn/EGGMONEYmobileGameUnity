@@ -78,6 +78,13 @@ public class inventoryFarmInfo : MonoBehaviour
         }
     }
 
+    string T(string key)
+    {
+        return LanguageManager.Instance != null
+            ? LanguageManager.Instance.GetTranslation(key)
+            : key;
+    }
+
     public void inventoryFarmInfoMethod()
     {
         if (!cellId || string.IsNullOrEmpty(cellId.productId))
@@ -168,7 +175,10 @@ public class inventoryFarmInfo : MonoBehaviour
         
         if (errorMessageText)
         {
-            errorMessageText.text = $"You don't have any {itemName}.\nPurchase it from the store.";
+            errorMessageText.text = string.Format(
+                T("ItemNotEnough"),
+                itemName
+            );
         }
         
         if (infoErrorChanger != null)
@@ -189,11 +199,19 @@ public class inventoryFarmInfo : MonoBehaviour
             
             if (infoErrorChanger != null)
             {
-                string vitaminName = cellId.productId == "vitamin" ? "Vitamin" : "Super Vitamin";
-                string message = $"How many {vitaminName} do you want to put for hens?";
-                
+                string vitaminNameKey = cellId.productId == "vitamin"
+                    ? "Item_Vitamin"
+                    : "Item_SuperVitamin";
+
+                string vitaminName = T(vitaminNameKey);
+
+                string message = string.Format(
+                    T("HowManyToPutCage"),
+                    vitaminName
+                );
+
                 infoErrorChanger.OpenInfoSetVitaminToFarm(message);
-                
+
                 if (vitaminCountText != null && wallet != null)
                 {
                     int vitaminCount = wallet.GetItemCount(cellId.productId);
@@ -203,12 +221,10 @@ public class inventoryFarmInfo : MonoBehaviour
         }
         else if (cellId.productId == "battery" || cellId.productId == "super_battery")
         {
-            // ✅ Check if robot exists on current farm
             bool hasRobot = CheckIfRobotExists();
             
             if (hasRobot)
             {
-                // ✅ Robot exists - show special message in the same panel (but buttons hidden)
                 if (farmItemApplier != null)
                 {
                     farmItemApplier.SetPendingItem(cellId.productId);
@@ -216,21 +232,23 @@ public class inventoryFarmInfo : MonoBehaviour
                 
                 if (infoErrorChanger != null)
                 {
-                    infoErrorChanger.OpenInfoSetItemToFarm("Robot takes battery itself, don't worry!");
+                    infoErrorChanger.OpenInfoSetItemToFarm(
+                        T("RobotTakesBattery")
+                    );
                 }
             }
             else
             {
-                // ❌ No robot - show error message
                 if (infoErrorChanger != null)
                 {
-                    infoErrorChanger.OpenErrorDefault("You need a robot first to use batteries!");
+                    infoErrorChanger.OpenErrorDefault(
+                        T("BatteryNeedRobot")
+                    );
                 }
             }
         }
         else
         {
-            // ✅ Robot or other items
             if (farmItemApplier != null)
             {
                 farmItemApplier.SetPendingItem(cellId.productId);
@@ -238,11 +256,14 @@ public class inventoryFarmInfo : MonoBehaviour
             
             if (infoErrorChanger != null)
             {
-                // ✅ Get item display name
                 string itemName = GetItemDisplayName(cellId.productId);
-                string message = $"Would you like to set {itemName} to the farm?";
-                
+                string message = string.Format(
+                    T("ConfirmPlaceItem"),
+                    itemName
+                );
+
                 infoErrorChanger.OpenInfoSetItemToFarm(message);
+
             }
         }
     }
@@ -252,7 +273,6 @@ public class inventoryFarmInfo : MonoBehaviour
     /// </summary>
     bool CheckIfRobotExists()
     {
-        // Try to get FarmDatabase from farmItemApplier
         FarmDatabase farmDatabase = null;
         
         if (farmItemApplier != null)
@@ -271,7 +291,6 @@ public class inventoryFarmInfo : MonoBehaviour
             return false;
         }
         
-        // Get current farm
         int currentFarmIndex = farmDatabase.currentFarmIndex;
         FarmData currentFarm = farmDatabase.GetFarmByIndex(currentFarmIndex);
         
@@ -281,7 +300,6 @@ public class inventoryFarmInfo : MonoBehaviour
             return false;
         }
         
-        // Check if farm has robot
         bool hasRobot = !string.IsNullOrEmpty(currentFarm.robotType) && currentFarm.robotType != "none";
         
         Debug.Log($"🤖 Robot exists on farm {currentFarm.farmName}: {hasRobot}");
@@ -321,7 +339,6 @@ public class inventoryFarmInfo : MonoBehaviour
             return;
         }
 
-        // ✅ Get FarmDatabase from farmItemApplier (using reflection to access private field)
         FarmDatabase farmDatabase = null;
         
         if (activeInstance.farmItemApplier != null)
@@ -395,12 +412,12 @@ public class inventoryFarmInfo : MonoBehaviour
     {
         switch (productId)
         {
-            case "robot": return "Robot";
-            case "battery": return "Battery";
-            case "super_battery": return "Super Battery";
-            case "vitamin": return "Vitamin";
-            case "super_vitamin": return "Super Vitamin";
-            default: return "this item";
+            case "robot": return T("Item_Robot");
+            case "battery": return T("Item_Battery");
+            case "super_battery": return T("Item_SuperBattery");
+            case "vitamin": return T("Item_Vitamin");
+            case "super_vitamin": return T("Item_SuperVitamin");
+            default: return T("Item_Unknown");
         }
     }
 
