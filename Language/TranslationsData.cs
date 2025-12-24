@@ -166,6 +166,13 @@ public static class TranslationsData
             { "Korean", "지갑 접속이 허용되지 않습니다. 위치를 변경하세요" }
         };
 
+        translations["CheckOurWebsite"] = new()
+        {
+            { "English", "Check our website" },
+            { "Korean",  "웹사이트 확인하기" }
+        };
+
+
         translations["General"] = new Dictionary<string, string>
         {
             { "English", "General" },
