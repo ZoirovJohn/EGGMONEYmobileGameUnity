@@ -51,6 +51,11 @@ public class PanelOneBlueInfoBinder : MonoBehaviour
 
     void OnFPChanged(int _) => Refresh();
 
+    static string FormatWithComma(long value)
+    {
+        return value.ToString("N0", CultureInfo.InvariantCulture);
+    }
+
     public void Refresh()
     {
         if (!wallet) return;
@@ -58,16 +63,17 @@ public class PanelOneBlueInfoBinder : MonoBehaviour
         SetName(wallet.Name);
         SetLevel(wallet.Level.ToString(CultureInfo.InvariantCulture));
         SetLocation(wallet.Location);
-        SetEgg(wallet.Eggs.ToString(CultureInfo.InvariantCulture));
-        SetFp(wallet.FP.ToString(CultureInfo.InvariantCulture));
+        SetEgg(FormatWithComma(wallet.Eggs));
+        SetFp(FormatWithComma(wallet.FP));
     }
 
     // setters -> clamp -> write
     public void SetName(string v)     => SetText(nameTMP, ClampText(v, MaxNameLen));
     public void SetLevel(string d)    => SetText(levelTMP, ClampDigits(d, MaxLevelDigits));
     public void SetLocation(string v) => SetText(locationTMP, ClampText(v, MaxLocationLen));
-    public void SetEgg(string d)      => SetText(eggTMP, ClampDigits(d, MaxEggDigits));
-    public void SetFp(string d)       => SetText(fpTMP, ClampDigits(d, MaxFpDigits));
+    public void SetEgg(string v) => SetText(eggTMP, v);
+    public void SetFp(string v)  => SetText(fpTMP, v);
+
 
     static string ClampText(string s, int max)
     {

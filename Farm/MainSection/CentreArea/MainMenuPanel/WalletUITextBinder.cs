@@ -1,5 +1,6 @@
 using UnityEngine;
-using TMPro; // or UnityEngine.UI if you use Text
+using TMPro;
+using System.Globalization;
 
 public class WalletUITextBinder : MonoBehaviour
 {
@@ -22,12 +23,12 @@ public class WalletUITextBinder : MonoBehaviour
 
     private void Refresh()
     {
-        sggText.text        = $"Sgg: {wallet.SilverEgg}";
-        gggText.text        = $"Ggg: {wallet.GoldEgg}";
-        champText.text      = $"Champ: {wallet.ChampChick}";
-        soondongText.text   = $"Soondong: {wallet.WhiteChick}";
-        birthEggText.text  = $"Birth Egg: {wallet.Eggs}";
-        rggText.text        = $"Rgg: {wallet.SuperRedEgg}";
+        sggText.text        = $"Sgg: {FormatWalletValue(wallet.SilverEgg)}";
+        gggText.text        = $"Ggg: {FormatWalletValue(wallet.GoldEgg)}";
+        champText.text      = $"Champ: {FormatWalletValue(wallet.ChampChick)}";
+        soondongText.text   = $"Soondong: {FormatWalletValue(wallet.WhiteChick)}";
+        birthEggText.text  = $"Birth Egg: {FormatWalletValue(wallet.Eggs)}";
+        rggText.text        = $"Rgg: {FormatWalletValue(wallet.SuperRedEgg)}";
     }
 
     private void OnDestroy()
@@ -35,4 +36,13 @@ public class WalletUITextBinder : MonoBehaviour
         wallet.OnProfileChanged -= Refresh;
         wallet.OnItemChanged -= (_, __) => Refresh();
     }
+
+    static string FormatWalletValue(long value)
+    {
+        if (value > 999)
+            return "999+";
+
+        return value.ToString("N0", CultureInfo.InvariantCulture);
+    }
+
 }

@@ -1,6 +1,8 @@
 using UnityEngine;
 using TMPro;
 using System.Text;
+using System.Globalization;
+
 
 public class PanelOneYellowInfoBinder : MonoBehaviour
 {
@@ -14,7 +16,7 @@ public class PanelOneYellowInfoBinder : MonoBehaviour
     [Header("Outputs (TMP only)")]
     public TMP_Text friendsNumTMP;
     public TMP_Text farmTMP;
-    public TMP_Text userFarmsTMP;   // <--- NEW
+    public TMP_Text userFarmsTMP;
     public TMP_Text whiteChickTMP;
     public TMP_Text champChickTMP;
     public TMP_Text siilverEggTMP; 
@@ -55,7 +57,12 @@ public class PanelOneYellowInfoBinder : MonoBehaviour
     static void SetDigits(TMP_Text tmp, int value)
     {
         if (!tmp) return;
-        tmp.text = ClampDigits(value.ToString());
+        tmp.text = FormatWithComma(value);
+    }
+
+    static string FormatWithComma(long value)
+    {
+        return value.ToString("N0", CultureInfo.InvariantCulture);
     }
 
     static string ClampDigits(string s)
