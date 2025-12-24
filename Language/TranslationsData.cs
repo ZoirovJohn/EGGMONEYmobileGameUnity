@@ -222,6 +222,12 @@ public static class TranslationsData
             { "Korean", "상점으로 이동" }
         };
 
+        translations["Store_SelectQuantity"] = new()
+        {
+            { "English", "Select quantity" },
+            { "Korean", "수량을 선택하세요" }
+        };
+
         translations["ItemNotEnough"] = new Dictionary<string, string>
         {
             { "English", "You don't have any {0}.\nPurchase it from the store." },

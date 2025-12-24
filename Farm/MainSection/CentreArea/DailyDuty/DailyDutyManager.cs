@@ -39,6 +39,11 @@ public class DailyDutyManager : MonoBehaviour
     [Header("Warning Message")]
     public GameObject warningMessage;
 
+    [Header("Go Shop UI")]
+    public Button goShopButton;          // Button shown when no food
+    public Button storeButton;           // Actual store button (footer / header)
+
+
     private void Start()
     {
         Debug.Log("🎮 DailyDutyManager Start()");
@@ -46,6 +51,13 @@ public class DailyDutyManager : MonoBehaviour
         simonButton.onClick.AddListener(OnFeedButtonClicked);
         collectButton.onClick.AddListener(OnCollectButtonClicked);
         matchingButton.onClick.AddListener(OnCleanButtonClicked);
+
+
+        if (goShopButton != null)
+        {
+            goShopButton.onClick.AddListener(OnGoShopClicked);
+            goShopButton.gameObject.SetActive(false);
+        }
 
         LoadFullSummary();
 
@@ -90,6 +102,8 @@ public class DailyDutyManager : MonoBehaviour
         }
     }
 
+
+
     private void OnInventoryItemChanged(string itemId, int newValue)
     {
         Debug.Log($"🔔 OnInventoryItemChanged called - itemId: '{itemId}', newValue: {newValue}");
@@ -129,7 +143,12 @@ public class DailyDutyManager : MonoBehaviour
         Debug.Log($"🚨 No Food Status: {noFood} (should show warning: {noFood})");
         
         warningMessage.SetActive(noFood);
-        
+
+        if (goShopButton != null)
+            goShopButton.gameObject.SetActive(noFood);
+
+        simonButton.gameObject.SetActive(!noFood);
+                
         Debug.Log($"✅ Warning message SetActive({noFood}) - GameObject active: {warningMessage.activeSelf}");
     }
 
@@ -251,6 +270,21 @@ public class DailyDutyManager : MonoBehaviour
                 simonButton.interactable = true;
             }
         );
+    }
+
+    private void OnGoShopClicked()
+    {
+        Debug.Log("🛒 GoShop button clicked");
+
+        if (storeButton != null)
+        {
+            storeButton.onClick.Invoke(); // 👈 THIS is the key
+            Debug.Log("✅ Store button invoked programmatically");
+        }
+        else
+        {
+            Debug.LogError("❌ StoreButton is not assigned!");
+        }
     }
 
     // 🥚 COLLECT BUTTON
