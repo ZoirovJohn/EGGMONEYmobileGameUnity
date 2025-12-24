@@ -43,6 +43,9 @@ public class FarmHeaderManager : MonoBehaviour
     [Header("Footer Panel")]
     [SerializeField] private FooterPanelSwitcher footerPanelSwitcher;
 
+    [Header("Info Panels")]
+    [SerializeField] private InfoErrorChanger infoErrorChanger;
+
     [Header("Responsive Viewport Settings")]
     public int visibleItemsPhone = 4;
     public int visibleItemsTablet = 5;
@@ -63,6 +66,8 @@ public class FarmHeaderManager : MonoBehaviour
     private List<GameObject> farmSlots = new List<GameObject>();
     private int selectedFarmIndex = 0;
     private float slotPlusDividerWidth = 0f;
+
+
 
     void Start()
     {
@@ -158,6 +163,39 @@ public class FarmHeaderManager : MonoBehaviour
         lockCount = visibleLockSlots;
         
         Debug.Log($"📊 Farm counts from database: {farmCount} unlocked farms, showing {lockCount} lock slots");
+    }
+
+    string BuildFarmInfoText(FarmData farm)
+    {
+        if (farm == null) return "";
+
+        int robotCount =
+            (!string.IsNullOrEmpty(farm.robotType) && farm.robotType != "none") ? 1 : 0;
+
+        return
+            $"{T("Farm_Robot")}: {robotCount}\n" +
+            $"{T("Farm_Hen")}: {farm.normalChicks}\n" +
+            $"{T("Farm_Champ")}: {farm.champChicks}\n" +
+            $"{T("Farm_Nest")}: {farm.nestsOccupied}";
+    }
+
+    string T(string key)
+    {
+        return LanguageManager.Instance != null
+            ? LanguageManager.Instance.GetTranslation(key)
+            : key;
+    }
+
+    public void RefreshFarmInfoLanguage()
+    {
+        if (infoErrorChanger == null || farmDatabase == null)
+            return;
+
+        FarmData farm = farmDatabase.GetFarmByIndex(selectedFarmIndex);
+        if (farm == null) return;
+
+        string infoText = BuildFarmInfoText(farm);
+        infoErrorChanger.OpenInfoAboutFarmItself(infoText);
     }
 
     void Update()
@@ -487,52 +525,46 @@ public class FarmHeaderManager : MonoBehaviour
     void OnFarmClicked(int farmIndex)
     {
         CloseAllCentreAreaPanels();
-        
+
         selectedFarmIndex = farmIndex;
-        
+
         FarmData clickedFarm = farmDatabase.GetFarmByIndex(farmIndex);
-        
+
         if (clickedFarm != null)
         {
-            if (string.IsNullOrEmpty(clickedFarm.farmId))
-            {
-                Debug.LogError("❌ FARM ID IS EMPTY! Check your JSON file and reload FarmDatabase!");
-            }
-            
+            // 🔹 Inventory bar (already existing)
             if (inventoryBarChanger != null)
             {
                 inventoryBarChanger.InventoryFarmBarMethod(clickedFarm.farmId);
             }
-            else
+
+            if (infoErrorChanger != null)
             {
-                Debug.LogWarning("⚠️ InventoryBarChanger is not assigned in FarmHeaderManager!");
+                string infoText = BuildFarmInfoText(clickedFarm);
+                StartCoroutine(OpenFarmInfoNextFrame(infoText));
             }
         }
-        else
-        {
-            Debug.LogError($"❌ Farm data is NULL for index {farmIndex}!");
-        }
-        
+
         UpdateFarmSelection(farmIndex);
-        
+
         if (farmDatabase != null)
-        {
             farmDatabase.SwitchToFarm(farmIndex);
-        }
-        else
-        {
-            Debug.LogError("❌ FarmDatabase is null!");
-        }
-        
+
         if (farmGridManager != null)
-        {
             farmGridManager.SwitchFarm(farmIndex);
-        }
-        else
+    }
+
+    private System.Collections.IEnumerator OpenFarmInfoNextFrame(string infoText)
+    {
+        // Wait one frame so all CloseAllInfoErrorMethod() calls finish
+        yield return null;
+
+        if (infoErrorChanger != null)
         {
-            Debug.LogError("❌ FarmGridManager is null!");
+            infoErrorChanger.OpenInfoAboutFarmItself(infoText);
         }
     }
+
 
     /// <summary>
     /// ✅ PUBLIC method to update farm selection highlight (yellow background)

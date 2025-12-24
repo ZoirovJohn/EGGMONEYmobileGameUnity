@@ -71,6 +71,12 @@ public class LanguageManager : MonoBehaviour
         UpdateAllFarmItemAppliers(); 
         UpdateAllEggExchangeManagers();
 
+        var farmHeader = FindAnyObjectByType<FarmHeaderManager>();
+        if (farmHeader != null)
+        {
+            farmHeader.RefreshFarmInfoLanguage();
+        }
+
         langPanel.SetActive(false);
     }
 

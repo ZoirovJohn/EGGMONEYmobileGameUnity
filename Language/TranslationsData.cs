@@ -717,7 +717,36 @@ public static class TranslationsData
             { "Korean", "취소" }
         };
 
+        // InfoFarmItself panel
+        translations["Farm_Robot"] = new()
+        {
+            { "English", "Robot" },
+            { "Korean", "로봇" }
+        };
 
+        translations["Farm_Hen"] = new()
+        {
+            { "English", "Hen" },
+            { "Korean", "순둥" }
+        };
+
+        translations["Farm_Champ"] = new()
+        {
+            { "English", "Champ" },
+            { "Korean", "챔프" }
+        };
+
+        translations["Farm_Nest"] = new()
+        {
+            { "English", "Nest" },
+            { "Korean", "둥지" }
+        };
+
+        translations["Farm_Information"] = new()
+        {
+            { "English", "Farm Information" },
+            { "Korean", "농장 정보" }
+        };
 
 
         return translations;

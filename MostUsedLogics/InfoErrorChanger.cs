@@ -10,7 +10,8 @@ public class InfoErrorChanger : MonoBehaviour
     [SerializeField] private GameObject infoOpenFarm;
     [SerializeField] private GameObject infoSetItemToCage;
     [SerializeField] private GameObject infoExchangeFPCoin;
-    [SerializeField] private GameObject infoSetVitaminToFarm; // ✅ NEW
+    [SerializeField] private GameObject infoSetVitaminToFarm;
+    [SerializeField] private GameObject infoAboutFarmItself; // ✅ NEW
 
     [Header("Texts inside Panels")]
     [SerializeField] private TMP_Text errorGoStoreText;
@@ -19,14 +20,17 @@ public class InfoErrorChanger : MonoBehaviour
     [SerializeField] private TMP_Text infoOpenFarmText;
     [SerializeField] private TMP_Text infoSetItemToCageText;
     [SerializeField] private TMP_Text infoExchangeFPCoinText;
-    [SerializeField] private TMP_Text infoSetVitaminToFarmText; // ✅ NEW
+    [SerializeField] private TMP_Text infoSetVitaminToFarmText;
+    [SerializeField] private TMP_Text infoAboutFarmItselfText; // ✅ NEW
 
     private void Start()
     {
         CloseAllInfoErrorMethod();
     }
 
-    // ✅ Unified show function
+    // =========================
+    // Core panel handler
+    // =========================
     private void ShowPanel(GameObject panel, TMP_Text textUI, string message)
     {
         CloseAllInfoErrorMethod();
@@ -38,7 +42,9 @@ public class InfoErrorChanger : MonoBehaviour
             textUI.text = message;
     }
 
-    // ✅ Public Open Methods
+    // =========================
+    // Public open methods
+    // =========================
     public void OpenErrorGoStore(string message = null)
         => ShowPanel(errorGoStore, errorGoStoreText, message);
 
@@ -57,11 +63,16 @@ public class InfoErrorChanger : MonoBehaviour
     public void OpenInfoExchangeFPCoin(string message = null)
         => ShowPanel(infoExchangeFPCoin, infoExchangeFPCoinText, message);
 
-    // ✅ NEW: Open Vitamin to Farm Info
     public void OpenInfoSetVitaminToFarm(string message = null)
         => ShowPanel(infoSetVitaminToFarm, infoSetVitaminToFarmText, message);
 
-    // ✅ Close All
+    // ✅ NEW
+    public void OpenInfoAboutFarmItself(string message = null)
+        => ShowPanel(infoAboutFarmItself, infoAboutFarmItselfText, message);
+
+    // =========================
+    // Close all panels
+    // =========================
     public void CloseAllInfoErrorMethod()
     {
         if (errorGoStore != null) errorGoStore.SetActive(false);
@@ -70,6 +81,7 @@ public class InfoErrorChanger : MonoBehaviour
         if (infoOpenFarm != null) infoOpenFarm.SetActive(false);
         if (infoSetItemToCage != null) infoSetItemToCage.SetActive(false);
         if (infoExchangeFPCoin != null) infoExchangeFPCoin.SetActive(false);
-        if (infoSetVitaminToFarm != null) infoSetVitaminToFarm.SetActive(false); // ✅ NEW
+        if (infoSetVitaminToFarm != null) infoSetVitaminToFarm.SetActive(false);
+        if (infoAboutFarmItself != null) infoAboutFarmItself.SetActive(false); // ✅ NEW
     }
 }
