@@ -17,7 +17,7 @@ public class VideoLoadingManager : MonoBehaviour
     [SerializeField] private RawImage videoRawImage;
     [SerializeField] private VideoPlayer videoPlayer;
 
-    // ✅ KEEP THIS — other scripts depend on it
+    // Required for other scripts
     private readonly List<VideoPlayer> registeredPlayers = new();
 
     private const float LOADING_DURATION = 3f;
@@ -34,13 +34,12 @@ public class VideoLoadingManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
-    // ✅ REQUIRED for existing scripts
+    // Required by other scripts
     public void RegisterVideo(VideoPlayer player)
     {
         if (player == null) return;
-        if (registeredPlayers.Contains(player)) return;
-
-        registeredPlayers.Add(player);
+        if (!registeredPlayers.Contains(player))
+            registeredPlayers.Add(player);
     }
 
     private void Start()
@@ -53,26 +52,16 @@ public class VideoLoadingManager : MonoBehaviour
         loadingPanel.SetActive(true);
         videoRawImage.gameObject.SetActive(true);
 
-        // --------------------
-        // VIDEO SETUP
-        // --------------------
+        // VIDEO SETUP (RenderTexture driven by Inspector)
         videoPlayer.Stop();
-        videoPlayer.renderMode = VideoRenderMode.APIOnly;
         videoPlayer.playOnAwake = false;
         videoPlayer.waitForFirstFrame = true;
-        videoPlayer.isLooping = true; // ✅ IMPORTANT
+        videoPlayer.isLooping = false;
         videoPlayer.time = 0;
 
-        videoPlayer.Prepare();
-        while (!videoPlayer.isPrepared)
-            yield return null;
-
-        videoRawImage.texture = videoPlayer.texture;
         videoPlayer.Play();
 
-        // --------------------
-        // LOADING TEXT (3s)
-        // --------------------
+        // LOADING TEXT (exact 3 seconds)
         int[] steps = { 15, 40, 65, 85, 100 };
         float stepTime = LOADING_DURATION / steps.Length;
 
@@ -83,14 +72,14 @@ public class VideoLoadingManager : MonoBehaviour
             dotCount = (dotCount % 3) + 1;
             string dots = new string('.', dotCount).PadRight(4, ' ');
             loadingText.text = $"Loading{dots} {steps[i]}%";
+
             yield return new WaitForSeconds(stepTime);
         }
 
-        // --------------------
         // CLEANUP
-        // --------------------
-        videoPlayer.Stop();          // stop loop
-        videoRawImage.texture = null;
+        videoPlayer.Stop();
         loadingPanel.SetActive(false);
     }
+
+
 }
