@@ -10,9 +10,11 @@ public class ManyToFarm : MonoBehaviour
     [Header("UI References")]
     [SerializeField] Button putButton;
     [SerializeField] TMP_InputField quantityInput;
-    [SerializeField] Button plusButton;
-    [SerializeField] Button minusButton;
-    
+    [SerializeField] Button cancelButton;
+    [SerializeField] Button btnPlus1;
+    [SerializeField] Button btnPlus5;
+    [SerializeField] Button btnPlus10;
+
     [Header("Runtime Data - Auto Set")]
     private InventoryCellId cellId;
     private int targetFarmNumber = 1;
@@ -33,7 +35,7 @@ public class ManyToFarm : MonoBehaviour
     [Header("Auto Find")]
     [SerializeField] bool autoFind = true;
     
-    private int currentQuantity = 1;
+    private int currentQuantity = 0;
     private bool isProcessing = false;
     
     // ✅ NEW: Track what was just placed to preserve it during refresh
@@ -61,89 +63,96 @@ public class ManyToFarm : MonoBehaviour
             }
         }
         
+        if (cancelButton)
+        {
+            cancelButton.onClick.AddListener(OnCancelClicked);
+        }
+
         if (putButton)
         {
             putButton.onClick.AddListener(OnPutButtonClicked);
-        }
-        
-        if (plusButton)
-        {
-            plusButton.onClick.AddListener(() => AdjustQuantity(1));
-        }
-        
-        if (minusButton)
-        {
-            minusButton.onClick.AddListener(() => AdjustQuantity(-1));
         }
         
         if (quantityInput)
         {
             quantityInput.onValueChanged.AddListener(OnQuantityInputChanged);
         }
-    }
+
+        if (btnPlus1)
+            btnPlus1.onClick.AddListener(() => AddQuantity(1));
+
+        if (btnPlus5)
+            btnPlus5.onClick.AddListener(() => AddQuantity(5));
+
+        if (btnPlus10)
+            btnPlus10.onClick.AddListener(() => AddQuantity(10));
+        }
 
     void OnEnable()
     {
-        SetQuantity(1);
-        
+        SetQuantity(0);
+
         if (cellId == null)
         {
             cellId = FindAnyObjectByType<InventoryCellId>();
             if (cellId != null)
-            {
                 Debug.Log($"📦 Auto-found selected item: {cellId.productId}");
-            }
         }
     }
 
-    void AdjustQuantity(int delta)
+    void AddQuantity(int amount)
     {
-        SetQuantity(currentQuantity + delta);
+        SetQuantity(currentQuantity + amount);
+    }
+
+    void OnCancelClicked()
+    {
+        if (currentQuantity > 0)
+        {
+            SetQuantity(0); // first click resets
+        }
+        else
+        {
+            gameObject.SetActive(false); // second click closes
+        }
     }
 
     void SetQuantity(int value)
     {
         int maxAvailable = GetMaxAvailableQuantity();
-        currentQuantity = Mathf.Clamp(value, 1, Mathf.Max(1, maxAvailable));
-        
+        currentQuantity = Mathf.Clamp(value, 0, maxAvailable);
+
         if (quantityInput)
         {
-            quantityInput.text = currentQuantity.ToString();
+            quantityInput.SetTextWithoutNotify(currentQuantity.ToString());
         }
-        
+
         UpdateButtonStates();
     }
 
     void OnQuantityInputChanged(string value)
     {
         if (int.TryParse(value, out int quantity))
-        {
             SetQuantity(quantity);
-        }
         else
-        {
-            SetQuantity(1);
-        }
+            SetQuantity(0);
     }
 
     void UpdateButtonStates()
     {
         int maxAvailable = GetMaxAvailableQuantity();
-        
-        if (minusButton)
-        {
-            minusButton.interactable = currentQuantity > 1;
-        }
-        
-        if (plusButton)
-        {
-            plusButton.interactable = currentQuantity < maxAvailable;
-        }
-        
+
         if (putButton)
         {
-            putButton.interactable = !isProcessing && currentQuantity > 0 && currentQuantity <= maxAvailable;
+            putButton.interactable =
+                !isProcessing &&
+                currentQuantity > 0 &&
+                currentQuantity <= maxAvailable;
         }
+
+        if (btnPlus1)  btnPlus1.interactable  = currentQuantity + 1  <= maxAvailable;
+        if (btnPlus5)  btnPlus5.interactable  = currentQuantity + 5  <= maxAvailable;
+        if (btnPlus10) btnPlus10.interactable = currentQuantity + 10 <= maxAvailable;
     }
 
     int GetMaxAvailableQuantity()
@@ -670,10 +679,14 @@ public class ManyToFarm : MonoBehaviour
 
     void ShowLoading(bool show)
     {
-        if (putButton != null)
-        {
+        if (putButton)
             putButton.interactable = !show;
-        }
+
+        if (quantityInput)
+            quantityInput.interactable = !show;
+
+        if (cancelButton)
+            cancelButton.interactable = !show;
     }
 
     public void SetTargetFarm(int farmNumber)
@@ -684,10 +697,10 @@ public class ManyToFarm : MonoBehaviour
     public void SetItem(InventoryCellId item)
     {
         cellId = item;
-        
+
         if (cellId != null)
         {
-            SetQuantity(1);
+            SetQuantity(0);
         }
     }
 

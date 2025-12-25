@@ -717,6 +717,12 @@ public static class TranslationsData
             { "Korean", "취소" }
         };
 
+        translations["Put"] = new()
+        {
+            { "English", "Put" },
+            { "Korean", "놓기" }
+        };
+
         // InfoFarmItself panel
         translations["Farm_Robot"] = new()
         {
