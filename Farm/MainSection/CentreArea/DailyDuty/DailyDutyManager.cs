@@ -1,11 +1,18 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;        
+using UnityEngine.Video;
 
 public class DailyDutyManager : MonoBehaviour
 {
     [Header("Main Panels")]
     public GameObject mainPanel;
     public GameObject panelAnim;
+
+    [SerializeField] FarmAPIManager farmAPIManager;
+    [SerializeField] FarmDatabase farmDatabase;
+    [SerializeField] FarmGridManager farmGridManager;
+    [SerializeField] FarmHeaderManager farmHeaderManager;
 
     [Header("Single Video Player Setup")]
     public UnityEngine.Video.VideoPlayer videoPlayer;
@@ -178,6 +185,48 @@ public class DailyDutyManager : MonoBehaviour
         );
     }
 
+    private IEnumerator RefreshCurrentFarmData()
+    {
+        if (farmAPIManager == null || farmDatabase == null)
+            yield break;
+
+        int farmNumber = farmDatabase.currentFarmIndex + 1;
+        bool done = false;
+
+        farmAPIManager.GetFarmSummary(
+            farmNumber,
+            onSuccess: (summary) =>
+            {
+                int farmIndex = farmNumber - 1;
+
+                // update DB
+                farmDatabase.UpdateFarmFromBackend(
+                    farmIndex: farmIndex,
+                    nests: summary.nests.total,
+                    champChicks: summary.henStats.byKind.Champ,
+                    normalChicks: summary.henStats.byKind.Normal,
+                    legendChicks: summary.henStats.byKind.Legend,
+                    superLegendChicks: summary.henStats.byKind.SuperLegend
+                );
+
+                // refresh visuals
+                farmGridManager?.RefreshFarmDisplay(farmIndex);
+                farmHeaderManager?.UpdateAllFarmSlotVisuals();
+
+                done = true;
+            },
+            onError: (err) =>
+            {
+                Debug.LogError($"❌ Farm refresh failed after collect: {err}");
+                done = true;
+            }
+        );
+
+        while (!done)
+            yield return null;
+    }
+
+
     // =========================
     // Update Status Images
     // =========================
@@ -272,6 +321,19 @@ public class DailyDutyManager : MonoBehaviour
         );
     }
 
+    private IEnumerator AfterCollectFlow(Button button, VideoClip clip)
+    {
+        // refresh wallet / summary
+        yield return new WaitForSeconds(0.1f);
+
+        // 🔥 THIS fixes the egg still showing
+        yield return StartCoroutine(RefreshCurrentFarmData());
+
+        PlayAnimationVideo(clip);
+        button.interactable = true;
+    }
+
+
     private void OnGoShopClicked()
     {
         Debug.Log("🛒 GoShop button clicked");
@@ -301,17 +363,18 @@ public class DailyDutyManager : MonoBehaviour
         collectButton.interactable = false;
 
         collectingManager.CollectAll(
-            onSuccess: (response) => 
+            onSuccess: (response) =>
             {
-                RefreshSummaryAndPlayAnimation(collectButton, afterCollectingVideo);
+                StartCoroutine(AfterCollectFlow(collectButton, afterCollectingVideo));
             },
-            onError: (error) => 
+            onError: (error) =>
             {
                 Debug.LogError($"❌ Collection failed: {error}");
-                // Re-enable button on error
                 collectButton.interactable = true;
             }
         );
+
+
     }
 
     // 🧹 CLEAN BUTTON (Matching Button)
