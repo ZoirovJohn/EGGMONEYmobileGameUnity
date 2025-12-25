@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Video;
+using UnityEngine.UI;
 using TMPro;
 
 public class VideoLoadingManager : MonoBehaviour
@@ -12,7 +13,14 @@ public class VideoLoadingManager : MonoBehaviour
     [SerializeField] private GameObject loadingPanel;
     [SerializeField] private TextMeshProUGUI loadingText;
 
+    [Header("Video")]
+    [SerializeField] private RawImage videoRawImage;
+    [SerializeField] private VideoPlayer videoPlayer;
+
+    // ✅ KEEP THIS — other scripts depend on it
     private readonly List<VideoPlayer> registeredPlayers = new();
+
+    private const float LOADING_DURATION = 3f;
 
     private void Awake()
     {
@@ -26,7 +34,7 @@ public class VideoLoadingManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
-    // ✅ Still allowed to register videos (NO waiting)
+    // ✅ REQUIRED for existing scripts
     public void RegisterVideo(VideoPlayer player)
     {
         if (player == null) return;
@@ -37,33 +45,52 @@ public class VideoLoadingManager : MonoBehaviour
 
     private void Start()
     {
-        StartCoroutine(FakeLoadingRoutine());
+        StartCoroutine(LoadingRoutine());
     }
 
-    private IEnumerator FakeLoadingRoutine()
+    private IEnumerator LoadingRoutine()
     {
         loadingPanel.SetActive(true);
+        videoRawImage.gameObject.SetActive(true);
 
-        // Non-linear steps (visual only)
-        int[] steps = { 10, 35, 50, 70, 85, 100 };
+        // --------------------
+        // VIDEO SETUP
+        // --------------------
+        videoPlayer.Stop();
+        videoPlayer.renderMode = VideoRenderMode.APIOnly;
+        videoPlayer.playOnAwake = false;
+        videoPlayer.waitForFirstFrame = true;
+        videoPlayer.isLooping = true; // ✅ IMPORTANT
+        videoPlayer.time = 0;
 
-        float totalDuration = 4f; // ⏱ fixed 4 seconds
-        float stepTime = totalDuration / steps.Length;
+        videoPlayer.Prepare();
+        while (!videoPlayer.isPrepared)
+            yield return null;
+
+        videoRawImage.texture = videoPlayer.texture;
+        videoPlayer.Play();
+
+        // --------------------
+        // LOADING TEXT (3s)
+        // --------------------
+        int[] steps = { 15, 40, 65, 85, 100 };
+        float stepTime = LOADING_DURATION / steps.Length;
 
         int dotCount = 0;
 
         for (int i = 0; i < steps.Length; i++)
         {
-            dotCount++;
-            if (dotCount > 3) dotCount = 1;
-
+            dotCount = (dotCount % 3) + 1;
             string dots = new string('.', dotCount).PadRight(4, ' ');
-
             loadingText.text = $"Loading{dots} {steps[i]}%";
-
             yield return new WaitForSeconds(stepTime);
         }
 
+        // --------------------
+        // CLEANUP
+        // --------------------
+        videoPlayer.Stop();          // stop loop
+        videoRawImage.texture = null;
         loadingPanel.SetActive(false);
     }
 }
