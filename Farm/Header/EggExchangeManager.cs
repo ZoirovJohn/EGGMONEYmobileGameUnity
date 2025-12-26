@@ -34,6 +34,9 @@ public class EggExchangeManager : MonoBehaviour
     [Header("Exchange Settings")]
     [SerializeField] private int fpPerEgg = 400;
 
+    [Header("Close Button")]
+    [SerializeField] private Button btnClose;
+
     private int availableEggs = 0;
     private int currentInputAmount = 0;
     private bool isPanelOpen = false;
@@ -44,9 +47,8 @@ public class EggExchangeManager : MonoBehaviour
         btnAdd5?.onClick.AddListener(() => AddEggs(5));
         btnAdd10?.onClick.AddListener(() => AddEggs(10));
         btnReset?.onClick.AddListener(ResetInput);
-
         btnYes?.onClick.AddListener(OnYesButtonClicked);
-
+        btnClose?.onClick.AddListener(OnCloseButtonClicked);
         eggInputField.contentType = TMP_InputField.ContentType.IntegerNumber;
         eggInputField.onValueChanged.AddListener(OnInputValueChanged);
 
@@ -82,11 +84,23 @@ public class EggExchangeManager : MonoBehaviour
         );
     }
 
-    private void CloseExchangePanel()
+    public void CloseExchangePanel()
     {
         isPanelOpen = false;
         infoErrorChanger?.CloseAllInfoErrorMethod();
         ResetInput();
+    }
+
+    private void OnDisable()
+    {
+        isPanelOpen = false;
+    }
+
+    private void OnCloseButtonClicked()
+    {
+        if (!isPanelOpen) return;
+
+        CloseExchangePanel();
     }
 
     private void OnBasketFetchSuccess(string json)
