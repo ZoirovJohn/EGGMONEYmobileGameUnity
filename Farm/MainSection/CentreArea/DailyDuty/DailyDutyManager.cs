@@ -51,7 +51,6 @@ public class DailyDutyManager : MonoBehaviour
     public Button storeButton; 
 
     private bool isPlayingSuccessVideo = false;
-    private bool wasVideoInterrupted = false;
 
     private void Start()
     {
@@ -83,13 +82,6 @@ public class DailyDutyManager : MonoBehaviour
 
     private void OnEnable()
     {
-        if (wasVideoInterrupted)
-        {
-            Debug.Log("🎬 Resuming after interruption - finishing video state");
-            FinishVideoState();
-            wasVideoInterrupted = false;
-        }
-        
         if (playerWallet != null)
         {
             playerWallet.OnProfileChanged += UpdateStatusImages;
@@ -106,14 +98,35 @@ public class DailyDutyManager : MonoBehaviour
 
     private void OnDisable()
     {
+        Debug.Log("🎬 OnDisable called");
+        
+        // ⭐ CRITICAL: Force immediate cleanup when panel is disabled
         if (isPlayingSuccessVideo)
         {
-            Debug.Log("🎬 Video interrupted — marking for cleanup");
-            wasVideoInterrupted = true;
-            isPlayingSuccessVideo = false;
-
-            if (videoPlayer != null)
+            Debug.Log("🎬 Video was playing — forcing immediate cleanup");
+            
+            // Stop video first
+            if (videoPlayer != null && videoPlayer.isPlaying)
+            {
                 videoPlayer.Stop();
+                Debug.Log("🎬 VideoPlayer stopped");
+            }
+            
+            // Reset flag
+            isPlayingSuccessVideo = false;
+        }
+        
+        // ⭐ Force hide video panel and show main panel
+        if (panelAnim != null && panelAnim.activeSelf)
+        {
+            panelAnim.SetActive(false);
+            Debug.Log("🎬 panelAnim disabled");
+        }
+        
+        if (mainPanel != null && !mainPanel.activeSelf)
+        {
+            mainPanel.SetActive(true);
+            Debug.Log("🎬 mainPanel enabled");
         }
         
         if (playerWallet != null)
@@ -121,23 +134,6 @@ public class DailyDutyManager : MonoBehaviour
             playerWallet.OnProfileChanged -= UpdateStatusImages;
             playerWallet.OnItemChanged -= OnInventoryItemChanged;
             Debug.Log("✅ Unsubscribed from PlayerWallet events");
-        }
-    }
-
-    private void FinishVideoState()
-    {
-        if (videoPlayer != null)
-            videoPlayer.Stop();
-
-        if (panelAnim != null)
-            panelAnim.SetActive(false);
-
-        if (mainPanel != null)
-            mainPanel.SetActive(true);
-
-        if (FXManager.Instance != null)
-        {
-            FXManager.Instance.PlayGameFX_Center_4Times();
         }
     }
 
@@ -450,7 +446,6 @@ public class DailyDutyManager : MonoBehaviour
         }
         
         isPlayingSuccessVideo = true;
-        wasVideoInterrupted = false;
         
         mainPanel.SetActive(false);
         panelAnim.SetActive(true);
@@ -463,7 +458,6 @@ public class DailyDutyManager : MonoBehaviour
     private void OnVideoFinished(VideoPlayer vp)
     {
         isPlayingSuccessVideo = false;
-        wasVideoInterrupted = false;
         
         panelAnim.SetActive(false);
         mainPanel.SetActive(true);
@@ -531,6 +525,6 @@ public class DailyDutyManager : MonoBehaviour
         
         rawImage.texture = videoPlayer.targetTexture;
         
-        Debug.Log("✅ VideoPlayer and RawImage connected via RenderTexture");
+        Debug.Log("✅ VideoPlayer and RenderTexture connected via RenderTexture");
     }
 }
