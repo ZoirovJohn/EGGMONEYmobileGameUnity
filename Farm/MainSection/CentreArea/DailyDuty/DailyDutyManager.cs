@@ -335,7 +335,32 @@ public class DailyDutyManager : MonoBehaviour
     private IEnumerator AfterCollectFlow(Button button, VideoClip clip)
     {
         yield return new WaitForSeconds(0.1f);
+        
+        // ⭐ Refresh farm data first
         yield return StartCoroutine(RefreshAllFarmsData());
+        
+        // ⭐ Then refresh full summary to update status images
+        if (fullSummaryManager != null)
+        {
+            bool summaryDone = false;
+            
+            fullSummaryManager.GetFullSummary(
+                onSuccess: (response) =>
+                {
+                    Debug.Log("✅ Full summary refreshed after collect");
+                    summaryDone = true;
+                },
+                onError: (error) =>
+                {
+                    Debug.LogError($"❌ Failed to refresh summary after collect: {error}");
+                    summaryDone = true;
+                }
+            );
+            
+            // Wait for summary to complete
+            while (!summaryDone)
+                yield return null;
+        }
 
         PlayAnimationVideo(clip);
         button.interactable = true;
