@@ -47,9 +47,10 @@ public class DailyDutyManager : MonoBehaviour
     public GameObject warningMessage;
 
     [Header("Go Shop UI")]
-    public Button goShopButton;          // Button shown when no food
-    public Button storeButton;           // Actual store button (footer / header)
+    public Button goShopButton; 
+    public Button storeButton; 
 
+    private bool isPlayingSuccessVideo = false;
 
     private void Start()
     {
@@ -99,7 +100,21 @@ public class DailyDutyManager : MonoBehaviour
 
     private void OnDisable()
     {
-        Debug.Log("🎮 DailyDutyManager OnDisable()");
+        if (isPlayingSuccessVideo)
+        {
+            Debug.Log("🎬 Video interrupted — force finishing");
+
+            isPlayingSuccessVideo = false;
+
+            if (videoPlayer != null)
+                videoPlayer.Stop();
+
+            if (panelAnim != null)
+                panelAnim.SetActive(false);
+
+            if (mainPanel != null)
+                mainPanel.SetActive(true);
+        }
         
         if (playerWallet != null)
         {
@@ -446,7 +461,7 @@ public class DailyDutyManager : MonoBehaviour
             return;
         }
         
-        Debug.Log($"🎬 Playing video: {videoClip.name}");
+        isPlayingSuccessVideo = true;
         
         mainPanel.SetActive(false);
         panelAnim.SetActive(true);
@@ -459,7 +474,7 @@ public class DailyDutyManager : MonoBehaviour
     
     private void OnVideoFinished(UnityEngine.Video.VideoPlayer vp)
     {
-        Debug.Log($"🎬 Video finished");
+        isPlayingSuccessVideo = false;
         
         panelAnim.SetActive(false);
         mainPanel.SetActive(true);
