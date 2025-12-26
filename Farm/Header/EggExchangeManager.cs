@@ -36,6 +36,7 @@ public class EggExchangeManager : MonoBehaviour
 
     [Header("Close Button")]
     [SerializeField] private Button btnClose;
+    [SerializeField] private Button btnClose2;
 
     private int availableEggs = 0;
     private int currentInputAmount = 0;
@@ -49,6 +50,7 @@ public class EggExchangeManager : MonoBehaviour
         btnReset?.onClick.AddListener(ResetInput);
         btnYes?.onClick.AddListener(OnYesButtonClicked);
         btnClose?.onClick.AddListener(OnCloseButtonClicked);
+        btnClose2?.onClick.AddListener(OnCloseButtonClicked);
         eggInputField.contentType = TMP_InputField.ContentType.IntegerNumber;
         eggInputField.onValueChanged.AddListener(OnInputValueChanged);
 
