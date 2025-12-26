@@ -15,11 +15,11 @@ public class DailyDutyManager : MonoBehaviour
     [SerializeField] FarmHeaderManager farmHeaderManager;
 
     [Header("Single Video Player Setup")]
-    public UnityEngine.Video.VideoPlayer videoPlayer;
+    public VideoPlayer videoPlayer;
     public RawImage rawImage;
-    public UnityEngine.Video.VideoClip afterFeedingVideo;
-    public UnityEngine.Video.VideoClip afterCollectingVideo;
-    public UnityEngine.Video.VideoClip afterCleanupVideo;
+    public VideoClip afterFeedingVideo;
+    public VideoClip afterCollectingVideo;
+    public VideoClip afterCleanupVideo;
 
     [Header("Buttons (on Main Panel)")]
     public Button simonButton;
@@ -51,6 +51,7 @@ public class DailyDutyManager : MonoBehaviour
     public Button storeButton; 
 
     private bool isPlayingSuccessVideo = false;
+    private bool wasVideoInterrupted = false;
 
     private void Start()
     {
@@ -59,7 +60,6 @@ public class DailyDutyManager : MonoBehaviour
         simonButton.onClick.AddListener(OnFeedButtonClicked);
         collectButton.onClick.AddListener(OnCollectButtonClicked);
         matchingButton.onClick.AddListener(OnCleanButtonClicked);
-
 
         if (goShopButton != null)
         {
@@ -77,13 +77,19 @@ public class DailyDutyManager : MonoBehaviour
         if (videoPlayer != null)
         {
             videoPlayer.loopPointReached += OnVideoFinished;
-            
             SetupVideoPlayerRenderTexture();
         }
     }
 
     private void OnEnable()
     {
+        if (wasVideoInterrupted)
+        {
+            Debug.Log("🎬 Resuming after interruption - finishing video state");
+            FinishVideoState();
+            wasVideoInterrupted = false;
+        }
+        
         if (playerWallet != null)
         {
             playerWallet.OnProfileChanged += UpdateStatusImages;
@@ -102,18 +108,12 @@ public class DailyDutyManager : MonoBehaviour
     {
         if (isPlayingSuccessVideo)
         {
-            Debug.Log("🎬 Video interrupted — force finishing");
-
+            Debug.Log("🎬 Video interrupted — marking for cleanup");
+            wasVideoInterrupted = true;
             isPlayingSuccessVideo = false;
 
             if (videoPlayer != null)
                 videoPlayer.Stop();
-
-            if (panelAnim != null)
-                panelAnim.SetActive(false);
-
-            if (mainPanel != null)
-                mainPanel.SetActive(true);
         }
         
         if (playerWallet != null)
@@ -124,7 +124,22 @@ public class DailyDutyManager : MonoBehaviour
         }
     }
 
+    private void FinishVideoState()
+    {
+        if (videoPlayer != null)
+            videoPlayer.Stop();
 
+        if (panelAnim != null)
+            panelAnim.SetActive(false);
+
+        if (mainPanel != null)
+            mainPanel.SetActive(true);
+
+        if (FXManager.Instance != null)
+        {
+            FXManager.Instance.PlayGameFX_Center_4Times();
+        }
+    }
 
     private void OnInventoryItemChanged(string itemId, int newValue)
     {
@@ -174,9 +189,6 @@ public class DailyDutyManager : MonoBehaviour
         Debug.Log($"✅ Warning message SetActive({noFood}) - GameObject active: {warningMessage.activeSelf}");
     }
 
-    // =========================
-    // Load Full Summary
-    // =========================
     private void LoadFullSummary()
     {
         if (fullSummaryManager == null)
@@ -214,7 +226,6 @@ public class DailyDutyManager : MonoBehaviour
             {
                 int farmIndex = farmNumber - 1;
 
-                // update DB
                 farmDatabase.UpdateFarmFromBackend(
                     farmIndex: farmIndex,
                     nests: summary.nests.total,
@@ -224,7 +235,6 @@ public class DailyDutyManager : MonoBehaviour
                     superLegendChicks: summary.henStats.byKind.SuperLegend
                 );
 
-                // refresh visuals
                 farmGridManager?.RefreshFarmDisplay(farmIndex);
                 farmHeaderManager?.UpdateAllFarmSlotVisuals();
 
@@ -241,10 +251,6 @@ public class DailyDutyManager : MonoBehaviour
             yield return null;
     }
 
-
-    // =========================
-    // Update Status Images
-    // =========================
     private void UpdateStatusImages()
     {
         if (playerWallet == null) return;
@@ -269,11 +275,6 @@ public class DailyDutyManager : MonoBehaviour
         Debug.Log($"📊 Status Updated - Egg Ready: {playerWallet.HensWithEggReady}, Food: {playerWallet.HensNeedingFood}, Clean: {playerWallet.HensNeedingClean}");
     }
 
-    // =========================
-    // Button Click Handlers
-    // =========================
-    
-    // 🍗 FEED BUTTON (Simon Button)
     private void OnFeedButtonClicked()
     {
         Debug.Log("🍗 Feed button clicked");
@@ -313,7 +314,6 @@ public class DailyDutyManager : MonoBehaviour
                         onSuccess: (inventoryResponse) =>
                         {
                             Debug.Log("✅ Inventory refreshed after feeding");
-                            
                             RefreshSummaryAndPlayAnimation(simonButton, afterFeedingVideo);
                         },
                         onError: (inventoryError) =>
@@ -338,16 +338,12 @@ public class DailyDutyManager : MonoBehaviour
 
     private IEnumerator AfterCollectFlow(Button button, VideoClip clip)
     {
-        // refresh wallet / summary
         yield return new WaitForSeconds(0.1f);
-
-        // 🔥 THIS fixes the egg still showing
         yield return StartCoroutine(RefreshAllFarmsData());
 
         PlayAnimationVideo(clip);
         button.interactable = true;
     }
-
 
     private void OnGoShopClicked()
     {
@@ -355,7 +351,7 @@ public class DailyDutyManager : MonoBehaviour
 
         if (storeButton != null)
         {
-            storeButton.onClick.Invoke(); // 👈 THIS is the key
+            storeButton.onClick.Invoke();
             Debug.Log("✅ Store button invoked programmatically");
         }
         else
@@ -364,7 +360,6 @@ public class DailyDutyManager : MonoBehaviour
         }
     }
 
-    // 🥚 COLLECT BUTTON
     private void OnCollectButtonClicked()
     {
         Debug.Log("🥚 Collect button clicked");
@@ -388,11 +383,8 @@ public class DailyDutyManager : MonoBehaviour
                 collectButton.interactable = true;
             }
         );
-
-
     }
 
-    // 🧹 CLEAN BUTTON (Matching Button)
     private void OnCleanButtonClicked()
     {
         Debug.Log("🧹 Clean button clicked");
@@ -409,7 +401,6 @@ public class DailyDutyManager : MonoBehaviour
             onSuccess: (response) => 
             {
                 Debug.Log("✅ Cleanup successful!");
-                
                 RefreshSummaryAndPlayAnimation(matchingButton, afterCleanupVideo);
             },
             onError: (error) => 
@@ -420,10 +411,7 @@ public class DailyDutyManager : MonoBehaviour
         );
     }
 
-    // =========================
-    // Helper Methods
-    // =========================
-    private void RefreshSummaryAndPlayAnimation(Button button, UnityEngine.Video.VideoClip videoClip)
+    private void RefreshSummaryAndPlayAnimation(Button button, VideoClip videoClip)
     {
         if (fullSummaryManager != null)
         {
@@ -447,7 +435,7 @@ public class DailyDutyManager : MonoBehaviour
         }
     }
     
-    private void PlayAnimationVideo(UnityEngine.Video.VideoClip videoClip)
+    private void PlayAnimationVideo(VideoClip videoClip)
     {
         if (videoPlayer == null)
         {
@@ -462,19 +450,20 @@ public class DailyDutyManager : MonoBehaviour
         }
         
         isPlayingSuccessVideo = true;
+        wasVideoInterrupted = false;
         
         mainPanel.SetActive(false);
         panelAnim.SetActive(true);
         
         videoPlayer.Stop();
-        
         videoPlayer.clip = videoClip;
         videoPlayer.Play();
     }
     
-    private void OnVideoFinished(UnityEngine.Video.VideoPlayer vp)
+    private void OnVideoFinished(VideoPlayer vp)
     {
         isPlayingSuccessVideo = false;
+        wasVideoInterrupted = false;
         
         panelAnim.SetActive(false);
         mainPanel.SetActive(true);
@@ -492,14 +481,13 @@ public class DailyDutyManager : MonoBehaviour
         if (farmAPIManager == null || farmDatabase == null)
             yield break;
 
-        int farmCount = farmDatabase.farms.Count; // or however you store farm count
+        int farmCount = farmDatabase.farms.Count;
         bool done = false;
 
         farmAPIManager.LoadAllFarmSummaries(
             farmCount,
             onAllLoaded: (summaries) =>
             {
-                // refresh visuals for current farm only
                 int currentFarmIndex = farmDatabase.currentFarmIndex;
                 farmGridManager?.RefreshFarmDisplay(currentFarmIndex);
                 farmHeaderManager?.UpdateAllFarmSlotVisuals();
@@ -517,10 +505,6 @@ public class DailyDutyManager : MonoBehaviour
             yield return null;
     }
 
-    
-    // =========================
-    // Setup RenderTexture
-    // =========================
     private void SetupVideoPlayerRenderTexture()
     {
         if (videoPlayer == null)

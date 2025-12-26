@@ -305,7 +305,6 @@ public class PurchasePopupUI : MonoBehaviour
                 }
                 
                 btnBuy.interactable = true;
-                StartCoroutine(CloseAfterDelay(0.5f));
             },
             onError: (err) =>
             {
@@ -313,12 +312,6 @@ public class PurchasePopupUI : MonoBehaviour
                 btnBuy.interactable = true;
                 RefreshUI();
             });
-    }
-
-    IEnumerator CloseAfterDelay(float delay)
-    {
-        yield return new WaitForSeconds(delay);
-        ClosePanel();
     }
 
     // ------------------------------
