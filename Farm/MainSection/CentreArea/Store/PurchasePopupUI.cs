@@ -43,9 +43,11 @@ public class PurchasePopupUI : MonoBehaviour
     bool updatingFromCode = false;
 
     Coroutine tempMsgCo;
-    Coroutine bounceCoroutine; // ⭐ Track the bounce animation
-    Vector2 inventoryOriginalPosition; // ⭐ Store original position once
-    bool originalPositionSet = false; // ⭐ Track if we've stored the position
+    Coroutine bounceCoroutine; 
+    Vector2 inventoryOriginalPosition;
+    bool originalPositionSet = false;
+
+    
 
     void Awake()
     {
@@ -303,6 +305,7 @@ public class PurchasePopupUI : MonoBehaviour
                 }
                 
                 btnBuy.interactable = true;
+                StartCoroutine(CloseAfterDelay(0.5f));
             },
             onError: (err) =>
             {
@@ -310,6 +313,12 @@ public class PurchasePopupUI : MonoBehaviour
                 btnBuy.interactable = true;
                 RefreshUI();
             });
+    }
+
+    IEnumerator CloseAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        ClosePanel();
     }
 
     // ------------------------------

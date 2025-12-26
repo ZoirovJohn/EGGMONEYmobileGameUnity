@@ -342,7 +342,7 @@ public class DailyDutyManager : MonoBehaviour
         yield return new WaitForSeconds(0.1f);
 
         // 🔥 THIS fixes the egg still showing
-        yield return StartCoroutine(RefreshCurrentFarmData());
+        yield return StartCoroutine(RefreshAllFarmsData());
 
         PlayAnimationVideo(clip);
         button.interactable = true;
@@ -486,6 +486,37 @@ public class DailyDutyManager : MonoBehaviour
             FXManager.Instance.PlayGameFX_Center_4Times();
         }
     }
+
+    private IEnumerator RefreshAllFarmsData()
+    {
+        if (farmAPIManager == null || farmDatabase == null)
+            yield break;
+
+        int farmCount = farmDatabase.farms.Count; // or however you store farm count
+        bool done = false;
+
+        farmAPIManager.LoadAllFarmSummaries(
+            farmCount,
+            onAllLoaded: (summaries) =>
+            {
+                // refresh visuals for current farm only
+                int currentFarmIndex = farmDatabase.currentFarmIndex;
+                farmGridManager?.RefreshFarmDisplay(currentFarmIndex);
+                farmHeaderManager?.UpdateAllFarmSlotVisuals();
+
+                done = true;
+            },
+            onError: (error) =>
+            {
+                Debug.LogError($"❌ Failed to refresh all farms: {error}");
+                done = true;
+            }
+        );
+
+        while (!done)
+            yield return null;
+    }
+
     
     // =========================
     // Setup RenderTexture
