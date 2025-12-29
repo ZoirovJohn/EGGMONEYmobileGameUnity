@@ -242,7 +242,11 @@ public class InventoryFarmItemApplier : MonoBehaviour
 
         if (hasRobot && summary.robot.isActive)
         {
-            batteryLevel = CalculateBatteryLevelFromDays(summary.robot.daysLeftToNextCharge);
+            batteryLevel = CalculateBatteryLevelFromDays(
+                summary.robot.daysLeftToNextCharge,
+                summary.robot.poweredUntil
+            );
+
             batteryType = summary.robot.batteryType ?? "normal";
         }
 
@@ -252,20 +256,33 @@ public class InventoryFarmItemApplier : MonoBehaviour
     /// <summary>
     /// ✅ Calculate battery level (0-4) from days remaining (provided by backend)
     /// </summary>
-    int CalculateBatteryLevelFromDays(int daysRemaining)
+    int CalculateBatteryLevelFromDays(int daysRemaining, string poweredUntil)
     {
+        // 🔧 FIX: backend rounds down (<1 day → 0)
+        if (daysRemaining <= 0 && !string.IsNullOrEmpty(poweredUntil))
+        {
+            if (DateTime.TryParse(poweredUntil, null, System.Globalization.DateTimeStyles.AdjustToUniversal, out DateTime poweredUntilUtc))
+            {
+                if (poweredUntilUtc > DateTime.UtcNow)
+                {
+                    // Less than 1 day left → show 1 battery
+                    return 1;
+                }
+            }
+        }
+
         if (daysRemaining <= 0)
             return 0;
         else if (daysRemaining == 1)
             return 1;
-        else if (daysRemaining >= 2 && daysRemaining <= 3)
+        else if (daysRemaining <= 3)
             return 2;
-        else if (daysRemaining >= 4 && daysRemaining <= 5)
+        else if (daysRemaining <= 5)
             return 3;
-        else 
+        else
             return 4;
     }
-    
+
     /// <summary>
     /// ✅ Update battery images based on level (0-4) and type (normal/premium)
     /// </summary>
