@@ -160,11 +160,6 @@ public class FarmGridManager : MonoBehaviour
             if (data.nestsOccupied > 0) cagesWithNests++;
             totalChampChicks += data.champChicks;
             totalNormalChicks += data.normalChicks;
-            
-            if ((i + 1) % 25 == 0)
-            {
-                Debug.Log($"   📦 Created {i + 1}/{currentCages.Count} cages...");
-            }
         }
 
         Canvas.ForceUpdateCanvases();
