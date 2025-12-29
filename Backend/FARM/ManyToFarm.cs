@@ -388,6 +388,7 @@ public class ManyToFarm : MonoBehaviour
         }
         catch (Exception e)
         {
+            Debug.LogError($"❌ Failed to parse response: {e}");
             Debug.LogError($"Response was: {responseJson}");
         }
     }

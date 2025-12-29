@@ -254,7 +254,6 @@ public class FarmDatabase : ScriptableObject
                 if (sortedNests.Count > 0 && index < sortedNests.Count && sortedNests[index].hen != null)
                 {
                     cage.lifetimeDaysRemaining = Mathf.Clamp(sortedNests[index].hen.lifetimeDaysRemaining, 1, 15);
-                    Debug.Log($"🐔 Cage {cageIndex + 1}: Assigned lifetime = {cage.lifetimeDaysRemaining} days");
                 }
 
                 cage.hasEgg = index < totalEggsReady;
