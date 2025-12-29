@@ -68,8 +68,6 @@ public class FarmAPIManager : MonoBehaviour
                     );
 
                     farmDatabase.GenerateCagesFromFarmData();
-
-                    Debug.Log($"✅ Stored nest & hen lifetime data for farm {farmNumber}");
                 }
                 else
                 {
@@ -77,19 +75,15 @@ public class FarmAPIManager : MonoBehaviour
                         $"ℹ️ Hen lifetime skipped for farm {farmNumber} (will be handled by PlayerDataLoader)"
                     );
                 }
-
-                Debug.Log($"✅ Successfully loaded farm {farmNumber} summary");
             }
             catch (Exception e)
             {
                 onError?.Invoke($"Failed to parse farm data: {e.Message}");
-                Debug.LogError($"❌ JSON Parse Error: {e.Message}");
             }
         }
         else
         {
             onError?.Invoke(request.error);
-            Debug.LogError($"❌ API Error: {request.error}");
         }
     }
 
@@ -125,14 +119,12 @@ public class FarmAPIManager : MonoBehaviour
                     summaries[i] = summary;
                     loadedCount++;
                     completed = true;
-                    Debug.Log($"✅ Loaded farm {farmNumber} ({loadedCount}/{farmCount})");
                 },
                 (error) =>
                 {
                     hasError = true;
                     completed = true;
                     onError?.Invoke($"Failed to load farm {farmNumber}: {error}");
-                    Debug.LogError($"❌ Failed to load farm {farmNumber}: {error}");
                 }
             );
 

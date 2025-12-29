@@ -94,21 +94,15 @@ public class VitaminAllManager : MonoBehaviour
         request.SetRequestHeader("Content-Type", "application/json");
         request.SetRequestHeader("Authorization", "Bearer " + accessToken);
 
-        Debug.Log($"🔵 POST {url}");
-        Debug.Log($"📤 Body: {json}");
-
         yield return request.SendWebRequest();
 
         if (request.result == UnityWebRequest.Result.Success)
         {
-            Debug.Log($"✅ Vitamin applied successfully: {request.downloadHandler.text}");
             onSuccess?.Invoke(request.downloadHandler.text);
         }
         else
         {
             string errorMsg = $"Error: {request.error}";
-            Debug.LogError($"❌ {errorMsg}");
-            Debug.LogError($"Response: {request.downloadHandler.text}");
             onError?.Invoke(request.error);
         }
     }

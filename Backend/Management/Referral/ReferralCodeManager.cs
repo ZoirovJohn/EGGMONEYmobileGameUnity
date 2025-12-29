@@ -55,7 +55,6 @@ public class ReferralCodeManager : MonoBehaviour
 
         if (string.IsNullOrEmpty(code))
         {
-            Debug.LogWarning("No referral code available to copy");
             return;
         }
 

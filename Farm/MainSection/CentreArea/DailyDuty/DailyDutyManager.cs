@@ -54,8 +54,6 @@ public class DailyDutyManager : MonoBehaviour
 
     private void Start()
     {
-        Debug.Log("🎮 DailyDutyManager Start()");
-        
         simonButton.onClick.AddListener(OnFeedButtonClicked);
         collectButton.onClick.AddListener(OnCollectButtonClicked);
         matchingButton.onClick.AddListener(OnCleanButtonClicked);
@@ -86,8 +84,6 @@ public class DailyDutyManager : MonoBehaviour
         {
             playerWallet.OnProfileChanged += UpdateStatusImages;
             playerWallet.OnItemChanged += OnInventoryItemChanged;
-            Debug.Log("✅ Subscribed to PlayerWallet events");
-            
             CheckFoodInventory();
         }
         else
@@ -98,52 +94,37 @@ public class DailyDutyManager : MonoBehaviour
 
     private void OnDisable()
     {
-        Debug.Log("🎬 OnDisable called");
-        
-        // ⭐ CRITICAL: Force immediate cleanup when panel is disabled
         if (isPlayingSuccessVideo)
         {
-            Debug.Log("🎬 Video was playing — forcing immediate cleanup");
-            
-            // Stop video first
             if (videoPlayer != null && videoPlayer.isPlaying)
             {
                 videoPlayer.Stop();
-                Debug.Log("🎬 VideoPlayer stopped");
             }
             
-            // Reset flag
             isPlayingSuccessVideo = false;
         }
         
-        // ⭐ Force hide video panel and show main panel
         if (panelAnim != null && panelAnim.activeSelf)
         {
             panelAnim.SetActive(false);
-            Debug.Log("🎬 panelAnim disabled");
         }
         
         if (mainPanel != null && !mainPanel.activeSelf)
         {
             mainPanel.SetActive(true);
-            Debug.Log("🎬 mainPanel enabled");
         }
         
         if (playerWallet != null)
         {
             playerWallet.OnProfileChanged -= UpdateStatusImages;
             playerWallet.OnItemChanged -= OnInventoryItemChanged;
-            Debug.Log("✅ Unsubscribed from PlayerWallet events");
         }
     }
 
     private void OnInventoryItemChanged(string itemId, int newValue)
     {
-        Debug.Log($"🔔 OnInventoryItemChanged called - itemId: '{itemId}', newValue: {newValue}");
-        
         if (itemId == "food" || itemId == "super_food")
         {
-            Debug.Log($"🍗 FOOD ITEM CHANGED! Calling CheckFoodInventory()");
             CheckFoodInventory();
         }
         else
@@ -156,24 +137,18 @@ public class DailyDutyManager : MonoBehaviour
     {
         if (playerWallet == null)
         {
-            Debug.LogError("❌ CheckFoodInventory: PlayerWallet is NULL!");
             return;
         }
         
         if (warningMessage == null)
         {
-            Debug.LogError("❌ CheckFoodInventory: warningMessage GameObject is NULL!");
             return;
         }
 
         int foodCount = playerWallet.Food;
         int superFoodCount = playerWallet.SuperFood;
         
-        Debug.Log($"🍗 CheckFoodInventory - Food: {foodCount}, SuperFood: {superFoodCount}");
-
         bool noFood = (foodCount == 0 && superFoodCount == 0);
-        
-        Debug.Log($"🚨 No Food Status: {noFood} (should show warning: {noFood})");
         
         warningMessage.SetActive(noFood);
 
@@ -181,15 +156,12 @@ public class DailyDutyManager : MonoBehaviour
             goShopButton.gameObject.SetActive(noFood);
 
         simonButton.gameObject.SetActive(!noFood);
-                
-        Debug.Log($"✅ Warning message SetActive({noFood}) - GameObject active: {warningMessage.activeSelf}");
     }
 
     private void LoadFullSummary()
     {
         if (fullSummaryManager == null)
         {
-            Debug.LogWarning("⚠️ FullSummaryManager not assigned!");
             return;
         }
 
@@ -200,7 +172,6 @@ public class DailyDutyManager : MonoBehaviour
             },
             onError: (error) =>
             {
-                Debug.LogError($"❌ Failed to load full summary: {error}");
                 if (hensWithEggReadyImage != null) hensWithEggReadyImage.SetActive(false);
                 if (hensNeedingFoodImage != null) hensNeedingFoodImage.SetActive(false);
                 if (hensNeedingCleanImage != null) hensNeedingCleanImage.SetActive(false);
@@ -238,7 +209,6 @@ public class DailyDutyManager : MonoBehaviour
             },
             onError: (err) =>
             {
-                Debug.LogError($"❌ Farm refresh failed after collect: {err}");
                 done = true;
             }
         );
@@ -267,31 +237,23 @@ public class DailyDutyManager : MonoBehaviour
         }
 
         CheckFoodInventory();
-
-        Debug.Log($"📊 Status Updated - Egg Ready: {playerWallet.HensWithEggReady}, Food: {playerWallet.HensNeedingFood}, Clean: {playerWallet.HensNeedingClean}");
     }
 
     private void OnFeedButtonClicked()
     {
-        Debug.Log("🍗 Feed button clicked");
-
         if (feedingManager == null)
         {
-            Debug.LogError("❌ FeedingManager is not assigned!");
             return;
         }
 
         if (playerWallet == null)
         {
-            Debug.LogError("❌ PlayerWallet is NULL!");
             return;
         }
 
         bool noFood = playerWallet.Food == 0 && playerWallet.SuperFood == 0;
         if (noFood)
         {
-            Debug.Log("🚫 Cannot feed: no food available");
-
             if (warningMessage != null)
                 warningMessage.SetActive(true);
             return;
@@ -302,19 +264,15 @@ public class DailyDutyManager : MonoBehaviour
         feedingManager.FeedAll(
             onSuccess: (response) => 
             {
-                Debug.Log("✅ Feeding successful!");
-                
                 if (inventoryManager != null)
                 {
                     inventoryManager.GetInventory(
                         onSuccess: (inventoryResponse) =>
                         {
-                            Debug.Log("✅ Inventory refreshed after feeding");
                             RefreshSummaryAndPlayAnimation(simonButton, afterFeedingVideo);
                         },
                         onError: (inventoryError) =>
                         {
-                            Debug.LogError($"❌ Failed to refresh inventory: {inventoryError}");
                             RefreshSummaryAndPlayAnimation(simonButton, afterFeedingVideo);
                         }
                     );
@@ -326,7 +284,6 @@ public class DailyDutyManager : MonoBehaviour
             },
             onError: (error) => 
             {
-                Debug.LogError($"❌ Feeding failed: {error}");
                 simonButton.interactable = true;
             }
         );
@@ -335,11 +292,8 @@ public class DailyDutyManager : MonoBehaviour
     private IEnumerator AfterCollectFlow(Button button, VideoClip clip)
     {
         yield return new WaitForSeconds(0.1f);
-        
-        // ⭐ Refresh farm data first
         yield return StartCoroutine(RefreshAllFarmsData());
         
-        // ⭐ Then refresh full summary to update status images
         if (fullSummaryManager != null)
         {
             bool summaryDone = false;
@@ -347,17 +301,14 @@ public class DailyDutyManager : MonoBehaviour
             fullSummaryManager.GetFullSummary(
                 onSuccess: (response) =>
                 {
-                    Debug.Log("✅ Full summary refreshed after collect");
                     summaryDone = true;
                 },
                 onError: (error) =>
                 {
-                    Debug.LogError($"❌ Failed to refresh summary after collect: {error}");
                     summaryDone = true;
                 }
             );
             
-            // Wait for summary to complete
             while (!summaryDone)
                 yield return null;
         }
@@ -368,12 +319,9 @@ public class DailyDutyManager : MonoBehaviour
 
     private void OnGoShopClicked()
     {
-        Debug.Log("🛒 GoShop button clicked");
-
         if (storeButton != null)
         {
             storeButton.onClick.Invoke();
-            Debug.Log("✅ Store button invoked programmatically");
         }
         else
         {
@@ -383,11 +331,8 @@ public class DailyDutyManager : MonoBehaviour
 
     private void OnCollectButtonClicked()
     {
-        Debug.Log("🥚 Collect button clicked");
-
         if (collectingManager == null)
         {
-            Debug.LogError("❌ CollectingManager is not assigned!");
             return;
         }
 
@@ -400,7 +345,6 @@ public class DailyDutyManager : MonoBehaviour
             },
             onError: (error) =>
             {
-                Debug.LogError($"❌ Collection failed: {error}");
                 collectButton.interactable = true;
             }
         );
@@ -408,11 +352,8 @@ public class DailyDutyManager : MonoBehaviour
 
     private void OnCleanButtonClicked()
     {
-        Debug.Log("🧹 Clean button clicked");
-
         if (cleanupManager == null)
         {
-            Debug.LogError("❌ CleanupManager is not assigned!");
             return;
         }
 
@@ -421,12 +362,10 @@ public class DailyDutyManager : MonoBehaviour
         cleanupManager.CleanAll(
             onSuccess: (response) => 
             {
-                Debug.Log("✅ Cleanup successful!");
                 RefreshSummaryAndPlayAnimation(matchingButton, afterCleanupVideo);
             },
             onError: (error) => 
             {
-                Debug.LogError($"❌ Cleanup failed: {error}");
                 matchingButton.interactable = true;
             }
         );
@@ -460,13 +399,11 @@ public class DailyDutyManager : MonoBehaviour
     {
         if (videoPlayer == null)
         {
-            Debug.LogWarning("⚠️ VideoPlayer is not assigned! Skipping animation.");
             return;
         }
         
         if (videoClip == null)
         {
-            Debug.LogWarning("⚠️ VideoClip is not assigned! Skipping animation.");
             return;
         }
         
@@ -515,7 +452,6 @@ public class DailyDutyManager : MonoBehaviour
             },
             onError: (error) =>
             {
-                Debug.LogError($"❌ Failed to refresh all farms: {error}");
                 done = true;
             }
         );
@@ -528,13 +464,11 @@ public class DailyDutyManager : MonoBehaviour
     {
         if (videoPlayer == null)
         {
-            Debug.LogError("❌ VideoPlayer is not assigned!");
             return;
         }
         
         if (rawImage == null)
         {
-            Debug.LogError("❌ RawImage is not assigned!");
             return;
         }
         
@@ -544,12 +478,8 @@ public class DailyDutyManager : MonoBehaviour
             renderTexture.name = "VideoRenderTexture";
             
             videoPlayer.targetTexture = renderTexture;
-            
-            Debug.Log("✅ Created RenderTexture for VideoPlayer: 1920x1080");
         }
         
         rawImage.texture = videoPlayer.targetTexture;
-        
-        Debug.Log("✅ VideoPlayer and RenderTexture connected via RenderTexture");
     }
 }

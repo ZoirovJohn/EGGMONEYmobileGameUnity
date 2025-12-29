@@ -27,17 +27,14 @@ public class FarmGridManager : MonoBehaviour
 
     IEnumerator InitializeAfterFrame()
     {
-        // Wait for canvas to fully initialize
         yield return null;
         Canvas.ForceUpdateCanvases();
         
-        // Validate references
         if (!ValidateReferences())
         {
             yield break;
         }
 
-        // ✅ FIXED: Check if backend data is already loaded
         if (farmDatabase.farms == null || farmDatabase.farms.Count == 0)
         {
             farmDatabase.LoadFromJSON();
@@ -52,19 +49,13 @@ public class FarmGridManager : MonoBehaviour
             Debug.Log($"✅ Backend data already loaded: {farmDatabase.farms.Count} farms available");
         }
 
-        // Set to Farm 1 (index 0) by default
         farmDatabase.currentFarmIndex = 0;
-        
-        // Load Farm 1 cages
         LoadFarmCages(0);
-        
         if (currentCages == null || currentCages.Count == 0)
         {
             yield break;
         }
-        // Setup and build
         SetupGrid();
-        
         BuildCages();
     }
 
@@ -94,38 +85,27 @@ public class FarmGridManager : MonoBehaviour
 
     void SetupGrid()
     {
-        // Force canvas update to ensure viewport has correct size
         Canvas.ForceUpdateCanvases();
-        
         float viewportWidth = viewport.rect.width;
-        
-        // Fallback to screen width if viewport width is invalid
         if (viewportWidth <= 0)
         {
             viewportWidth = Screen.width;
         }
         
         float spacing = grid.spacing.x;
-
-        // Responsive column count
         int columns = (viewportWidth < 700) ? 4 : (viewportWidth < 1100) ? 5 : 6;
-
-        // Calculate cell size
         float totalSpacing = spacing * (columns - 1);
         float cellSize = (viewportWidth - totalSpacing) / columns;
 
-        // Apply to grid
         grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
         grid.constraintCount = columns;
         grid.cellSize = new Vector2(cellSize, cellSize);
 
-        // Center alignment with padding
         float totalUsed = columns * cellSize + spacing * (columns - 1);
         float sidePadding = Mathf.Max(0, (viewportWidth - totalUsed) / 2f);
         grid.padding.left = Mathf.RoundToInt(sidePadding);
         grid.padding.right = Mathf.RoundToInt(sidePadding);
 
-        // Set grid width
         RectTransform gridRect = grid.GetComponent<RectTransform>();
         gridRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, viewportWidth);
     }
@@ -142,7 +122,6 @@ public class FarmGridManager : MonoBehaviour
             return;
         }
         
-        // Clear existing cages
         int childCount = grid.transform.childCount;
         
         for (int i = childCount - 1; i >= 0; i--)
@@ -155,12 +134,10 @@ public class FarmGridManager : MonoBehaviour
             return;
         }
 
-        // Count cages with nests for verification
         int cagesWithNests = 0;
         int totalChampChicks = 0;
         int totalNormalChicks = 0;
 
-        // Build all cages
         for (int i = 0; i < currentCages.Count; i++)
         {
             CageData data = currentCages[i];
@@ -180,19 +157,16 @@ public class FarmGridManager : MonoBehaviour
             int index = i;
             btn.onClick.AddListener(() => ShowBigCage(index));
 
-            // Count for debug
             if (data.nestsOccupied > 0) cagesWithNests++;
             totalChampChicks += data.champChicks;
             totalNormalChicks += data.normalChicks;
             
-            // Log progress every 25 cages
             if ((i + 1) % 25 == 0)
             {
                 Debug.Log($"   📦 Created {i + 1}/{currentCages.Count} cages...");
             }
         }
 
-        // Force layout rebuild
         Canvas.ForceUpdateCanvases();
         LayoutRebuilder.ForceRebuildLayoutImmediate(grid.GetComponent<RectTransform>());
     }
@@ -205,7 +179,6 @@ public class FarmGridManager : MonoBehaviour
 
         bool hasAnyChick = data.normalChicks > 0 || data.champChicks > 0;
 
-        // 1️⃣ PREMIUM NEST FIRST
         Transform premiumNest = cageRoot.Find("PremiumNest");
         Transform normalNest = cageRoot.Find("Nest");
 
@@ -223,7 +196,6 @@ public class FarmGridManager : MonoBehaviour
             }
         }
 
-        // 2️⃣ CHICKS
         Transform champChick = cageRoot.Find("ChampChick");
         Transform normalChick = cageRoot.Find("WhiteChick");
 
@@ -257,7 +229,6 @@ public class FarmGridManager : MonoBehaviour
             }
         }
 
-        // 4️⃣ LIFETIME
         Transform lifeTime = cageRoot.Find("LifeTime");
         if (lifeTime != null && hasAnyChick)
         {
@@ -313,7 +284,6 @@ public class FarmGridManager : MonoBehaviour
 
         ApplyCageDisplay(inside, data);
         
-        // ✅ USE InventoryItemsBarChanger to open cage bar and close others
         if (inventoryBarChanger != null)
         {
             inventoryBarChanger.InventoryCageBarMethod();
@@ -324,7 +294,6 @@ public class FarmGridManager : MonoBehaviour
         }
     }
 
-    // Load specific farm cages
     private void LoadFarmCages(int farmIndex)
     {
         FarmData farm = farmDatabase.GetFarmByIndex(farmIndex);
@@ -338,11 +307,9 @@ public class FarmGridManager : MonoBehaviour
         }
     }
 
-    // PUBLIC: Called from FarmHeaderManager when farm clicked
     public void SwitchFarm(int farmIndex)
     {
         
-        // ✅ Close any open info/error panels when switching farms
         if (infoErrorChanger != null)
         {
             infoErrorChanger.CloseAllInfoErrorMethod();
@@ -355,18 +322,16 @@ public class FarmGridManager : MonoBehaviour
         farmDatabase.SwitchToFarm(farmIndex);
         LoadFarmCages(farmIndex);
         
-        SetupGrid(); // Recalculate grid if needed
+        SetupGrid(); 
         BuildCages();
     }
 
-    // PUBLIC: Refresh current farm (for backend updates)
     public void RefreshCages()
     {
         LoadFarmCages(farmDatabase.currentFarmIndex);
         BuildCages();
     }
 
-    // PUBLIC: Handle screen rotation or resize
     public void OnScreenSizeChanged()
     {
         SetupGrid();
@@ -412,16 +377,12 @@ public class FarmGridManager : MonoBehaviour
             return false;
         }
         
-        // Check if item can be applied
         if (!farm.CanApplyItem(itemId))
         {
             return false;
         }
-        
-        // Apply the item
         farm.ApplyItem(itemId);
         
-        // If this is the currently displayed farm, refresh the display
         if (farmDatabase.currentFarmIndex == farm.farmIndex)
         {
             RefreshCurrentFarmDisplay();
@@ -437,14 +398,9 @@ public class FarmGridManager : MonoBehaviour
     public void RefreshCurrentFarmDisplay()
     {
         int currentIndex = farmDatabase.currentFarmIndex;
-        
-        // Reload cages from database
         LoadFarmCages(currentIndex);
-        
-        // Rebuild the grid display
         BuildCages();
         
-        // Notify FarmHeaderManager to update farm slot visuals
         FarmHeaderManager headerManager = FindAnyObjectByType<FarmHeaderManager>();
         if (headerManager != null)
         {
@@ -462,7 +418,6 @@ public class FarmGridManager : MonoBehaviour
             return;
         }
         
-        // If it's the current farm, refresh it
         if (farmDatabase.currentFarmIndex == farmIndex)
         {
             RefreshCurrentFarmDisplay();

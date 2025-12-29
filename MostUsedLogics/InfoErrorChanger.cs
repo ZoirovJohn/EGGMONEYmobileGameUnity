@@ -66,7 +66,6 @@ public class InfoErrorChanger : MonoBehaviour
     public void OpenInfoSetVitaminToFarm(string message = null)
         => ShowPanel(infoSetVitaminToFarm, infoSetVitaminToFarmText, message);
 
-    // ✅ NEW
     public void OpenInfoAboutFarmItself(string message = null)
         => ShowPanel(infoAboutFarmItself, infoAboutFarmItselfText, message);
 

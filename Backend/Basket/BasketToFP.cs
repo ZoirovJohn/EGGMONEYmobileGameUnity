@@ -24,7 +24,6 @@ public class BasketToFP : MonoBehaviour
     {
         if (eggAmount <= 0)
         {
-            Debug.LogError("❌ Egg amount must be greater than 0");
             onError?.Invoke("Invalid egg amount");
             
             if (infoErrorChanger != null)
@@ -38,7 +37,6 @@ public class BasketToFP : MonoBehaviour
             if (wallet.Eggs < eggAmount)
             {
                 string error = $"Not enough eggs! You have {wallet.Eggs} eggs but need {eggAmount}";
-                Debug.LogError($"❌ {error}");
                 onError?.Invoke(error);
                 
                 if (infoErrorChanger != null)
@@ -138,8 +136,6 @@ public class BasketToFP : MonoBehaviour
                 
                 string error = $"Exchange failed: {request.error}";
                 Debug.LogError($"❌ {error}");
-                Debug.LogError($"Response Code: {request.responseCode}");
-                Debug.LogError($"Response: {request.downloadHandler.text}");
                 
                 onError?.Invoke(request.error);
                 

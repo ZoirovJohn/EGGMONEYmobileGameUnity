@@ -22,7 +22,6 @@ public class FeedingManager : MonoBehaviour
 
         if (string.IsNullOrEmpty(accessToken))
         {
-            Debug.LogError("No access token found. Cannot feed.");
             onError?.Invoke("No access token found");
             yield break;
         }
@@ -50,24 +49,20 @@ public class FeedingManager : MonoBehaviour
 
                 if (feedData.ok)
                 {
-                    Debug.Log("✅ Feeding finished!");
                     onSuccess?.Invoke(response);
                 }
                 else
                 {
-                    Debug.LogWarning("Feeding returned ok: false");
                     onError?.Invoke("Feeding failed");
                 }
             }
             catch (Exception e)
             {
-                Debug.LogError("Failed to parse feeding response: " + e.Message);
                 onError?.Invoke("Parse error: " + e.Message);
             }
         }
         else
         {
-            Debug.LogError("Feed API Error: " + request.error);
             onError?.Invoke(request.error);
         }
     }

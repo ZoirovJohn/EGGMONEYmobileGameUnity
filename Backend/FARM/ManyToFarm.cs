@@ -169,19 +169,16 @@ public class ManyToFarm : MonoBehaviour
     {
         if (isProcessing)
         {
-            Debug.LogWarning("⚠️ Already processing a request");
             return;
         }
         
         if (!ValidateReferences())
         {
-            Debug.LogError("❌ Missing required references!");
             return;
         }
         
         if (!cellId || string.IsNullOrEmpty(cellId.productId))
         {
-            Debug.LogError("❌ No item selected!");
             return;
         }
         
@@ -193,8 +190,6 @@ public class ManyToFarm : MonoBehaviour
         {
             if (IsHenAlreadyInCage())
             {
-                Debug.LogWarning("⚠️ Cage already has a hen! Cannot place another hen.");
-                
                 if (infoErrorChanger != null)
                 {
                     infoErrorChanger.OpenErrorDefault("Cage already has a hen! Select another cage.");
@@ -208,8 +203,6 @@ public class ManyToFarm : MonoBehaviour
         {
             if (IsNestAlreadyInCage())
             {
-                Debug.LogWarning("⚠️ Cage already has a nest! Cannot place another nest.");
-                
                 if (infoErrorChanger != null)
                 {
                     infoErrorChanger.OpenErrorDefault("Cage already has a nest! Select another cage.");
@@ -222,7 +215,6 @@ public class ManyToFarm : MonoBehaviour
         if (farmDatabase != null)
         {
             targetFarmNumber = farmDatabase.currentFarmIndex + 1;
-            Debug.Log($"🎯 Placing items in Farm {targetFarmNumber}");
         }
         else
         {
@@ -233,7 +225,6 @@ public class ManyToFarm : MonoBehaviour
         int available = wallet.GetItemCount(cellId.productId);
         if (available < currentQuantity)
         {
-            Debug.LogWarning($"⚠️ Not enough items! You have {available}, need {currentQuantity}.");
             return;
         }
         
@@ -255,14 +246,12 @@ public class ManyToFarm : MonoBehaviour
         Transform champChick = bigCageInside2.transform.Find("ChampChick");
         if (champChick != null && champChick.gameObject.activeSelf)
         {
-            Debug.Log("🐔 ChampChick already active in cage");
             return true;
         }
         
         Transform whiteChick = bigCageInside2.transform.Find("WhiteChick");
         if (whiteChick != null && whiteChick.gameObject.activeSelf)
         {
-            Debug.Log("🐔 WhiteChick already active in cage");
             return true;
         }
         
@@ -296,8 +285,6 @@ public class ManyToFarm : MonoBehaviour
         UpdateButtonStates();
         ShowLoading(true);
         
-        Debug.Log($"🔍 Original productId from cellId: '{cellId.productId}'");
-        
         string itemType = MapProductIdToItemType(cellId.productId);
         string tier = MapProductIdToTier(cellId.productId);
         
@@ -306,7 +293,6 @@ public class ManyToFarm : MonoBehaviour
         
         if (string.IsNullOrEmpty(itemType))
         {
-            Debug.LogError($"❌ Invalid item type: {cellId.productId}");
             onError?.Invoke($"Invalid item type: {cellId.productId}");
             isProcessing = false;
             ShowLoading(false);
@@ -327,7 +313,6 @@ public class ManyToFarm : MonoBehaviour
         
         if (string.IsNullOrEmpty(accessToken))
         {
-            Debug.LogError("❌ Not authenticated - no access token!");
             onError?.Invoke("No access token found");
             isProcessing = false;
             ShowLoading(false);
@@ -374,8 +359,6 @@ public class ManyToFarm : MonoBehaviour
         else
         {
             string errorMsg = request.error;
-            Debug.LogError($"❌ Request failed: {errorMsg}");
-            Debug.LogError($"❌ Response code: {request.responseCode}");
             
             if (!string.IsNullOrEmpty(request.downloadHandler.text))
             {
@@ -415,7 +398,6 @@ public class ManyToFarm : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogError($"❌ Failed to parse response: {e.Message}");
             Debug.LogError($"Response was: {responseJson}");
         }
     }
@@ -439,7 +421,6 @@ public class ManyToFarm : MonoBehaviour
             if (premiumNest != null)
             {
                 premiumNest.gameObject.SetActive(true);
-                Debug.Log("✅ Activated PremiumNest in BigCageInside2");
             }
 
             Transform normalNest = bigCageInside2.transform.Find("Nest");
@@ -456,7 +437,6 @@ public class ManyToFarm : MonoBehaviour
             if (normalNest != null)
             {
                 normalNest.gameObject.SetActive(true);
-                Debug.Log("✅ Activated Normal Nest in BigCageInside2");
             }
 
             Transform premiumNest = bigCageInside2.transform.Find("PremiumNest");
@@ -477,7 +457,6 @@ public class ManyToFarm : MonoBehaviour
             if (chick != null)
             {
                 chick.gameObject.SetActive(true);
-                Debug.Log($"✅ Activated {chickType} in BigCageInside2");
             }
 
             Transform clock = bigCageInside2.transform.Find("Clock");
@@ -505,7 +484,6 @@ public class ManyToFarm : MonoBehaviour
                 },
                 onError: (error) => {
                     inventoryRefreshed = true;
-                    Debug.LogWarning($"⚠️ Inventory refresh failed: {error}");
                 }
             );
             
@@ -534,7 +512,6 @@ public class ManyToFarm : MonoBehaviour
                         var nestList = new System.Collections.Generic.List<NestDetail>(summary.nests.details);
 
                         farmDatabase.SetFarmNestDetails(farmIndex, nestList);
-                        Debug.Log($"✅ Stored {nestList.Count} nest details for Farm {targetFarmNumber}");
                     }
 
                     
@@ -551,7 +528,6 @@ public class ManyToFarm : MonoBehaviour
                 },
                 onError: (error) => {
                     farmRefreshed = true;
-                    Debug.LogError($"❌ Failed to fetch farm summary: {error}");
                 }
             );
             
@@ -585,13 +561,11 @@ public class ManyToFarm : MonoBehaviour
             if (premiumNest != null && !premiumNest.gameObject.activeSelf)
             {
                 premiumNest.gameObject.SetActive(true);
-                Debug.Log("✅ Re-enabled PremiumNest after refresh");
             }
             
             if (normalNest != null && normalNest.gameObject.activeSelf)
             {
                 normalNest.gameObject.SetActive(false);
-                Debug.Log("✅ Disabled normal nest after refresh (premium was placed)");
             }
         }
     }
@@ -600,19 +574,16 @@ public class ManyToFarm : MonoBehaviour
     {
         if (wallet == null)
         {
-            Debug.LogError("❌ PlayerWallet not assigned!");
             return false;
         }
         
         if (apiConfig == null)
         {
-            Debug.LogError("❌ APIConfig not assigned!");
             return false;
         }
         
         if (farmAPIManager == null)
         {
-            Debug.LogError("❌ FarmAPIManager not assigned!");
             return false;
         }
         
@@ -638,7 +609,6 @@ public class ManyToFarm : MonoBehaviour
             return "robot";
         }
         
-        Debug.LogWarning($"⚠️ Unknown product ID for farm placement: {productId}");
         return null;
     }
 
@@ -673,7 +643,6 @@ public class ManyToFarm : MonoBehaviour
             return null;
         }
 
-        Debug.LogWarning($"⚠️ Unknown item type for: {productId}, returning null");
         return null;
     }
 

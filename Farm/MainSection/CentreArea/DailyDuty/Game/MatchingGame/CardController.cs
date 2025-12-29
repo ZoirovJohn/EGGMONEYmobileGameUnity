@@ -65,10 +65,8 @@ public class CardController : MonoBehaviour
 
     private void StartNewGame()
     {
-        // Don't start new game if waiting for close button
         if (isWaitingForClose) return;
 
-        // Clear existing cards
         foreach (Transform child in gridTransform)
         {
             Destroy(child.gameObject);
@@ -87,7 +85,6 @@ public class CardController : MonoBehaviour
     {
         spritePairs = new List<Sprite>();
 
-        // Make pairs
         foreach (Sprite sp in sprites)
         {
             spritePairs.Add(sp);
@@ -170,7 +167,6 @@ public class CardController : MonoBehaviour
             {
                 PlaySound(completeSound);
                 
-                // 🧹 Call cleanup API when 100% complete
                 if (cleanupManager != null)
                 {
                     isWaitingForClose = true;
@@ -178,8 +174,6 @@ public class CardController : MonoBehaviour
                     cleanupManager.CleanAll(
                         onSuccess: (response) => 
                         {
-                            Debug.Log("Cleanup successful after game completion");
-                            // Click the close button after cleanup
                             if (closeBtn != null)
                             {
                                 closeBtn.onClick.Invoke();
@@ -187,8 +181,6 @@ public class CardController : MonoBehaviour
                         },
                         onError: (error) => 
                         {
-                            Debug.LogError("Cleanup failed: " + error);
-                            // Click the close button even on error
                             if (closeBtn != null)
                             {
                                 closeBtn.onClick.Invoke();
@@ -204,7 +196,6 @@ public class CardController : MonoBehaviour
             Debug.Log("🎉 ALL GAMES COMPLETE! 100% Progress!");
         }
         
-        // Only start new game if not waiting for close button
         if (!isWaitingForClose)
         {
             StartNewGame();

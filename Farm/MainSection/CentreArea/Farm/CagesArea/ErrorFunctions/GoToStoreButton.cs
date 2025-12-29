@@ -18,7 +18,6 @@ public class GoToStoreButton : MonoBehaviour
         {
             if (!footerStoreButton)
             {
-                // Try to find the store button by name
                 GameObject storeButtonObj = GameObject.Find("StoreButton");
                 if (!storeButtonObj) storeButtonObj = GameObject.Find("Store Button");
                 if (!storeButtonObj) storeButtonObj = GameObject.Find("FooterStoreButton");
@@ -38,13 +37,11 @@ public class GoToStoreButton : MonoBehaviour
 
     public void OnGoToStoreClicked()
     {
-        // Step 1: Close error panel
         if (errorGoToStorePanel != null)
         {
             errorGoToStorePanel.SetActive(false);
         }
         
-        // Step 2: Click the footer store button (it handles everything else!)
         if (footerStoreButton != null)
         {
             footerStoreButton.onClick.Invoke();

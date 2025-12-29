@@ -100,7 +100,6 @@ public class SimonController : MonoBehaviour
 
     private IEnumerator StartRound()
     {
-        // Don't start new round if waiting for close button
         if (isWaitingForClose) yield break;
 
         if (isPlayingSequence) yield break;
@@ -220,7 +219,6 @@ public class SimonController : MonoBehaviour
                 if (statusText != null)
                     statusText.text = "🎉 100% COMPLETE!";
                 
-                // 🍗 Call feeding API when 100% complete
                 if (feedingManager != null)
                 {
                     isWaitingForClose = true;
@@ -228,24 +226,16 @@ public class SimonController : MonoBehaviour
                     feedingManager.FeedAll(
                         onSuccess: (response) => 
                         {
-                            Debug.Log("Feeding successful after game completion");
-                            
-                            // ✅ STEP 1: Refresh Inventory first (updates food counts)
                             if (inventoryManager != null)
                             {
                                 inventoryManager.GetInventory(
                                     onSuccess: (inventoryResponse) =>
                                     {
-                                        Debug.Log("✅ Inventory refreshed after feeding");
-                                        
-                                        // ✅ STEP 2: Then refresh FullSummary
                                         if (fullSummaryManager != null)
                                         {
                                             fullSummaryManager.GetFullSummary(
                                                 onSuccess: (summaryResponse) => 
                                                 {
-                                                    Debug.Log("✅ Full Summary refreshed after feeding");
-                                                    // Click the close button after both refreshes
                                                     if (closeBtn != null)
                                                     {
                                                         closeBtn.onClick.Invoke();
@@ -253,8 +243,6 @@ public class SimonController : MonoBehaviour
                                                 },
                                                 onError: (summaryError) => 
                                                 {
-                                                    Debug.LogError($"Failed to refresh summary: {summaryError}");
-                                                    // Click close button anyway
                                                     if (closeBtn != null)
                                                     {
                                                         closeBtn.onClick.Invoke();
@@ -264,7 +252,6 @@ public class SimonController : MonoBehaviour
                                         }
                                         else
                                         {
-                                            // No summary manager, just click close button
                                             if (closeBtn != null)
                                             {
                                                 closeBtn.onClick.Invoke();
@@ -273,8 +260,6 @@ public class SimonController : MonoBehaviour
                                     },
                                     onError: (inventoryError) =>
                                     {
-                                        Debug.LogError($"Failed to refresh inventory: {inventoryError}");
-                                        // Continue to summary refresh anyway
                                         if (fullSummaryManager != null)
                                         {
                                             fullSummaryManager.GetFullSummary(
@@ -297,13 +282,11 @@ public class SimonController : MonoBehaviour
                             }
                             else
                             {
-                                // No inventory manager, just do summary
                                 if (fullSummaryManager != null)
                                 {
                                     fullSummaryManager.GetFullSummary(
                                         onSuccess: (summaryResponse) => 
                                         {
-                                            Debug.Log("✅ Full Summary refreshed after feeding");
                                             if (closeBtn != null)
                                             {
                                                 closeBtn.onClick.Invoke();
@@ -311,7 +294,6 @@ public class SimonController : MonoBehaviour
                                         },
                                         onError: (summaryError) => 
                                         {
-                                            Debug.LogError($"Failed to refresh summary: {summaryError}");
                                             if (closeBtn != null)
                                             {
                                                 closeBtn.onClick.Invoke();
@@ -330,8 +312,6 @@ public class SimonController : MonoBehaviour
                         },
                         onError: (error) => 
                         {
-                            Debug.LogError("Feeding failed: " + error);
-                            // Click the close button even on error
                             if (closeBtn != null)
                             {
                                 closeBtn.onClick.Invoke();
@@ -347,7 +327,6 @@ public class SimonController : MonoBehaviour
                 statusText.text = "🎉 100% COMPLETE!";
         }
         
-        // Only start new round if not waiting for close button
         if (!isWaitingForClose)
         {
             StartCoroutine(StartRound());

@@ -27,7 +27,6 @@ public class RegisterReferral : MonoBehaviour
     {
         if (referralCodeInput == null)
         {
-            Debug.LogError("Referral code input field is not assigned");
             return;
         }
 
@@ -39,7 +38,6 @@ public class RegisterReferral : MonoBehaviour
             if (userLocation == "KR")
             {
                 ShowMessage("Not allowed, change location!");
-                Debug.LogWarning("❌ Referral registration blocked: User location is KR");
                 return;
             }
         }
@@ -67,7 +65,6 @@ public class RegisterReferral : MonoBehaviour
         if (string.IsNullOrEmpty(accessToken))
         {
             ShowMessage("Please login first");
-            Debug.LogError("No access token found");
             yield break;
         }
 
@@ -101,9 +98,6 @@ public class RegisterReferral : MonoBehaviour
             // Handle response
             if (request.result == UnityWebRequest.Result.Success)
             {
-                Debug.Log($"✅ Referral code registered successfully: {referralCode}");
-                
-                // Try to parse success response
                 try
                 {
                     ReferralSuccessResponse success = JsonUtility.FromJson<ReferralSuccessResponse>(request.downloadHandler.text);
@@ -127,12 +121,10 @@ public class RegisterReferral : MonoBehaviour
                 {
                     ReferralErrorResponse error = JsonUtility.FromJson<ReferralErrorResponse>(request.downloadHandler.text);
                     ShowMessage(error.message);
-                    Debug.LogWarning($"❌ {error.message}");
                 }
                 catch
                 {
                     ShowMessage("Failed to register referral code");
-                    Debug.LogError($"Failed to register referral code: {request.error}");
                 }
             }
         }

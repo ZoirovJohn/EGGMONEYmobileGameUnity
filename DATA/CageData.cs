@@ -85,8 +85,6 @@ public class FarmData
         {
             return batteryType == "none";
         }
-        
-        Debug.LogWarning($"⚠️ Unknown item type: {productId}");
         return false;
     }
     
@@ -94,7 +92,6 @@ public class FarmData
     {
         if (!CanApplyItem(productId))
         {
-            Debug.LogWarning($"⚠️ Cannot apply {productId} to {farmName}");
             return;
         }
         

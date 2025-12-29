@@ -191,7 +191,6 @@ public class SignUpValidator : MonoBehaviour
             },
             onError: (err) => 
             { 
-                Debug.LogError("❌ Signup failed: " + err);
                 SetErr(errorEmail, bgEmail, "Signup failed. Please try again.");
             }
         );

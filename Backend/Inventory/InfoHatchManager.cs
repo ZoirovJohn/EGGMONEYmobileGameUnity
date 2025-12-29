@@ -55,7 +55,6 @@ public class InfoHatchManager : MonoBehaviour
     {
         if (infoHatchPanel == null)
         {
-            Debug.LogError("❌ Cannot open InfoHatch - no panel assigned!");
             return;
         }
 
@@ -131,7 +130,6 @@ public class InfoHatchManager : MonoBehaviour
     {
         if (currentQty <= 0 || currentQty > availableEggs)
         {
-            Debug.LogWarning("⚠️ Invalid hatch quantity");
             return;
         }
 
@@ -140,14 +138,12 @@ public class InfoHatchManager : MonoBehaviour
             hatchAPI = FindAnyObjectByType<EggHatchAPI>();
             if (!hatchAPI)
             {
-                Debug.LogError("❌ No EggHatchAPI found!");
                 return;
             }
         }
 
         if (!wallet)
         {
-            Debug.LogError("❌ Missing PlayerWallet reference");
             return;
         }
 
@@ -164,7 +160,6 @@ public class InfoHatchManager : MonoBehaviour
             },
             onError: (err) =>
             {
-                Debug.LogError($"❌ Hatch failed: {err}");
                 btnOk.interactable = true;
             }
         );

@@ -22,7 +22,6 @@ public class CollectingManager : MonoBehaviour
 
         if (string.IsNullOrEmpty(accessToken))
         {
-            Debug.LogError("No access token found. Cannot collect eggs.");
             onError?.Invoke("No access token found");
             yield break;
         }
@@ -48,18 +47,15 @@ public class CollectingManager : MonoBehaviour
             {
                 CollectResponse collectData = JsonUtility.FromJson<CollectResponse>(response);
 
-                Debug.Log($"✅ Collection finished! Collected: {collectData.collected}, Basket Count: {collectData.basketEggCount}");
                 onSuccess?.Invoke(collectData);
             }
             catch (Exception e)
             {
-                Debug.LogError("Failed to parse collection response: " + e.Message);
                 onError?.Invoke("Parse error: " + e.Message);
             }
         }
         else
         {
-            Debug.LogError("Collect API Error: " + request.error);
             onError?.Invoke(request.error);
         }
     }

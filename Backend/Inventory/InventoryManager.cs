@@ -67,7 +67,6 @@ public class InventoryManager : MonoBehaviour
 
             if (inventoryData?.items == null || inventoryData.items.Length == 0)
             {
-                Debug.Log("No inventory items found.");
                 return;
             }
 
@@ -147,7 +146,6 @@ public class InventoryManager : MonoBehaviour
     {
         if (playerWallet == null)
         {
-            Debug.LogError("❌ PlayerWallet is null!");
             return;
         }
 
@@ -209,7 +207,6 @@ public class InventoryManager : MonoBehaviour
                 break;
                 
             default:
-                Debug.LogWarning($"⚠️ Unknown product ID for setting: {productId}");
                 break;
         }
     }
@@ -222,19 +219,16 @@ public class InventoryManager : MonoBehaviour
         // Safety check for null or empty values
         if (hen == null)
         {
-            Debug.LogWarning("Hen data is null");
             return null;
         }
 
         if (string.IsNullOrEmpty(hen.stage))
         {
-            Debug.LogWarning("Hen stage is null or empty");
             return null;
         }
 
         if (string.IsNullOrEmpty(hen.kind))
         {
-            Debug.LogWarning("Hen kind is null or empty");
             return null;
         }
 
@@ -261,8 +255,6 @@ public class InventoryManager : MonoBehaviour
                 return null;
             }
         }
-        
-        Debug.LogWarning($"Unknown hen stage: {hen.stage}");
         return null;
     }
 
@@ -286,7 +278,6 @@ public class InventoryManager : MonoBehaviour
                     case "red":
                         return "super_red_egg";
                     default:
-                        Debug.LogWarning($"Unknown egg tier: {tier}");
                         return null;
                 }
             
@@ -329,7 +320,6 @@ public class InventoryManager : MonoBehaviour
                 return "robot";
             
             default:
-                Debug.LogWarning($"Unknown itemType: {itemType}");
                 return null;
         }
     }

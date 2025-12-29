@@ -24,7 +24,6 @@ public class GameAudioManager : MonoBehaviour
             Instance = this;
             DontDestroyOnLoad(gameObject);
             InitializeAudioSources();
-            Debug.Log("GameAudioManager initialized and persisted");
         }
         else
         {
@@ -50,13 +49,11 @@ public class GameAudioManager : MonoBehaviour
         if (musicSource == null)
         {
             musicSource = gameObject.AddComponent<AudioSource>();
-            Debug.LogWarning("Music AudioSource was missing - created automatically");
         }
 
         if (sfxSource == null)
         {
             sfxSource = gameObject.AddComponent<AudioSource>();
-            Debug.LogWarning("SFX AudioSource was missing - created automatically");
         }
 
         musicSource.volume = musicSource.volume == 0 ? 0.7f : musicSource.volume;

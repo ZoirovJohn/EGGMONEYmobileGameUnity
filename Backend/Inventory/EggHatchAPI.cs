@@ -80,7 +80,6 @@ public class EggHatchAPI : MonoBehaviour
             case "super_blue_egg":
                 return "blue";
             default:
-                Debug.LogWarning($"Unknown egg type: {eggType}, defaulting to 'normal'");
                 return "normal";
         }
     }
@@ -151,7 +150,6 @@ public class EggHatchAPI : MonoBehaviour
                                     },
                                     onError: (err) =>
                                     {
-                                        Debug.LogWarning($"⚠️ Failed to refresh inventory after hatch: {err}");
                                         // Still call success since hatching worked
                                         onSuccess?.Invoke(response);
                                     }
@@ -162,7 +160,6 @@ public class EggHatchAPI : MonoBehaviour
                             }
                             else
                             {
-                                Debug.LogWarning("⚠️ InventoryManager not found, can't refresh inventory");
                                 onSuccess?.Invoke(response);
                             }
                         }
@@ -181,20 +178,17 @@ public class EggHatchAPI : MonoBehaviour
                     }
                     else
                     {
-                        Debug.LogError("❌ Hatch failed: ok=false in response");
                         onError?.Invoke("Hatching failed");
                     }
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"❌ Failed to parse hatch response: {e.Message}");
                     onError?.Invoke($"Failed to parse response: {e.Message}");
                 }
             }
             else
             {
                 string errorMsg = $"Request failed: {request.error}";
-                Debug.LogError($"❌ {errorMsg}");
                 onError?.Invoke(errorMsg);
             }
         }

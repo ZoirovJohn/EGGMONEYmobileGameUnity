@@ -26,7 +26,6 @@ public class PlayerDataLoader : MonoBehaviour
 
         if (string.IsNullOrEmpty(accessToken))
         {
-            Debug.LogWarning("⚠️ No access token found. User not authenticated.");
             SceneManager.LoadScene("Bootstrap");
             return;
         }
@@ -62,7 +61,6 @@ public class PlayerDataLoader : MonoBehaviour
             },
             onError: (err) =>
             {
-                Debug.LogError("❌ Failed to load player data: " + err);
                 SceneManager.LoadScene("Bootstrap");
             }
         );
@@ -72,7 +70,6 @@ public class PlayerDataLoader : MonoBehaviour
     {
         if (basketManager == null)
         {
-            Debug.LogWarning("⚠️ BasketManager not assigned, skipping basket load");
             return;
         }
 
@@ -97,13 +94,11 @@ public class PlayerDataLoader : MonoBehaviour
     {
         if (farmCount <= 0)
         {
-            Debug.LogWarning("⚠️ User has 0 farms, skipping farm data load");
             return;
         }
 
         if (farmAPIManager == null || farmDatabase == null)
         {
-            Debug.LogError("❌ FarmAPIManager or FarmDatabase not assigned!");
             return;
         }
 
@@ -115,7 +110,6 @@ public class PlayerDataLoader : MonoBehaviour
             },
             onError: (error) =>
             {
-                Debug.LogError($"❌ Failed to load farm data: {error}");
                 if (farmDatabase.farmDataJSON != null)
                 {
                     farmDatabase.LoadFromJSON();
@@ -128,7 +122,6 @@ public class PlayerDataLoader : MonoBehaviour
     {
         if (summaries == null || summaries.Length == 0)
         {
-            Debug.LogError("❌ No farm summaries to convert!");
             return;
         }
 

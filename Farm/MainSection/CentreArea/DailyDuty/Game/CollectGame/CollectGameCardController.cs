@@ -11,7 +11,7 @@ public class CollectGameCardController : MonoBehaviour
     [SerializeField] private Transform gridTransform;
 
     [Header("Sprites for numbers 1-9")]
-    [SerializeField] private Sprite[] numberSprites; // index 0 = 1, index 1 = 2, ...
+    [SerializeField] private Sprite[] numberSprites;
 
     [Header("Progress UI")]
     [SerializeField] private Image[] progressCards;
@@ -20,9 +20,9 @@ public class CollectGameCardController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI progressText;
 
     [Header("Sound Effects")]
-    [SerializeField] private AudioClip cardClickSound;    // Sound when any card is clicked
-    [SerializeField] private AudioClip correctSound;      // Sound when correct number is found
-    [SerializeField] private AudioClip completeSound;     // Sound when 100% complete
+    [SerializeField] private AudioClip cardClickSound;    
+    [SerializeField] private AudioClip correctSound;     
+    [SerializeField] private AudioClip completeSound;     
     private AudioSource audioSource;
 
     [Header("Collecting Manager")]
@@ -35,7 +35,7 @@ public class CollectGameCardController : MonoBehaviour
     [SerializeField] private FullSummaryManager fullSummaryManager;
 
     private List<CollectGameCard> cards = new List<CollectGameCard>();
-    private int nextNumber = 1; // User must click this number next
+    private int nextNumber = 1; 
     private bool isLocked = false;
 
     private int gamesCompleted = 0;
@@ -45,7 +45,6 @@ public class CollectGameCardController : MonoBehaviour
 
     private void Start()
     {
-        // Get or add AudioSource component
         audioSource = GetComponent<AudioSource>();
         if (audioSource == null)
             audioSource = gameObject.AddComponent<AudioSource>();
@@ -64,15 +63,13 @@ public class CollectGameCardController : MonoBehaviour
 
     private void StartNewGame()
     {
-        // Don't start new game if waiting for close button
         if (isWaitingForClose) return;
 
-        // Clear previous cards
         foreach (Transform child in gridTransform)
             Destroy(child.gameObject);
 
         cards.Clear();
-        nextNumber = 1; // Reset to start from 1
+        nextNumber = 1; 
         isLocked = false;
 
         CreateNumberCards();
@@ -80,14 +77,12 @@ public class CollectGameCardController : MonoBehaviour
 
     private void CreateNumberCards()
     {
-        // Create shuffled numbers 1-9
         List<int> nums = new List<int>();
         for (int i = 1; i <= 9; i++)
             nums.Add(i);
 
         Shuffle(nums);
 
-        // Create 9 cards with random positions
         for (int i = 0; i < 9; i++)
         {
             CollectGameCard newCard = Instantiate(cardPrefab, gridTransform);
@@ -95,9 +90,7 @@ public class CollectGameCardController : MonoBehaviour
             int assignedNumber = nums[i];
             Sprite numberSprite = numberSprites[assignedNumber - 1];
             newCard.SetIconSprite(numberSprite);
-
-            newCard.Hide(); // ✅ Start hidden (face down)
-
+            newCard.Hide(); 
             cards.Add(newCard);
 
             AddClickListener(newCard, assignedNumber);
@@ -117,29 +110,20 @@ public class CollectGameCardController : MonoBehaviour
     {
         if (isLocked) return;
         if (isWaitingForClose) return;
-
-        // ✅ Don't click already revealed cards
         if (card.IsRevealed()) return;
-
-        // 🔊 Play card click sound
         PlaySound(cardClickSound);
 
-        // ✅ Correct: clicked the next number in sequence (1→2→3→...→9)
         if (number == nextNumber)
         {
-            // 🔊 Play correct number found sound
             PlaySound(correctSound);
-
-            card.Show(); // ✅ OPEN and KEEP IT OPEN
+            card.Show();
             nextNumber++;
 
-            // Check if all 9 numbers are opened (1 through 9)
             if (nextNumber > 9)
             {
                 StartCoroutine(CompleteGame());
             }
         }
-        // ❌ Wrong: clicked out of order
         else
         {
             StartCoroutine(WrongSelection(card));
@@ -148,16 +132,13 @@ public class CollectGameCardController : MonoBehaviour
 
     private IEnumerator WrongSelection(CollectGameCard card)
     {
-        isLocked = true; // ✅ Lock IMMEDIATELY before showing
-
-        // ❌ Show the wrong card briefly
+        isLocked = true; 
         card.Show();
         yield return new WaitForSeconds(0.5f);
 
-        // Close it again
         card.Hide();
-        
-        isLocked = false; // ✅ Unlock after hiding
+
+        isLocked = false;
     }
 
     private IEnumerator CompleteGame()
@@ -165,20 +146,15 @@ public class CollectGameCardController : MonoBehaviour
         isLocked = true;
         yield return new WaitForSeconds(0.8f);
 
-        // ✅ Only increment if not at max
         if (gamesCompleted < totalGamesNeeded)
         {
             gamesCompleted++;
             UpdateProgress();
             
-            // 🔊 Play complete sound when reaching 100%
             if (gamesCompleted >= totalGamesNeeded)
             {
                 PlaySound(completeSound);
                 
-                Debug.Log("🎉 100% COMPLETE!");
-                
-                // 🥚 Call collecting API when 100% complete
                 if (collectingManager != null)
                 {
                     isWaitingForClose = true;
@@ -186,16 +162,11 @@ public class CollectGameCardController : MonoBehaviour
                     collectingManager.CollectAll(
                         onSuccess: (response) => 
                         {
-                            Debug.Log($"✅ Collection successful! Collected: {response.collected} eggs, Basket total: {response.basketEggCount}");
-                            
-                            // Refresh FullSummary to update UI immediately
                             if (fullSummaryManager != null)
                             {
                                 fullSummaryManager.GetFullSummary(
                                     onSuccess: (summaryResponse) => 
                                     {
-                                        Debug.Log("✅ Full Summary refreshed after collecting");
-                                        // Click the close button after summary refresh
                                         if (closeBtn != null)
                                         {
                                             closeBtn.onClick.Invoke();
@@ -203,8 +174,6 @@ public class CollectGameCardController : MonoBehaviour
                                     },
                                     onError: (summaryError) => 
                                     {
-                                        Debug.LogError($"Failed to refresh summary: {summaryError}");
-                                        // Click close button anyway
                                         if (closeBtn != null)
                                         {
                                             closeBtn.onClick.Invoke();
@@ -214,7 +183,6 @@ public class CollectGameCardController : MonoBehaviour
                             }
                             else
                             {
-                                // No summary manager, just click close button
                                 if (closeBtn != null)
                                 {
                                     closeBtn.onClick.Invoke();
@@ -223,8 +191,6 @@ public class CollectGameCardController : MonoBehaviour
                         },
                         onError: (error) => 
                         {
-                            Debug.LogError("Collection failed: " + error);
-                            // Click the close button even on error
                             if (closeBtn != null)
                             {
                                 closeBtn.onClick.Invoke();
@@ -235,7 +201,6 @@ public class CollectGameCardController : MonoBehaviour
             }
         }
 
-        // Only start new game if not waiting for close button
         if (!isWaitingForClose)
         {
             StartNewGame();
@@ -244,7 +209,7 @@ public class CollectGameCardController : MonoBehaviour
 
     private void UpdateProgress()
     {
-        int filled = gamesCompleted * 10; // 1 game = 10 cards (100%)
+        int filled = gamesCompleted * 10; 
 
         for (int i = 0; i < progressCards.Length; i++)
         {

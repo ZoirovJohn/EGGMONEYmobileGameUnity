@@ -171,7 +171,6 @@ public class AuthManager : MonoBehaviour
             try
             {
                 string responseText = request.downloadHandler.text;
-                Debug.Log($"📥 /auth/me response: {responseText}");
                 
                 UserProfile profile = JsonUtility.FromJson<UserProfile>(responseText);
                 
@@ -190,7 +189,6 @@ public class AuthManager : MonoBehaviour
                         playerWallet.SetReferralCode(profile.referralCode);
                     }
                     
-                    Debug.Log($"✅ PlayerWallet updated: UserFarms={profile.userFarms}, Level={profile.level}, Eggs={profile.eggs}");
                 }
                 else
                 {
@@ -201,15 +199,11 @@ public class AuthManager : MonoBehaviour
             }
             catch (Exception e)
             {
-                Debug.LogError($"❌ Parse error: {e.Message}");
-                Debug.LogError($"Response text: {request.downloadHandler.text}");
                 onError?.Invoke($"Parse error: {e.Message}");
             }
         }
         else
         {
-            Debug.LogError($"❌ API error: {request.error}");
-            Debug.LogError($"Response: {request.downloadHandler.text}");
             onError?.Invoke(request.error);
         }
     }

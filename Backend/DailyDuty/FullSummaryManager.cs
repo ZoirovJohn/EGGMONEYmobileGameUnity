@@ -38,7 +38,6 @@ public class FullSummaryManager : MonoBehaviour
             if (request.result == UnityWebRequest.Result.Success)
             {
                 string responseText = request.downloadHandler.text;
-                Debug.Log($"✅ Full Summary Response: {responseText}");
 
                 // Parse and store the data
                 try
@@ -51,22 +50,18 @@ public class FullSummaryManager : MonoBehaviour
                         playerWallet.SetHensWithEggReady(response.counts.hensWithEggReady);
                         playerWallet.SetHensNeedingFood(response.counts.needsFood);
                         playerWallet.SetHensNeedingClean(response.counts.needsClean);
-                        
-                        Debug.Log($"📊 Full Summary stored - Egg Ready: {response.counts.hensWithEggReady}, Needs Food: {response.counts.needsFood}, Needs Clean: {response.counts.needsClean}");
                     }
 
                     onSuccess?.Invoke(responseText);
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"❌ Failed to parse full summary: {e.Message}");
                     onError?.Invoke($"Parse error: {e.Message}");
                 }
             }
             else
             {
                 string errorMsg = $"Error {request.responseCode}: {request.error}";
-                Debug.LogError($"❌ Full Summary API failed: {errorMsg}");
                 onError?.Invoke(errorMsg);
             }
         }

@@ -85,13 +85,11 @@ public class CharacterVideoLoader : MonoBehaviour
         
         if (playerWallet == null)
         {
-            Debug.LogError("❌ CharacterVideoLoader: PlayerWallet not found!");
             return;
         }
         
         if (videoPlayers == null || videoPlayers.Length == 0)
         {
-            Debug.LogError("❌ CharacterVideoLoader: No Video Players assigned!");
             return;
         }
         
@@ -110,7 +108,6 @@ public class CharacterVideoLoader : MonoBehaviour
         
         if (selectedClip == null)
         {
-            Debug.LogError($"❌ Video clip for character {userVideo} is not assigned in Inspector!");
             return;
         }
         

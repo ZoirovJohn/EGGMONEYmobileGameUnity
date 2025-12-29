@@ -76,15 +76,10 @@ public class UseFarmKeyManager : MonoBehaviour
         request.SetRequestHeader("Content-Type", "application/json");
         request.SetRequestHeader("Authorization", "Bearer " + accessToken);
 
-        Debug.Log($"🔵 POST {url}");
-        Debug.Log($"📤 Body: {json}");
-
         yield return request.SendWebRequest();
 
         if (request.result == UnityWebRequest.Result.Success)
         {
-            Debug.Log($"✅ Farm key used successfully: {request.downloadHandler.text}");
-            
             try
             {
                 UseFarmKeyResponse response = JsonUtility.FromJson<UseFarmKeyResponse>(request.downloadHandler.text);
@@ -92,15 +87,12 @@ public class UseFarmKeyManager : MonoBehaviour
             }
             catch (Exception e)
             {
-                Debug.LogError($"❌ Failed to parse response: {e.Message}");
                 onError?.Invoke($"Failed to parse response: {e.Message}");
             }
         }
         else
         {
             string errorMsg = $"Error: {request.error}";
-            Debug.LogError($"❌ {errorMsg}");
-            Debug.LogError($"Response: {request.downloadHandler.text}");
             onError?.Invoke(request.error);
         }
     }
@@ -144,7 +136,6 @@ public class UseFarmKeyManager : MonoBehaviour
                 return "normal";
             
             default:
-                Debug.LogWarning($"⚠️ Unknown key type: {keyId}");
                 return "";
         }
     }

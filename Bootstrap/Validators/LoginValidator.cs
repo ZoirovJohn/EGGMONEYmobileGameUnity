@@ -97,14 +97,12 @@ public class LoginValidator : MonoBehaviour
                     },
                     onError: (err) =>
                     {
-                        Debug.LogError("❌ Failed to fetch user data: " + err);
                         if (generalError) generalError.text = "Failed to load user data.";
                     }
                 );
             },
             onError: (err) =>
             {
-                Debug.LogError("❌ Login failed: " + err);
                 if (errorUsername != null)
                     errorUsername.text = "Username or password is not correct.";
                 if (usernameBackground != null)

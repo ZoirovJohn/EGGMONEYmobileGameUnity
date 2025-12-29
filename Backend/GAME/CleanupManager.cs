@@ -22,7 +22,6 @@ public class CleanupManager : MonoBehaviour
 
         if (string.IsNullOrEmpty(accessToken))
         {
-            Debug.LogError("No access token found. Cannot clean.");
             onError?.Invoke("No access token found");
             yield break;
         }
@@ -47,24 +46,20 @@ public class CleanupManager : MonoBehaviour
 
                 if (cleanData.ok)
                 {
-                    Debug.Log("✅ Cleanup finished!");
                     onSuccess?.Invoke(response);
                 }
                 else
                 {
-                    Debug.LogWarning("Cleanup returned ok: false");
                     onError?.Invoke("Cleanup failed");
                 }
             }
             catch (Exception e)
             {
-                Debug.LogError("Failed to parse cleanup response: " + e.Message);
                 onError?.Invoke("Parse error: " + e.Message);
             }
         }
         else
         {
-            Debug.LogError("Clean API Error: " + request.error);
             onError?.Invoke(request.error);
         }
     }

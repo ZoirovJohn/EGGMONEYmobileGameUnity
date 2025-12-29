@@ -94,8 +94,6 @@ public class CharacterVideoSelector : MonoBehaviour
             },
             onError: (error) =>
             {
-                Debug.LogError($"❌ Failed to update user: {error}");
-                
                 // Still proceed to Farm scene even if update fails
                 SceneManager.LoadScene("Farm");
             }
