@@ -50,6 +50,8 @@ public class FullSummaryManager : MonoBehaviour
                         playerWallet.SetHensWithEggReady(response.counts.hensWithEggReady);
                         playerWallet.SetHensNeedingFood(response.counts.needsFood);
                         playerWallet.SetHensNeedingClean(response.counts.needsClean);
+                        playerWallet.SetAllNormalHens(response.counts.normalHens);
+                        playerWallet.SetAllChampHens(response.counts.champHens);
                     }
 
                     onSuccess?.Invoke(responseText);
@@ -94,6 +96,10 @@ public class FullSummaryManager : MonoBehaviour
     {
         public int chicks;
         public int hens;
+        public int normalHens;  
+        public int champHens;  
+        public int legendHens;
+        public int superLegendHens;
         public int hensWithEggReady;
         public int needsFood;
         public int needsClean;

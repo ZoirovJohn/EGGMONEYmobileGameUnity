@@ -14,7 +14,9 @@ public class PlayerWallet : MonoBehaviour
     [SerializeField, Min(0)] int eggs = 0;
     [SerializeField, Min(0)] int video = 0;
     [SerializeField, Min(0)] int userFarms = 0;
-    [SerializeField] string referralCode = ""; // ✅ NEW: Referral code from backend
+    [SerializeField] string referralCode = ""; 
+    [SerializeField, Min(0)] int allNormalHens = 0;
+    [SerializeField, Min(0)] int allChampHens = 0;
 
     // =========================
     // Wallet
@@ -68,7 +70,9 @@ public class PlayerWallet : MonoBehaviour
     public int Eggs => eggs;
     public int Video => video;
     public int UserFarms => userFarms;
-    public string ReferralCode => referralCode; // ✅ NEW: Public getter
+    public string ReferralCode => referralCode; 
+    public int AllNormalHens => allNormalHens;
+    public int AllChampHens => allChampHens;
     public int FP => fp;
 
     public int Friends => friends;
@@ -182,6 +186,22 @@ public class PlayerWallet : MonoBehaviour
     // =========================
     // Profile setters
     // =========================
+    public void SetAllNormalHens(int value)
+    {
+        value = Mathf.Max(0, value);
+        if (allNormalHens == value) return;
+        allNormalHens = value;
+        OnProfileChanged?.Invoke();
+    }
+
+    public void SetAllChampHens(int value)
+    {
+        value = Mathf.Max(0, value);
+        if (allChampHens == value) return;
+        allChampHens = value;
+        OnProfileChanged?.Invoke();
+    }
+
     public void SetName(string newName)
     {
         if (string.IsNullOrEmpty(newName) || playerName == newName) return;
