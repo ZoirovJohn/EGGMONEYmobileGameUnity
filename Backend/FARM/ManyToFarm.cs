@@ -37,8 +37,6 @@ public class ManyToFarm : MonoBehaviour
     
     private int currentQuantity = 0;
     private bool isProcessing = false;
-    
-    // ✅ NEW: Track what was just placed to preserve it during refresh
     private bool justPlacedPremiumNest = false;
 
     void Awake()
@@ -109,11 +107,11 @@ public class ManyToFarm : MonoBehaviour
     {
         if (currentQuantity > 0)
         {
-            SetQuantity(0); // first click resets
+            SetQuantity(0); 
         }
         else
         {
-            gameObject.SetActive(false); // second click closes
+            gameObject.SetActive(false); 
         }
     }
 
@@ -288,7 +286,6 @@ public class ManyToFarm : MonoBehaviour
         string itemType = MapProductIdToItemType(cellId.productId);
         string tier = MapProductIdToTier(cellId.productId);
         
-        // ✅ NEW: Track if we're placing a premium nest
         justPlacedPremiumNest = (itemType == "nest" && tier == "premium");
         
         if (string.IsNullOrEmpty(itemType))
@@ -339,16 +336,9 @@ public class ManyToFarm : MonoBehaviour
             
             HandlePlacementSuccess(responseText);
             onSuccess?.Invoke(responseText);
-            
-            // ✅ Update visual IMMEDIATELY (before refresh)
             UpdateBigCageInside2Visual();
-            
             yield return null;
-            
-            // ✅ Refresh farm data from backend (this will now preserve premium nest)
             yield return RefreshFarmData();
-            
-            // ✅ Reset flag after refresh
             justPlacedPremiumNest = false;
             
             if (infoErrorChanger != null)
@@ -473,7 +463,6 @@ public class ManyToFarm : MonoBehaviour
 
     IEnumerator RefreshFarmData()
     {
-        // Step 1: Refresh inventory
         if (inventoryManager != null)
         {
             bool inventoryRefreshed = false;
@@ -496,7 +485,6 @@ public class ManyToFarm : MonoBehaviour
             }
         }
         
-        // Step 2: Fetch farm summary from backend
         if (farmAPIManager != null && farmDatabase != null)
         {
             bool farmRefreshed = false;
@@ -506,7 +494,6 @@ public class ManyToFarm : MonoBehaviour
                 onSuccess: (summary) => {
                     int farmIndex = targetFarmNumber - 1;
                     
-                    // ✅ IMPORTANT: Pass the nestDetails to FarmDatabase BEFORE updating
                     if (summary.nests != null && summary.nests.details != null)
                     {
                         var nestList = new System.Collections.Generic.List<NestDetail>(summary.nests.details);
@@ -540,7 +527,6 @@ public class ManyToFarm : MonoBehaviour
             }
         }
         
-        // Step 3: Refresh UI displays
         if (farmGridManager != null)
         {
             int farmIndex = targetFarmNumber - 1;
@@ -552,7 +538,6 @@ public class ManyToFarm : MonoBehaviour
             farmHeaderManager.UpdateAllFarmSlotVisuals();
         }
         
-        // ✅ Step 4: If we just placed a premium nest, ensure BigCageInside2 shows it correctly
         if (justPlacedPremiumNest && bigCageInside2 != null)
         {
             Transform premiumNest = bigCageInside2.transform.Find("PremiumNest");

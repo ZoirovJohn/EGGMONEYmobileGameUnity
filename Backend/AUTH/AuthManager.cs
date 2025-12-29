@@ -13,7 +13,6 @@ public class AuthManager : MonoBehaviour
 
     private void Awake()
     {
-        // Auto-find PlayerWallet if not assigned
         if (playerWallet == null)
             playerWallet = FindAnyObjectByType<PlayerWallet>();
     }
@@ -139,10 +138,6 @@ public class AuthManager : MonoBehaviour
     // =====================
     // GET USER PROFILE (Typed Response)
     // =====================
-    /// <summary>
-    /// Refresh user profile from /auth/me with typed response
-    /// Updates PlayerWallet automatically with latest backend data
-    /// </summary>
     public void GetUserProfile(Action<UserProfile> onSuccess = null, Action<string> onError = null)
     {
         StartCoroutine(GetUserProfileCoroutine(onSuccess, onError));
@@ -171,10 +166,7 @@ public class AuthManager : MonoBehaviour
             try
             {
                 string responseText = request.downloadHandler.text;
-                
                 UserProfile profile = JsonUtility.FromJson<UserProfile>(responseText);
-                
-                // Update PlayerWallet with fresh data
                 if (playerWallet != null)
                 {
                     playerWallet.SetUserFarms(profile.userFarms);
@@ -224,5 +216,4 @@ public class UserProfile
     public int ranking;
     public int userFarms;
     public string referralCode;
-    // Add other fields as needed based on your backend response
 }

@@ -51,10 +51,8 @@ public class FarmAPIManager : MonoBehaviour
                 string jsonResponse = request.downloadHandler.text;
                 FarmSummary summary = JsonUtility.FromJson<FarmSummary>(jsonResponse);
 
-                // 🔹 Existing callback behavior
                 onSuccess?.Invoke(summary);
 
-                // ✅ Store nest + hen lifetime data (ARRAY → LIST conversion ONLY HERE)
                 if (farmDatabase != null &&
                     summary.nests != null &&
                     summary.nests.details != null)

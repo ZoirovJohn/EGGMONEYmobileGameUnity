@@ -17,9 +17,7 @@ public class EggHatchAPI : MonoBehaviour
     [SerializeField] bool autoFind = true;
     
     [Header("Delayed Refresh Settings")]
-    [SerializeField] float delayedRefreshTime = 13f; // 13 seconds
-
-    // ✅ Track ALL scheduled delayed refreshes (one per hatch)
+    [SerializeField] float delayedRefreshTime = 13f; 
     private List<Coroutine> scheduledRefreshes = new List<Coroutine>();
 
     void Awake()
@@ -86,7 +84,6 @@ public class EggHatchAPI : MonoBehaviour
 
     IEnumerator HatchEggsCoroutine(string tier, int quantity, string eggType, Action<HatchResponse> onSuccess, Action<string> onError)
     {
-        // Get the access token
         string accessToken = AuthStorage.GetAccessToken();
         
         if (string.IsNullOrEmpty(accessToken))
@@ -96,8 +93,6 @@ public class EggHatchAPI : MonoBehaviour
         }
 
         string url = $"{config.baseUrl}/inventory/hatch";
-        
-        // Create request body
         HatchRequest requestBody = new HatchRequest
         {
             tier = tier,
@@ -106,21 +101,14 @@ public class EggHatchAPI : MonoBehaviour
         
         string jsonBody = JsonUtility.ToJson(requestBody);
         
-        // Create POST request
         using (UnityWebRequest request = new UnityWebRequest(url, "POST"))
         {
             byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonBody);
             request.uploadHandler = new UploadHandlerRaw(bodyRaw);
             request.downloadHandler = new DownloadHandlerBuffer();
-            
-            // Set headers
             request.SetRequestHeader("Content-Type", "application/json");
             request.SetRequestHeader("Authorization", "Bearer " + accessToken);
-            
-            // Send request
             yield return request.SendWebRequest();
-            
-            // Handle response
             if (request.result == UnityWebRequest.Result.Success)
             {
                 string responseText = request.downloadHandler.text;
@@ -131,16 +119,12 @@ public class EggHatchAPI : MonoBehaviour
                     
                     if (response.ok)
                     {
-                        // ✅ Record the hatch time
                         string hatchTime = DateTime.Now.ToString("HH:mm:ss");
                         string delayedTime = DateTime.Now.AddSeconds(delayedRefreshTime).ToString("HH:mm:ss");
-                        
-                        // Check if it's a super egg (blue/red)
                         bool isSuperEgg = eggType == "super_red_egg" || eggType == "super_blue_egg";
                         
                         if (isSuperEgg)
                         {
-                            // ✅ Refresh inventory from backend to get updated data (IMMEDIATE)
                             if (inventoryManager != null)
                             {
                                 inventoryManager.GetInventory(
@@ -150,12 +134,10 @@ public class EggHatchAPI : MonoBehaviour
                                     },
                                     onError: (err) =>
                                     {
-                                        // Still call success since hatching worked
                                         onSuccess?.Invoke(response);
                                     }
                                 );
                                 
-                                // ✅ SCHEDULE INDIVIDUAL DELAYED REFRESH for this specific hatch
                                 ScheduleDelayedRefresh(hatchTime, delayedTime);
                             }
                             else
@@ -165,11 +147,9 @@ public class EggHatchAPI : MonoBehaviour
                         }
                         else
                         {
-                            // Normal or gold egg - update wallet locally (IMMEDIATE)
                             UpdateWalletAfterHatch(eggType, quantity, response);
                             onSuccess?.Invoke(response);
                             
-                            // ✅ SCHEDULE INDIVIDUAL DELAYED REFRESH for this specific hatch
                             if (inventoryManager != null)
                             {
                                 ScheduleDelayedRefresh(hatchTime, delayedTime);
@@ -200,7 +180,6 @@ public class EggHatchAPI : MonoBehaviour
     /// </summary>
     void ScheduleDelayedRefresh(string hatchTime, string delayedTime)
     {
-        // ✅ Start a NEW delayed refresh (independent of others)
         Coroutine newRefresh = StartCoroutine(DelayedInventoryRefresh(delayedRefreshTime, hatchTime, delayedTime));
         scheduledRefreshes.Add(newRefresh);
     }
@@ -231,8 +210,6 @@ public class EggHatchAPI : MonoBehaviour
         {
             Debug.LogWarning($"⚠️ [Hatch {hatchTime}] InventoryManager not available for delayed refresh");
         }
-        
-        // Clean up completed coroutine from list
         scheduledRefreshes.Remove(StartCoroutine(DelayedInventoryRefresh(delaySeconds, hatchTime, delayedTime)));
     }
 
@@ -240,11 +217,8 @@ public class EggHatchAPI : MonoBehaviour
     {
         if (!wallet) return;
         
-        // Get current counts
         int currentEggs = wallet.GetItemCount(eggType);
         int currentChicks = wallet.GetItemCount("chick");
-        
-        // Remove eggs (based on hatched count from server)
         int eggsToRemove = response.hatched;
         if (wallet.TryConsumeItem(eggType, eggsToRemove))
         {
@@ -255,10 +229,7 @@ public class EggHatchAPI : MonoBehaviour
             Debug.LogWarning($"⚠️ Failed to remove eggs (might not have enough)");
         }
         
-        // Add chicks (based on hatched count)
         wallet.AddItem("chick", response.hatched);
-        
-        // Log final state
         int newEggs = wallet.GetItemCount(eggType);
         int newChicks = wallet.GetItemCount("chick");
     }
@@ -277,14 +248,10 @@ public class EggHatchAPI : MonoBehaviour
     public class HatchResponse
     {
         public bool ok;
-        
-        // For normal/gold eggs (returns chick)
         public int hatched;
         public ChickData chick;
-        
-        // For super eggs (returns kind or reward)
-        public string kind;     // "Champ" for red eggs
-        public string reward;   // "1 premium nest" for blue eggs
+        public string kind;    
+        public string reward;   
     }
 
     [Serializable]

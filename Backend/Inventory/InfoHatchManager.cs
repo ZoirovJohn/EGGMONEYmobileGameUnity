@@ -50,7 +50,6 @@ public class InfoHatchManager : MonoBehaviour
         }
     }
 
-    // ⭐ Called when egg icon clicked
     public void InitializeHatchPanel(string eggType, int availableEggs)
     {
         if (infoHatchPanel == null)
@@ -61,10 +60,8 @@ public class InfoHatchManager : MonoBehaviour
         this.eggType = eggType;
         this.availableEggs = availableEggs;
         this.currentQty = 0;
-
         SetupButtons();
-        RefreshUI(); // ✅ correct call
-
+        RefreshUI(); 
         infoHatchPanel.SetActive(true);
         infoHatchPanel.transform.SetAsLastSibling();
     }
@@ -113,7 +110,6 @@ public class InfoHatchManager : MonoBehaviour
         RefreshUI();
     }
 
-    // ✅ MUST be public (used by LanguagePanelManager)
     public void RefreshUI()
     {
         if (inputCount)
@@ -125,7 +121,6 @@ public class InfoHatchManager : MonoBehaviour
             btnOk.interactable = canHatch;
     }
 
-    // ❗ DO NOT CHANGE — hatch logic preserved
     public void OnHatchBtnClick()
     {
         if (currentQty <= 0 || currentQty > availableEggs)
@@ -165,7 +160,6 @@ public class InfoHatchManager : MonoBehaviour
         );
     }
 
-    // ⭐ CALLED BY LANGUAGE MANAGER
     public void RefreshLanguage()
     {
         if (infoHatchPanel != null && infoHatchPanel.activeSelf)

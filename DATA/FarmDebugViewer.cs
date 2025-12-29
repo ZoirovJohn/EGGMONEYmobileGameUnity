@@ -86,7 +86,6 @@ public class FarmDebugViewer : MonoBehaviour
             sb.AppendLine($"  💎 Premium Nests: {farm.premiumNests}");
             sb.AppendLine($"  🪺 Normal Nests: {farm.normalNests}");
 
-            // ✅ HEN LIFETIME DATA (NEW)
             AppendHenLifetimeInfo(sb, i);
 
             if (farm.cages != null)
@@ -146,7 +145,6 @@ public class FarmDebugViewer : MonoBehaviour
         farmDataDisplay = sb.ToString();
     }
 
-    // ✅ Helper: Hen lifetime info
     void AppendHenLifetimeInfo(StringBuilder sb, int farmIndex)
     {
         var lifetimeMap = farmDatabase.GetHenLifetimeSummary(farmIndex);

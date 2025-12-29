@@ -6,7 +6,7 @@ using System;
 public class InventoryManager : MonoBehaviour
 {
     [Header("Config")]
-    public APIConfig config; // assign in Inspector
+    public APIConfig config; 
 
     [Header("Wallet Reference")]
     public PlayerWallet playerWallet;
@@ -21,7 +21,6 @@ public class InventoryManager : MonoBehaviour
 
     private IEnumerator GetInventoryCoroutine(Action<string> onSuccess, Action<string> onError)
     {
-        // Get the access token
         string accessToken = AuthStorage.GetAccessToken();
         
         if (string.IsNullOrEmpty(accessToken))
@@ -32,7 +31,6 @@ public class InventoryManager : MonoBehaviour
 
         UnityWebRequest request = UnityWebRequest.Get(config.baseUrl + "/inventory");
         
-        // Add Bearer token authorization
         request.SetRequestHeader("Authorization", "Bearer " + accessToken);
         request.SetRequestHeader("Content-Type", "application/json");
 
@@ -42,7 +40,6 @@ public class InventoryManager : MonoBehaviour
         {
             string response = request.downloadHandler.text;
             
-            // Parse and update PlayerWallet
             if (playerWallet != null)
             {
                 UpdatePlayerWalletInventory(response);
@@ -61,7 +58,6 @@ public class InventoryManager : MonoBehaviour
     {
         try
         {
-            // Wrap array in object for Unity JsonUtility
             string wrappedJson = "{\"items\":" + jsonResponse + "}";
             InventoryResponse inventoryData = JsonUtility.FromJson<InventoryResponse>(wrappedJson);
 
@@ -70,10 +66,8 @@ public class InventoryManager : MonoBehaviour
                 return;
             }
 
-            // ✅ Create a dictionary to aggregate quantities by product ID
             System.Collections.Generic.Dictionary<string, int> inventoryCounts = new System.Collections.Generic.Dictionary<string, int>();
 
-            // ✅ Initialize all possible items to 0 (so we SET everything from backend)
             string[] allItems = {
                 "chick", "whiteChick", "champChick", "silver_egg", "gold_egg",
                 "super_blue_egg", "super_red_egg", "nest", "food", "vitamin",
@@ -86,33 +80,27 @@ public class InventoryManager : MonoBehaviour
                 inventoryCounts[item] = 0;
             }
 
-            // Process each item from backend
             foreach (var item in inventoryData.items)
             {
-                // Only process items that are stored
                 if (item.status == "stored")
                 {
                     string productId = null;
                     
-                    // ✅ Check if item has a VALID hen (not just non-null, but with actual data)
                     bool hasValidHen = item.hen != null && 
                                        !string.IsNullOrEmpty(item.hen.stage) && 
                                        !string.IsNullOrEmpty(item.hen.kind);
                     
                     if (hasValidHen)
                     {
-                        // It's a hatched egg with a chicken
                         productId = MapHenToProductId(item.hen);
                     }
                     else
                     {
-                        // Regular item (not hatched)
                         productId = MapInventoryItemToProductId(item.itemType, item.tier);
                     }
                     
                     if (!string.IsNullOrEmpty(productId))
                     {
-                        // Aggregate quantities
                         if (inventoryCounts.ContainsKey(productId))
                         {
                             inventoryCounts[productId] += item.quantity;
@@ -129,7 +117,6 @@ public class InventoryManager : MonoBehaviour
                 }
             }
 
-            // ✅ Now SET ALL values in PlayerWallet (this will trigger events for each item)
             foreach (var kvp in inventoryCounts)
             {
                 SetPlayerWalletItem(kvp.Key, kvp.Value);
@@ -141,7 +128,6 @@ public class InventoryManager : MonoBehaviour
         }
     }
 
-    // ✅ SET item value in wallet using DIRECT SETTERS (triggers events)
     private void SetPlayerWalletItem(string productId, int quantity)
     {
         if (playerWallet == null)
@@ -149,7 +135,6 @@ public class InventoryManager : MonoBehaviour
             return;
         }
 
-        // Use the setter methods that directly set values and trigger events
         switch (productId)
         {
             case "chick":
@@ -176,7 +161,6 @@ public class InventoryManager : MonoBehaviour
                 playerWallet.SetSuperFarmKey(quantity);
                 break;
                 
-            // ✅ For items without specific setters, use AddItem/TryConsumeItem
             case "super_blue_egg":
             case "super_red_egg":
             case "nest":
@@ -189,21 +173,17 @@ public class InventoryManager : MonoBehaviour
             case "super_food":
             case "super_vitamin":
             case "super_battery":
-                // Get current count and calculate difference
                 int currentCount = playerWallet.GetItemCount(productId);
                 int difference = quantity - currentCount;
                 
                 if (difference > 0)
                 {
-                    // Need to add more
                     playerWallet.AddItem(productId, difference);
                 }
                 else if (difference < 0)
                 {
-                    // Need to remove some
                     playerWallet.TryConsumeItem(productId, -difference);
                 }
-                // else: difference == 0, already correct amount
                 break;
                 
             default:
@@ -216,7 +196,6 @@ public class InventoryManager : MonoBehaviour
     // =====================
     private string MapHenToProductId(HenData hen)
     {
-        // Safety check for null or empty values
         if (hen == null)
         {
             return null;
@@ -232,22 +211,19 @@ public class InventoryManager : MonoBehaviour
             return null;
         }
 
-        // Determine product ID based on stage and kind
         if (hen.stage == "chick")
         {
-            // Both Normal and Champ chicks use the same product ID
             return "chick";
         }
         else if (hen.stage == "hen")
         {
-            // Hen stage depends on kind
             if (hen.kind == "Normal")
             {
-                return "whiteChick"; // Normal hen
+                return "whiteChick";
             }
             else if (hen.kind == "Champ")
             {
-                return "champChick"; // Champion hen
+                return "champChick"; 
             }
             else
             {

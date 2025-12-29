@@ -13,7 +13,7 @@ public class BasketToFP : MonoBehaviour
     [SerializeField] private APIConfig config; 
 
     [Header("Exchange Rate")]
-    [SerializeField] private int fpPerEgg = 400; // 1 egg = 400 FP
+    [SerializeField] private int fpPerEgg = 400; 
 
     /// <summary>
     /// </summary>
@@ -113,30 +113,23 @@ public class BasketToFP : MonoBehaviour
                         infoErrorChanger.OpenErrorDefault($"Success! Exchanged {eggAmount} eggs for {fpToAdd:N0} FP");
                     }
 
-                    // Trigger success callback
                     onSuccess?.Invoke(response);
                 }
                 catch (Exception e)
                 {
                     string error = $"Failed to parse response: {e.Message}";
-                    Debug.LogError($"❌ {error}");
-                    
                     onError?.Invoke(error);
                 }
             }
             else
             {
-                // ❌ ROLLBACK WALLET ON FAILURE
                 if (wallet != null)
                 {
                     wallet.SetEggs(previousEggs);
                     wallet.SetFP(previousFP);
-                    Debug.LogWarning($"⚠️ Rolled back wallet: {previousEggs} eggs, {previousFP} FP");
                 }
                 
                 string error = $"Exchange failed: {request.error}";
-                Debug.LogError($"❌ {error}");
-                
                 onError?.Invoke(request.error);
                 
                 if (infoErrorChanger != null)
@@ -188,7 +181,6 @@ public class BasketToFPRequest
 [System.Serializable]
 public class BasketToFPResponse
 {
-    // Fields that the backend returns
     public bool success;
     public int fpAdded;
     public int eggsUsed;

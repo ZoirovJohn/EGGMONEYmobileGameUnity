@@ -27,7 +27,6 @@ public class FarmData
     public string farmName = "";
     public int farmIndex = 0;
     
-    // Farm Stats
     public int nestsOccupied = 0;
     public int normalChicks = 0;
     public int champChicks = 0;
@@ -36,15 +35,12 @@ public class FarmData
     public int premiumNests = 0;
     public int normalNests = 0;
     
-    // Cage list
     public List<CageData> cages = new List<CageData>();
     
-    // Farm items
     public string farmKeyType = "normal";
     public string robotType = "none";
     public string batteryType = "none";
     
-    // Backend integration fields
     public bool isPremium = false;
     public int maxCapacity = 100;
     public bool hasRobot = false;

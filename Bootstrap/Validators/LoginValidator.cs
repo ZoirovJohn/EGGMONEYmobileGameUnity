@@ -74,7 +74,7 @@ public class LoginValidator : MonoBehaviour
                             wallet.SetName(userData.nickName);
                             wallet.SetLocation(userData.nation);
                             wallet.SetUserFarms(userData.userFarms);
-                            wallet.SetReferralCode(userData.referralCode); // ✅ NEW: Set referral code
+                            wallet.SetReferralCode(userData.referralCode); 
                             
                             if (int.TryParse(userData.userFP, out int fp))
                                 wallet.SetFP(fp);
@@ -90,7 +90,7 @@ public class LoginValidator : MonoBehaviour
                         PlayerPrefs.SetString("email", userData.email);
                         PlayerPrefs.SetString("nickname", userData.nickName);
                         PlayerPrefs.SetInt("userFarms", userData.userFarms);
-                        PlayerPrefs.SetString("referralCode", userData.referralCode); // ✅ NEW: Save to PlayerPrefs
+                        PlayerPrefs.SetString("referralCode", userData.referralCode); 
                         PlayerPrefs.Save();
                         
                         SceneManager.LoadScene("Farm");

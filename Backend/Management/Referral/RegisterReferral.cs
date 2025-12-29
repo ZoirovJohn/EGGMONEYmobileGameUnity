@@ -13,7 +13,7 @@ public class RegisterReferral : MonoBehaviour
     public PlayerWallet playerWallet;
 
     [Header("Config")]
-    public APIConfig config; // assign in Inspector
+    public APIConfig config; 
 
     private void Start()
     {
@@ -30,7 +30,6 @@ public class RegisterReferral : MonoBehaviour
             return;
         }
 
-        // ✅ Check if user location is KR
         if (playerWallet != null)
         {
             string userLocation = playerWallet.Location;
@@ -59,7 +58,6 @@ public class RegisterReferral : MonoBehaviour
 
     private IEnumerator RegisterReferralCode(string referralCode)
     {
-        // Get the access token
         string accessToken = AuthStorage.GetAccessToken();
         
         if (string.IsNullOrEmpty(accessToken))
@@ -68,16 +66,13 @@ public class RegisterReferral : MonoBehaviour
             yield break;
         }
 
-        // Disable button during request
         if (registerButton != null)
         {
             registerButton.interactable = false;
         }
 
-        // Create JSON body
         string jsonBody = JsonUtility.ToJson(new ReferralCodeRequest { referralCode = referralCode });
 
-        // Create request
         using (UnityWebRequest request = new UnityWebRequest(config.baseUrl + "/referrals/register", "POST"))
         {
             byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonBody);
@@ -86,16 +81,13 @@ public class RegisterReferral : MonoBehaviour
             request.SetRequestHeader("Content-Type", "application/json");
             request.SetRequestHeader("Authorization", "Bearer " + accessToken);
 
-            // Send request
             yield return request.SendWebRequest();
 
-            // Re-enable button
             if (registerButton != null)
             {
                 registerButton.interactable = true;
             }
 
-            // Handle response
             if (request.result == UnityWebRequest.Result.Success)
             {
                 try
@@ -108,7 +100,6 @@ public class RegisterReferral : MonoBehaviour
                     ShowMessage("Referral code registered successfully!");
                 }
                 
-                // Clear input field on success
                 if (referralCodeInput != null)
                 {
                     referralCodeInput.text = "";
@@ -116,7 +107,6 @@ public class RegisterReferral : MonoBehaviour
             }
             else
             {
-                // Parse error response
                 try
                 {
                     ReferralErrorResponse error = JsonUtility.FromJson<ReferralErrorResponse>(request.downloadHandler.text);

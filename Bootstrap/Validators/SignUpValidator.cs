@@ -41,7 +41,6 @@ public class SignUpValidator : MonoBehaviour
     [Header("Panel Switcher")]
     public PanelSwitcher panelSwitcher;
 
-    // Country code mapping (matches LocationDropdownPopulator order)
     private static readonly string[] CountryCodes = new string[]
     {
         "", // placeholder "Select location"
@@ -129,7 +128,7 @@ public class SignUpValidator : MonoBehaviour
             email: email,
             password: pw,
             phoneNumber: phone,
-            nation: countryCode // ✅ Send short country code (e.g., "KR", "US", "JP")
+            nation: countryCode 
         );
 
         authManager.Signup(
@@ -196,14 +195,13 @@ public class SignUpValidator : MonoBehaviour
         );
     }
 
-    // Helper method to get country code by dropdown index
     private string GetCountryCode(int index)
     {
         if (index >= 0 && index < CountryCodes.Length)
         {
             return CountryCodes[index];
         }
-        return "KR"; // Default to South Korea
+        return "KR"; 
     }
 
     void SetErr(TMP_Text label, Image bg, string msg) { Show(label, msg); if (bg) bg.color = string.IsNullOrEmpty(msg) ? normalTint : errorTint; }
