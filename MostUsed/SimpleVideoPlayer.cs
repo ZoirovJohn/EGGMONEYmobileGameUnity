@@ -15,14 +15,11 @@ public class SimpleVideoPlayer : MonoBehaviour
     {
         if (videoPlayer == null)
             return;
-
-        // DO NOT prepare here
         videoPlayer.prepareCompleted += OnVideoPrepared;
     }
 
     private void OnEnable()
     {
-        // Do nothing here on purpose
         // VideoPlayer may still be disabled
     }
 
@@ -35,10 +32,8 @@ public class SimpleVideoPlayer : MonoBehaviour
         if (videoPlayer == null)
             return;
 
-        // 🔒 HARD SAFETY CHECK
         if (!videoPlayer.enabled)
         {
-            Debug.LogWarning($"⏸ VideoPlayer is disabled, skipping prepare: {name}");
             return;
         }
 

@@ -24,7 +24,6 @@ public class InventoryGridManager : MonoBehaviour
         
         if (!ValidateReferences())
         {
-            Debug.LogError("❌ Reference validation failed!");
             yield break;
         }
 
@@ -69,7 +68,6 @@ public class InventoryGridManager : MonoBehaviour
     {
         if (grid == null)
         {
-            Debug.LogWarning("⚠️ Grid is null, cannot update item");
             return;
         }
 
@@ -106,13 +104,11 @@ public class InventoryGridManager : MonoBehaviour
     {
         if (grid == null)
         {
-            Debug.LogError("❌ GridLayoutGroup is NULL! Assign it in Inspector!");
             return false;
         }
         
         if (viewport == null)
         {
-            Debug.LogError("❌ Viewport is NULL! Assign it in Inspector!");
             return false;
         }
 
@@ -122,7 +118,6 @@ public class InventoryGridManager : MonoBehaviour
             
             if (playerWallet == null)
             {
-                Debug.LogError("❌ PlayerWallet not found in scene!");
                 return false;
             }
             else
@@ -145,7 +140,6 @@ public class InventoryGridManager : MonoBehaviour
         
         if (viewportWidth <= 0)
         {
-            Debug.LogWarning("⚠️ Viewport width invalid, using Screen.width as fallback");
             viewportWidth = Screen.width;
         }
         
@@ -178,7 +172,6 @@ public class InventoryGridManager : MonoBehaviour
     {
         if (playerWallet == null || grid == null)
         {
-            Debug.LogWarning("⚠️ Cannot refresh display: missing references");
             return;
         }
 

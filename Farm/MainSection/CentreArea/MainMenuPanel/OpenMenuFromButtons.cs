@@ -21,7 +21,6 @@ public class OpenMenuFromButtons : MonoBehaviour
 
     private void Start()
     {
-        // Auto-find references if enabled
         if (autoFind)
         {
             if (footerPanelSwitcher == null)
@@ -43,7 +42,6 @@ public class OpenMenuFromButtons : MonoBehaviour
             }
         }
 
-        // Setup button listeners
         foreach (Button btn in openMenuButtons)
         {
             if (btn != null)
@@ -53,7 +51,6 @@ public class OpenMenuFromButtons : MonoBehaviour
 
     public void OpenMenu()
     {
-        // 1️⃣ Close ALL panels under centerArea
         if (centerArea != null)
         {
             foreach (Transform child in centerArea)
@@ -62,28 +59,23 @@ public class OpenMenuFromButtons : MonoBehaviour
             }
         }
 
-        // 2️⃣ Open menuMainPanel
         if (menuMainPanel != null)
         {
             menuMainPanel.SetActive(true);
         }
 
-        // 3️⃣ ✅ NEW: Clear footer button highlights (yellow backgrounds)
         if (footerPanelSwitcher != null)
         {
             footerPanelSwitcher.ClearFooterSelection(closePanels: false);
-            Debug.Log("✅ Cleared footer button highlights");
         }
         else
         {
             Debug.LogWarning("⚠️ FooterPanelSwitcher not found - cannot clear footer highlights");
         }
 
-        // 4️⃣ ✅ NEW: Clear farm header selection (yellow background)
         if (farmHeaderManager != null)
         {
             farmHeaderManager.ClearFarmSelection();
-            Debug.Log("✅ Cleared farm header selection");
         }
         else
         {

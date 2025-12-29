@@ -5,25 +5,21 @@ public class InventoryItemsBarChanger : MonoBehaviour
     [Header("Inventory Bar References")]
     [SerializeField] private GameObject inventoryCageBar;
     [SerializeField] private GameObject inventoryFarmBar;
-    [SerializeField] private GameObject inventoryLockBar; // ✅ NEW
+    [SerializeField] private GameObject inventoryLockBar;
     [SerializeField] private GameObject defaultBanner;
 
-    private string currentFarmId = ""; // Store the current farm ID
+    private string currentFarmId = "";
 
     private void Start()
     {
-        // Initialize - show default banner on start
         DefaultBannerMethod();
     }
 
     public void InventoryFarmBarMethod(string farmId)
     {
-        // Store the farm ID
         currentFarmId = farmId;
-        // Close all others
         CloseAllBars();
         
-        // Open farm bar
         if (inventoryFarmBar != null)
         {
             inventoryFarmBar.SetActive(true);
@@ -36,10 +32,7 @@ public class InventoryItemsBarChanger : MonoBehaviour
 
     public void InventoryCageBarMethod()
     {
-        // Close all others
         CloseAllBars();
-        
-        // Open cage bar
         if (inventoryCageBar != null)
         {
             inventoryCageBar.SetActive(true);
@@ -50,12 +43,9 @@ public class InventoryItemsBarChanger : MonoBehaviour
         }
     }
 
-    public void InventoryLockBarMethod() // ✅ NEW
+    public void InventoryLockBarMethod()
     {
-        // Close all others
         CloseAllBars();
-        
-        // Open lock bar
         if (inventoryLockBar != null)
         {
             inventoryLockBar.SetActive(true);
@@ -68,10 +58,7 @@ public class InventoryItemsBarChanger : MonoBehaviour
 
     public void DefaultBannerMethod()
     {
-        // Close all others
         CloseAllBars();
-        
-        // Open default banner
         if (defaultBanner != null)
         {
             defaultBanner.SetActive(true);
@@ -90,20 +77,17 @@ public class InventoryItemsBarChanger : MonoBehaviour
         if (inventoryFarmBar != null)
             inventoryFarmBar.SetActive(false);
             
-        if (inventoryLockBar != null) // ✅ NEW
+        if (inventoryLockBar != null)
             inventoryLockBar.SetActive(false);
             
         if (defaultBanner != null)
             defaultBanner.SetActive(false);
     }
-
-    // Optional: Method to close all bars without opening any
     public void CloseAll()
     {
         CloseAllBars();
     }
 
-    // Get current farm ID - CRITICAL METHOD FOR ITEM APPLICATION
     public string GetCurrentFarmId()
     {
         return currentFarmId;

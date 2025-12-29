@@ -13,7 +13,6 @@ public class OpenEggMoneyLink : MonoBehaviour
     {
         if (playerWallet == null)
         {
-            Debug.LogError("❌ PlayerWallet not assigned!");
             return;
         }
 

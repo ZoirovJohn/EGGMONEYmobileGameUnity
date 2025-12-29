@@ -33,15 +33,11 @@ public class inventoryEggHatchInfo : MonoBehaviour
                 infoHatchManager = FindAnyObjectByType<InfoHatchManager>();
         }
         
-        // Get button reference
         button = GetComponent<Button>();
         if (button)
         {
-            // Add listener at the BEGINNING (before inventoryFarmInfo)
             button.onClick.AddListener(OnEggCellClicked);
         }
-        
-        Debug.Log($"🔧 inventoryEggHatchInfo initialized on {gameObject.name}");
     }
 
     void OnDestroy()
@@ -56,50 +52,37 @@ public class inventoryEggHatchInfo : MonoBehaviour
     {
         if (!cellId || string.IsNullOrEmpty(cellId.productId))
         {
-            Debug.LogWarning($"Cell ID or product ID is missing! cellId: {cellId}, productId: {(cellId != null ? cellId.productId : "null")}");
-            // Not an egg, let other handlers process
             return;
         }
         
-        // ✅ CHECK IF IT'S ANY TYPE OF EGG (including super eggs)
         if (cellId.productId != "silver_egg" && 
             cellId.productId != "gold_egg" && 
             cellId.productId != "super_red_egg" && 
             cellId.productId != "super_blue_egg")
         {
-            // Not an egg, let other handlers process
             return;
         }
         
-        // ✅ IT'S AN EGG (any type) - HANDLE IT
-        
         if (!wallet)
         {
-            Debug.LogWarning("Wallet reference is missing!");
             return;
         }
         
         eggType = cellId.productId;
-        
-        // Check egg availability
         CheckEggAvailability();
     }
 
     void CheckEggAvailability()
     {
-        // Get egg count from wallet
         int availableEggs = wallet.GetItemCount(eggType);
-        
         
         if (availableEggs == 0)
         {
-            // Sync with backend to ensure accuracy
             if (inventoryManager != null)
             {
                 inventoryManager.GetInventory(
                     onSuccess: (response) =>
                     {
-                        // Recheck after sync
                         availableEggs = wallet.GetItemCount(eggType);
                         
                         if (availableEggs > 0)
@@ -124,10 +107,7 @@ public class inventoryEggHatchInfo : MonoBehaviour
         }
         else
         {
-            // Has eggs locally, open hatch panel
             OpenHatchPanel(availableEggs);
-            
-            // Background sync (don't block user)
             if (inventoryManager != null)
             {
                 inventoryManager.GetInventory(
@@ -145,13 +125,10 @@ public class inventoryEggHatchInfo : MonoBehaviour
     {
         if (!infoHatchManager)
         {
-            Debug.LogError("❌ InfoHatchManager reference is missing! Trying to find it...");
-            
             infoHatchManager = FindAnyObjectByType<InfoHatchManager>();
             
             if (!infoHatchManager)
             {
-                Debug.LogError("❌ InfoHatchManager not found in scene! Make sure InfoHatchManager script is attached to InfoHatch panel.");
                 return;
             }
             else
@@ -164,7 +141,6 @@ public class inventoryEggHatchInfo : MonoBehaviour
             Debug.Log($"✅ InfoHatchManager already assigned on: {infoHatchManager.gameObject.name}");
         }
         
-        // Let InfoHatchManager handle everything
         infoHatchManager.InitializeHatchPanel(eggType, availableEggs);
     }
 }

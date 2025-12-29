@@ -21,41 +21,33 @@ public class MainMenuPanelTablet : MonoBehaviour
     private void Start()
     {
         float aspectRatio = (float)Screen.width / Screen.height;
-        Debug.Log($"📱 MainMenuPanelTablet: Screen {Screen.width}x{Screen.height}, Aspect: {aspectRatio:F2}");
-        
         bool isTablet = (aspectRatio >= 1.3f && aspectRatio <= 1.7f) || 
                         (aspectRatio >= 0.6f && aspectRatio <= 0.8f);
         
         if (isTablet)
         {
-            Debug.Log("✅ Tablet panel activated - setting up videos");
             gameObject.SetActive(true);
             SetupVideos();
             isInitialized = true;
         }
         else
         {
-            Debug.Log("❌ Tablet panel deactivated (device is phone)");
             gameObject.SetActive(false);
         }
     }
 
-    // ✅ NEW: Handle re-enabling
     private void OnEnable()
     {
         if (isInitialized)
         {
-            Debug.Log("🔄 MainMenuPanelTablet re-enabled - restarting videos");
             RestartAllVideos();
         }
     }
 
-    // ✅ NEW: Stop videos when disabled
     private void OnDisable()
     {
         if (isInitialized)
         {
-            Debug.Log("⏸️ MainMenuPanelTablet disabled - stopping videos");
             StopAllVideos();
         }
     }
@@ -66,7 +58,6 @@ public class MainMenuPanelTablet : MonoBehaviour
         SetupTopButtonVideos();
     }
 
-    // ✅ NEW: Restart all videos
     private void RestartAllVideos()
     {
         if (mainScreenVideoPlayer != null && mainScreenVideoPlayer.clip != null)
@@ -74,7 +65,6 @@ public class MainMenuPanelTablet : MonoBehaviour
             if (!mainScreenVideoPlayer.isPlaying)
             {
                 mainScreenVideoPlayer.Play();
-                Debug.Log("▶️ Restarted main screen video");
             }
         }
 
@@ -85,13 +75,11 @@ public class MainMenuPanelTablet : MonoBehaviour
                 if (!buttonVideoPlayers[i].isPlaying)
                 {
                     buttonVideoPlayers[i].Play();
-                    Debug.Log($"▶️ Restarted button {i + 1} video");
                 }
             }
         }
     }
 
-    // ✅ NEW: Stop all videos
     private void StopAllVideos()
     {
         if (mainScreenVideoPlayer != null && mainScreenVideoPlayer.isPlaying)
@@ -112,13 +100,11 @@ public class MainMenuPanelTablet : MonoBehaviour
     {
         if (mainScreenVideoPlayer == null || mainScreenImage == null)
         {
-            Debug.LogError("[Tablet] Main screen video player or image not assigned!");
             return;
         }
 
         if (mainScreenVideo == null)
         {
-            Debug.LogError("[Tablet] Main screen video clip not assigned!");
             return;
         }
 
@@ -126,8 +112,6 @@ public class MainMenuPanelTablet : MonoBehaviour
 
         int width = 1440;
         int height = 960;
-        
-        // ✅ Check if RenderTexture already exists
         if (mainScreenVideoPlayer.targetTexture == null)
         {
             RenderTexture renderTexture = new RenderTexture(width, height, 0);
@@ -147,8 +131,6 @@ public class MainMenuPanelTablet : MonoBehaviour
         {
             VideoLoadingManager.Instance.RegisterVideo(mainScreenVideoPlayer);
         }
-
-        Debug.Log($"✅ [Tablet] Main screen video loaded ({width}x{height})");
     }
 
     private void SetupTopButtonVideos()
@@ -160,13 +142,11 @@ public class MainMenuPanelTablet : MonoBehaviour
         {
             if (buttonVideoPlayers[i] == null || buttonRawImages[i] == null)
             {
-                Debug.LogWarning($"[Tablet] Button {i + 1} video player or raw image not assigned!");
                 continue;
             }
 
             if (i >= buttonVideoClips.Length || buttonVideoClips[i] == null)
             {
-                Debug.LogWarning($"[Tablet] Button {i + 1} video clip not assigned!");
                 continue;
             }
 
@@ -177,7 +157,6 @@ public class MainMenuPanelTablet : MonoBehaviour
             
             buttonVideoPlayers[i].enabled = true;
 
-            // ✅ Check if RenderTexture already exists
             if (buttonVideoPlayers[i].targetTexture == null)
             {
                 RenderTexture renderTexture = new RenderTexture(width, height, 0);
@@ -202,8 +181,6 @@ public class MainMenuPanelTablet : MonoBehaviour
             {
                 VideoLoadingManager.Instance.RegisterVideo(buttonVideoPlayers[i]);
             }
-
-            Debug.Log($"✅ [Tablet] Button {i + 1} video setup: {buttonVideoClips[i].name} ({width}x{height})");
         }
     }
 
@@ -211,7 +188,6 @@ public class MainMenuPanelTablet : MonoBehaviour
     {
         if (videoPlayer == null)
         {
-            Debug.LogError("❌ VideoPlayer is null in coroutine!");
             yield break;
         }
 
@@ -231,12 +207,10 @@ public class MainMenuPanelTablet : MonoBehaviour
 
         if (!videoPlayer.isPrepared)
         {
-            Debug.LogError($"❌ Video failed to prepare: {videoPlayer.clip?.name}");
             yield break;
         }
 
         videoPlayer.Play();
-        Debug.Log($"▶️ Playing video: {videoPlayer.clip.name}");
     }
 
     private void OnDestroy()

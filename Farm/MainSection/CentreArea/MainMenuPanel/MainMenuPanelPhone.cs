@@ -20,45 +20,33 @@ public class MainMenuPanelPhone : MonoBehaviour
 
     private void Start()
     {
-        // Check screen aspect ratio directly
         float aspectRatio = (float)Screen.width / Screen.height;
-        Debug.Log($"📱 MainMenuPanelPhone: Screen {Screen.width}x{Screen.height}, Aspect: {aspectRatio:F2}");
-        
-        // Phone detection: Exclude tablet aspect ratios
         bool isPhone = (aspectRatio < 0.6f || aspectRatio > 1.7f);
         
         if (isPhone)
         {
-            Debug.Log("✅ Phone panel activated - setting up videos");
             gameObject.SetActive(true);
             SetupVideos();
             isInitialized = true;
         }
         else
         {
-            Debug.Log("❌ Phone panel deactivated (device is tablet)");
             gameObject.SetActive(false);
         }
     }
 
-    // ✅ NEW: Handle re-enabling
     private void OnEnable()
     {
-        // Only restart videos if we've already initialized
-        // (Skip on first enable since Start() handles it)
         if (isInitialized)
         {
-            Debug.Log("🔄 MainMenuPanelPhone re-enabled - restarting videos");
             RestartAllVideos();
         }
     }
 
-    // ✅ NEW: Stop videos when disabled
     private void OnDisable()
     {
         if (isInitialized)
         {
-            Debug.Log("⏸️ MainMenuPanelPhone disabled - stopping videos");
             StopAllVideos();
         }
     }
@@ -69,10 +57,8 @@ public class MainMenuPanelPhone : MonoBehaviour
         SetupTopButtonVideos();
     }
 
-    // ✅ NEW: Restart all videos
     private void RestartAllVideos()
     {
-        // Restart main screen video
         if (mainScreenVideoPlayer != null && mainScreenVideoPlayer.clip != null)
         {
             if (!mainScreenVideoPlayer.isPlaying)
@@ -82,7 +68,6 @@ public class MainMenuPanelPhone : MonoBehaviour
             }
         }
 
-        // Restart button videos
         for (int i = 0; i < buttonVideoPlayers.Length; i++)
         {
             if (buttonVideoPlayers[i] != null && buttonVideoPlayers[i].clip != null)
@@ -90,13 +75,11 @@ public class MainMenuPanelPhone : MonoBehaviour
                 if (!buttonVideoPlayers[i].isPlaying)
                 {
                     buttonVideoPlayers[i].Play();
-                    Debug.Log($"▶️ Restarted button {i + 1} video");
                 }
             }
         }
     }
 
-    // ✅ NEW: Stop all videos
     private void StopAllVideos()
     {
         if (mainScreenVideoPlayer != null && mainScreenVideoPlayer.isPlaying)
@@ -117,13 +100,11 @@ public class MainMenuPanelPhone : MonoBehaviour
     {
         if (mainScreenVideoPlayer == null || mainScreenImage == null)
         {
-            Debug.LogError("[Phone] Main screen video player or image not assigned!");
             return;
         }
 
         if (mainScreenVideo == null)
         {
-            Debug.LogError("[Phone] Main screen video clip not assigned!");
             return;
         }
 
@@ -151,9 +132,6 @@ public class MainMenuPanelPhone : MonoBehaviour
         {
             VideoLoadingManager.Instance.RegisterVideo(mainScreenVideoPlayer);
         }
-
-
-        Debug.Log($"✅ [Phone] Main screen video loaded ({width}x{height})");
     }
 
     private void SetupTopButtonVideos()
@@ -165,13 +143,11 @@ public class MainMenuPanelPhone : MonoBehaviour
         {
             if (buttonVideoPlayers[i] == null || buttonRawImages[i] == null)
             {
-                Debug.LogWarning($"[Phone] Button {i + 1} video player or raw image not assigned!");
                 continue;
             }
 
             if (i >= buttonVideoClips.Length || buttonVideoClips[i] == null)
             {
-                Debug.LogWarning($"[Phone] Button {i + 1} video clip not assigned!");
                 continue;
             }
 
@@ -181,8 +157,6 @@ public class MainMenuPanelPhone : MonoBehaviour
             }
             
             buttonVideoPlayers[i].enabled = true;
-
-            // ✅ Check if RenderTexture already exists
             if (buttonVideoPlayers[i].targetTexture == null)
             {
                 RenderTexture renderTexture = new RenderTexture(width, height, 0);
@@ -208,8 +182,6 @@ public class MainMenuPanelPhone : MonoBehaviour
                 VideoLoadingManager.Instance.RegisterVideo(buttonVideoPlayers[i]);
             }
 
-
-            Debug.Log($"✅ [Phone] Button {i + 1} video setup: {buttonVideoClips[i].name} ({width}x{height})");
         }
     }
 
@@ -217,7 +189,6 @@ public class MainMenuPanelPhone : MonoBehaviour
     {
         if (videoPlayer == null)
         {
-            Debug.LogError("❌ VideoPlayer is null in coroutine!");
             yield break;
         }
 
@@ -237,12 +208,10 @@ public class MainMenuPanelPhone : MonoBehaviour
 
         if (!videoPlayer.isPrepared)
         {
-            Debug.LogError($"❌ Video failed to prepare: {videoPlayer.clip?.name}");
             yield break;
         }
 
         videoPlayer.Play();
-        Debug.Log($"▶️ Playing video: {videoPlayer.clip.name}");
     }
 
     private void OnDestroy()

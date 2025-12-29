@@ -45,13 +45,11 @@ public class InventoryLockInfo : MonoBehaviour
     {
         if (!cellId || string.IsNullOrEmpty(cellId.productId))
         {
-            Debug.LogWarning("Cell ID or product ID is missing!");
             return;
         }
 
         if (!wallet)
         {
-            Debug.LogWarning("Wallet reference is missing!");
             return;
         }
 
@@ -83,7 +81,6 @@ public class InventoryLockInfo : MonoBehaviour
                     onError: (err) =>
                     {
                         ShowLoading(false);
-                        Debug.LogError(err);
                         ShowNoKeyError();
                     });
             }

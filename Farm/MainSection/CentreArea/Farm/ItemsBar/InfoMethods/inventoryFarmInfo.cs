@@ -25,7 +25,6 @@ public class inventoryFarmInfo : MonoBehaviour
     [SerializeField] Button putVitaminButton;
     [SerializeField] TMP_Text vitaminCountText;
 
-    // ✅ Static variable shared across all instances
     private static string currentVitaminType = "";
     private static inventoryFarmInfo activeInstance = null;
 
@@ -70,7 +69,6 @@ public class inventoryFarmInfo : MonoBehaviour
             btn.onClick.AddListener(inventoryFarmInfoMethod);
         }
 
-        // ✅ Only ONE instance should hook up the button
         if (putVitaminButton != null)
         {
             putVitaminButton.onClick.RemoveAllListeners();
@@ -89,13 +87,11 @@ public class inventoryFarmInfo : MonoBehaviour
     {
         if (!cellId || string.IsNullOrEmpty(cellId.productId))
         {
-            Debug.LogWarning("Cell ID or product ID is missing!");
             return;
         }
         
         if (!wallet)
         {
-            Debug.LogWarning("Wallet reference is missing!");
             return;
         }
         
@@ -139,7 +135,6 @@ public class inventoryFarmInfo : MonoBehaviour
                     onError: (err) =>
                     {
                         ShowLoading(false);
-                        Debug.LogError($"Failed to sync inventory: {err}");
                         ShowNotEnoughItemsError();
                     }
                 );
@@ -191,11 +186,8 @@ public class inventoryFarmInfo : MonoBehaviour
     {
         if (cellId.productId == "vitamin" || cellId.productId == "super_vitamin")
         {
-            // ✅ STORE the vitamin type (static, shared across all instances)
             currentVitaminType = cellId.productId;
             activeInstance = this;
-            
-            Debug.Log($"✅ Stored vitamin type: {currentVitaminType}");
             
             if (infoErrorChanger != null)
             {
@@ -287,7 +279,6 @@ public class inventoryFarmInfo : MonoBehaviour
         
         if (farmDatabase == null)
         {
-            Debug.LogWarning("⚠️ FarmDatabase not found, assuming no robot");
             return false;
         }
         
@@ -296,42 +287,33 @@ public class inventoryFarmInfo : MonoBehaviour
         
         if (currentFarm == null)
         {
-            Debug.LogWarning($"⚠️ Current farm is null (index: {currentFarmIndex})");
             return false;
         }
         
         bool hasRobot = !string.IsNullOrEmpty(currentFarm.robotType) && currentFarm.robotType != "none";
-        
-        Debug.Log($"🤖 Robot exists on farm {currentFarm.farmName}: {hasRobot}");
         
         return hasRobot;
     }
 
     void OnPutVitaminButtonClicked()
     {
-        Debug.Log($"🔵 Button clicked! Current vitamin type: {currentVitaminType}");
-        
         if (string.IsNullOrEmpty(currentVitaminType))
         {
-            Debug.LogWarning("⚠️ No vitamin type stored!");
             return;
         }
 
         if (currentVitaminType != "vitamin" && currentVitaminType != "super_vitamin")
         {
-            Debug.LogWarning("⚠️ Stored item is not a vitamin!");
             return;
         }
 
         if (activeInstance == null)
         {
-            Debug.LogError("❌ No active instance!");
             return;
         }
 
         if (activeInstance.vitaminAllManager == null)
         {
-            Debug.LogError("❌ VitaminAllManager not found!");
             if (activeInstance.infoErrorChanger != null)
             {
                 activeInstance.infoErrorChanger.OpenErrorDefault("System error: VitaminAllManager not found");
@@ -353,7 +335,6 @@ public class inventoryFarmInfo : MonoBehaviour
         
         if (farmDatabase == null)
         {
-            Debug.LogError("❌ FarmDatabase not found!");
             if (activeInstance.infoErrorChanger != null)
             {
                 activeInstance.infoErrorChanger.OpenErrorDefault("System error: FarmDatabase not found");
@@ -374,8 +355,6 @@ public class inventoryFarmInfo : MonoBehaviour
                 
                 VitaminAllManager.VitaminAllResponse data = JsonUtility.FromJson<VitaminAllManager.VitaminAllResponse>(response);
                 
-                Debug.Log($"✅ Applied to {data.hensAffected} hens! Used {data.vitaminsUsed} vitamins");
-                
                 if (activeInstance.infoErrorChanger != null)
                 {
                     activeInstance.infoErrorChanger.CloseAllInfoErrorMethod();
@@ -389,8 +368,6 @@ public class inventoryFarmInfo : MonoBehaviour
             onError: (error) =>
             {
                 activeInstance.ShowLoading(false);
-                
-                Debug.LogError($"❌ Failed to apply vitamins: {error}");
                 
                 if (activeInstance.infoErrorChanger != null)
                 {

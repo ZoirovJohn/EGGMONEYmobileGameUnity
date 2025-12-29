@@ -61,7 +61,6 @@ public class InventoryLockItemApplier : MonoBehaviour
             if (!authManager)
                 authManager = FindAnyObjectByType<AuthManager>();
             
-            // Auto-find buttons if not assigned
             if (!yesButton)
             {
                 GameObject yesObj = GameObject.Find("BtnYes");
@@ -77,7 +76,6 @@ public class InventoryLockItemApplier : MonoBehaviour
             }
         }
         
-        // Hook up buttons
         if (yesButton)
             yesButton.onClick.AddListener(OnYesClicked);
         
@@ -106,83 +104,58 @@ public class InventoryLockItemApplier : MonoBehaviour
     
     void OnYesClicked()
     {
-        Debug.Log("=== FARM KEY DEBUG ===");
-        Debug.Log($"Pending Key ID: '{pendingKeyId}'");
-        Debug.Log($"User Farms: {wallet?.UserFarms}");
-        Debug.Log($"Max Farms: {farmHeaderManager?.maxTotalFarms ?? 99999}");
-        
         if (string.IsNullOrEmpty(pendingKeyId))
         {
-            Debug.LogWarning("⚠️ No pending key ID!");
             return;
         }
         
-        // 1. Check if player has the key locally
         if (wallet == null || wallet.GetItemCount(pendingKeyId) <= 0)
         {
-            Debug.LogWarning($"⚠️ Player doesn't have key: {pendingKeyId}");
             if (infoErrorChanger != null)
                 infoErrorChanger.OpenErrorDefault("You don't have this key.");
             return;
         }
         
-        // 2. Determine which farm this key unlocks
         string farmIdToUnlock = GetFarmIdForKey(pendingKeyId);
         
         if (string.IsNullOrEmpty(farmIdToUnlock))
         {
-            Debug.LogError($"❌ Could not determine farm for key: {pendingKeyId}");
             if (infoErrorChanger != null)
                 infoErrorChanger.OpenErrorDefault("Invalid key.");
             return;
         }
         
-        // 3. Check if we've reached max farms
         if (wallet != null)
         {
             int currentFarms = wallet.UserFarms;
-            int maxFarms = 99999; // Default max
+            int maxFarms = 99999; 
             if (farmHeaderManager != null)
             {
                 maxFarms = farmHeaderManager.maxTotalFarms;
-                
-                // ✅ CRITICAL FIX: If maxTotalFarms is unreasonably low (like 8), use 99999 instead
                 if (maxFarms < 100)
                 {
-                    Debug.LogWarning($"⚠️ FarmHeaderManager.maxTotalFarms is too low ({maxFarms}), using 99999 instead");
                     maxFarms = 99999;
                 }
             }
             
             if (currentFarms >= maxFarms)
             {
-                Debug.LogWarning($"⚠️ All farms unlocked! (User has {currentFarms}/{maxFarms} farms)");
                 if (infoErrorChanger != null)
                     infoErrorChanger.OpenErrorDefault("All farms are already unlocked.");
                 return;
             }
-            
-            Debug.Log($"✅ Can unlock next farm. Current: {currentFarms}/{maxFarms}");
         }
         
-        // ✅ Call backend to use farm key
         if (useFarmKeyManager != null)
         {
-            Debug.Log($"🔑 Calling backend to use key: {pendingKeyId}");
-            
             useFarmKeyManager.UseFarmKey(
                 pendingKeyId,
                 onSuccess: (response) =>
                 {
-                    Debug.Log($"✅ Backend: Farm key used successfully! Message: {response.message}");
-                    
-                    // ✅ Step 1: Refresh user profile to get updated userFarms count
                     RefreshUserProfile(farmIdToUnlock);
                 },
                 onError: (error) =>
                 {
-                    Debug.LogError($"❌ Backend error when using farm key: {error}");
-                    
                     if (infoErrorChanger != null)
                         infoErrorChanger.OpenErrorDefault("Failed to unlock farm. Please try again.");
                 }
@@ -190,12 +163,8 @@ public class InventoryLockItemApplier : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("⚠️ UseFarmKeyManager not found! Falling back to local unlock.");
-            
-            // Fallback: proceed without backend call
             if (!wallet.TryConsumeItem(pendingKeyId, 1))
             {
-                Debug.LogError($"❌ Failed to consume key: {pendingKeyId}");
                 return;
             }
             
@@ -210,26 +179,17 @@ public class InventoryLockItemApplier : MonoBehaviour
     {
         if (authManager == null)
         {
-            Debug.LogWarning("⚠️ AuthManager not found, skipping profile refresh");
             RefreshInventory(farmIdToUnlock);
             return;
         }
         
-        Debug.Log("🔄 Refreshing user profile from /auth/me...");
-        
         authManager.GetUserProfile(
             onSuccess: (profile) =>
             {
-                Debug.Log($"✅ User profile refreshed! UserFarms: {wallet.UserFarms}");
-                
-                // ✅ Step 2: Refresh inventory
                 RefreshInventory(farmIdToUnlock);
             },
             onError: (error) =>
             {
-                Debug.LogError($"❌ Failed to refresh profile: {error}");
-                
-                // Continue anyway - inventory refresh might still work
                 RefreshInventory(farmIdToUnlock);
             }
         );
@@ -242,26 +202,17 @@ public class InventoryLockItemApplier : MonoBehaviour
     {
         if (inventoryManager == null)
         {
-            Debug.LogWarning("⚠️ InventoryManager not found, skipping inventory refresh");
             ReloadFarmDataFromBackend(farmIdToUnlock);
             return;
         }
         
-        Debug.Log("🔄 Refreshing inventory...");
-        
         inventoryManager.GetInventory(
             onSuccess: (invResponse) =>
             {
-                Debug.Log("✅ Inventory refreshed after using farm key");
-                
-                // ✅ Step 3: Reload farm data from backend
                 ReloadFarmDataFromBackend(farmIdToUnlock);
             },
             onError: (invError) =>
             {
-                Debug.LogError($"❌ Failed to refresh inventory: {invError}");
-                
-                // Still proceed with farm data reload
                 ReloadFarmDataFromBackend(farmIdToUnlock);
             }
         );
@@ -274,43 +225,29 @@ public class InventoryLockItemApplier : MonoBehaviour
     {
         if (wallet == null)
         {
-            Debug.LogWarning("⚠️ PlayerWallet not found");
             ProceedWithFarmUnlock(farmIdToUnlock);
             return;
         }
         
-        // Get updated farm count (should be +1 after backend unlock)
         int newFarmCount = wallet.UserFarms;
-        int newFarmNumber = newFarmCount; // Backend uses 1-based numbering
-        int newFarmIndex = newFarmCount - 1; // Unity uses 0-based indexing
-        
-        Debug.Log($"🔄 Loading newly unlocked farm {newFarmNumber} from backend (index {newFarmIndex})...");
+        int newFarmNumber = newFarmCount; 
+        int newFarmIndex = newFarmCount - 1; 
         
         if (farmAPIManager == null)
         {
-            Debug.LogWarning("⚠️ FarmAPIManager not found, using local unlock only");
             ProceedWithFarmUnlock(farmIdToUnlock);
             return;
         }
         
-        // Load ONLY the new farm from backend
         farmAPIManager.GetFarmSummary(
             newFarmNumber,
             onSuccess: (summary) =>
             {
-                Debug.Log($"✅ Successfully loaded new farm {newFarmNumber} from backend");
-                
-                // Add the new farm to FarmDatabase
                 AddNewFarmToDatabase(summary, newFarmIndex);
-                
-                // Now proceed with unlock sequence
                 ProceedWithFarmUnlockByIndex(newFarmIndex);
             },
             onError: (error) =>
             {
-                Debug.LogError($"❌ Failed to load new farm: {error}");
-                
-                // Fallback: proceed with local unlock if backend fails
                 ProceedWithFarmUnlock(farmIdToUnlock);
             }
         );
@@ -323,25 +260,16 @@ public class InventoryLockItemApplier : MonoBehaviour
     {
         if (farmDatabase == null || summary == null)
         {
-            Debug.LogWarning("⚠️ Cannot add farm - missing FarmDatabase or summary");
             return;
         }
         
         string farmId = $"farm_{(newFarmIndex + 1):D3}";
-        
-        Debug.Log($"➕ Adding new farm to database: {farmId} at index {newFarmIndex}");
-        
-        // Determine farm key type from backend
         string farmKeyType = (summary.farm != null && summary.farm.isPremium) ? "premium" : "normal";
-        
-        // Determine robot type from backend
         string robotType = "none";
         if (summary.robot != null && !string.IsNullOrEmpty(summary.robot.id))
         {
             robotType = summary.robot.id;
         }
-        
-        // Count chicks by kind from backend
         int normalChicks = 0;
         int champChicks = 0;
         int legendChicks = 0;
@@ -355,7 +283,6 @@ public class InventoryLockItemApplier : MonoBehaviour
             superLegendChicks = summary.henStats.byKind.SuperLegend;
         }
         
-        // Get nests occupied
         int nestsOccupied = (summary.nests != null) ? summary.nests.occupied : 0;
         
         FarmData newFarm = new FarmData
@@ -374,14 +301,12 @@ public class InventoryLockItemApplier : MonoBehaviour
             cages = new System.Collections.Generic.List<CageData>()
         };
         
-        // ✅ Store nest details in FarmDatabase for proper egg mapping
         if (summary.nests != null && summary.nests.details != null)
         {
             var nestList = new System.Collections.Generic.List<NestDetail>(summary.nests.details);
             farmDatabase.SetFarmNestDetails(newFarmIndex, nestList);
         }
         
-        // Initialize empty cages (will be populated by FarmDatabase.DistributeFarmDataToCages)
         for (int j = 0; j < 100; j++)
         {
             newFarm.cages.Add(new CageData
@@ -402,19 +327,11 @@ public class InventoryLockItemApplier : MonoBehaviour
         }
         
         farmDatabase.farms.Add(newFarm);
-        
-        // ✅ Generate cages from farm data (distributes chicks and eggs)
         farmDatabase.GenerateCagesFromFarmData();
-        
-        Debug.Log($"✅ Successfully added farm {farmId} to database (Total farms: {farmDatabase.farms.Count})");
-        Debug.Log($"   - Farm Type: {farmKeyType}");
-        Debug.Log($"   - Nests: {nestsOccupied}");
-        Debug.Log($"   - Normal: {normalChicks}, Champ: {champChicks}, Legend: {legendChicks}, SuperLegend: {superLegendChicks}");
     }
     
     void ProceedWithFarmUnlock(string farmIdToUnlock)
     {
-        // Create and add new farm data with default values
         FarmData newFarm = CreateNewFarmData(farmIdToUnlock, pendingKeyId);
         
         if (farmDatabase != null)
@@ -423,14 +340,10 @@ public class InventoryLockItemApplier : MonoBehaviour
         }
         else
         {
-            Debug.LogError("❌ FarmDatabase is null!");
             return;
         }
         
-        // Get the NEW farm index (it's the last one since we just added it)
         int newFarmIndex = farmDatabase.farms.Count - 1;
-        
-        // Start unlock sequence (visual feedback + open farm)
         StartCoroutine(UnlockFarmSequenceByIndex(farmIdToUnlock, newFarmIndex));
     }
     
@@ -439,13 +352,8 @@ public class InventoryLockItemApplier : MonoBehaviour
     /// </summary>
     void ProceedWithFarmUnlockByIndex(int newFarmIndex)
     {
-        // Get the farm ID for the new farm
         FarmData newFarm = farmDatabase.GetFarmByIndex(newFarmIndex);
         string farmId = newFarm != null ? newFarm.farmId : "";
-        
-        Debug.Log($"🎉 Proceeding with unlock for farm index {newFarmIndex} (ID: {farmId})");
-        
-        // Start unlock sequence
         StartCoroutine(UnlockFarmSequenceByIndex(farmId, newFarmIndex));
     }
     
@@ -454,13 +362,8 @@ public class InventoryLockItemApplier : MonoBehaviour
     /// </summary>
     System.Collections.IEnumerator UnlockFarmSequenceByIndex(string farmId, int newFarmIndex)
     {
-        Debug.Log($"🔓 Starting unlock sequence for farm {farmId} at index {newFarmIndex}");
-        
-        // Toggle lock visuals (adjust GameObject names based on your hierarchy)
         GameObject lockClose = GameObject.Find($"ImageLockClose_{farmId}");
         GameObject lockOpen = GameObject.Find($"ImageLockOpen_{farmId}");
-        
-        // Alternative naming patterns
         if (!lockClose) lockClose = GameObject.Find($"LockClose_{newFarmIndex}");
         if (!lockOpen) lockOpen = GameObject.Find($"LockOpen_{newFarmIndex}");
         
@@ -470,30 +373,23 @@ public class InventoryLockItemApplier : MonoBehaviour
         if (lockOpen)
             lockOpen.SetActive(true);
         
-        // Wait 1 second for visual feedback
         yield return new WaitForSeconds(1f);
         
-        // Hide Yes/No buttons before closing
         if (yesButton)
             yesButton.gameObject.SetActive(false);
         if (noButton)
             noButton.gameObject.SetActive(false);
         
-        // Close all info/error panels
         if (infoErrorChanger != null)
             infoErrorChanger.CloseAllInfoErrorMethod();
         
-        // ✅ Refresh FarmHeaderManager to rebuild UI with new farm
         if (farmHeaderManager != null)
         {
-            Debug.Log("🔄 Refreshing FarmHeaderManager to show new farm...");
             farmHeaderManager.Refresh();
         }
         
-        // Switch to the newly unlocked farm
         if (newFarmIndex >= 0)
         {
-            // Call DefaultBannerMethod from InventoryItemsBarChanger
             InventoryItemsBarChanger barChanger = FindAnyObjectByType<InventoryItemsBarChanger>();
             if (barChanger != null)
             {
@@ -502,7 +398,6 @@ public class InventoryLockItemApplier : MonoBehaviour
             
             if (farmGridManager != null)
             {
-                Debug.Log($"🔄 Switching to farm index {newFarmIndex}...");
                 farmGridManager.SwitchFarm(newFarmIndex);
             }
             
@@ -511,11 +406,9 @@ public class InventoryLockItemApplier : MonoBehaviour
                 farmDatabase.SwitchToFarm(newFarmIndex);
             }
             
-            // ✅ CRITICAL FIX: Update farm header selection to show yellow on new farm
             if (farmHeaderManager != null)
             {
                 farmHeaderManager.SelectFarm(newFarmIndex);
-                Debug.Log($"✅ Updated farm header yellow highlight to farm {newFarmIndex + 1}");
             }
         }
         
@@ -525,7 +418,6 @@ public class InventoryLockItemApplier : MonoBehaviour
         }
 
         pendingKeyId = "";
-        Debug.Log($"✅ Farm unlock sequence complete!");
     }
     
     FarmData CreateNewFarmData(string farmId, string keyType)
@@ -535,7 +427,6 @@ public class InventoryLockItemApplier : MonoBehaviour
         newFarm.farmName = GetFarmNameForId(farmId);
         newFarm.farmIndex = GetFarmIndexForId(farmId);
         
-        // Normalize key type to match first 3 farms
         if (keyType == "key_farm" || keyType == "keyFarm" || keyType == "farmKey" || keyType == "FarmKey")
         {
             newFarm.farmKeyType = "normal";
@@ -555,7 +446,6 @@ public class InventoryLockItemApplier : MonoBehaviour
         newFarm.normalChicks = 0;
         newFarm.champChicks = 0;
         
-        // Initialize empty cages list
         newFarm.cages = new System.Collections.Generic.List<CageData>();
         for (int i = 0; i < 100; i++)
         {
@@ -575,24 +465,20 @@ public class InventoryLockItemApplier : MonoBehaviour
         return newFarm;
     }
     
-    // Helper method to map keys to farm IDs
     string GetFarmIdForKey(string keyId)
     {
-        // Based on your JSON format: farm_001, farm_002, farm_003, farm_004...
         switch (keyId)
         {
-            // Generic farm keys - find next available farm
             case "key_farm":
-            case "keyFarm":        // ✅ Reversed version
-            case "farmKey":        // ✅ ACTUAL ID from inventory
-            case "FarmKey":        // ✅ Capital F variant
+            case "keyFarm":        
+            case "farmKey":       
+            case "FarmKey":       
                 return GetNextAvailableFarmId();
             
-            // Premium farm key - also finds next available farm
-            case "premiumfarmkey":  // ✅ From your inventory cell
-            case "premiumFarmKey":  // ✅ Capital F variant
+            case "premiumfarmkey":  
+            case "premiumFarmKey": 
             case "premium_farm_key":
-            case "PremiumFarmKey":  // ✅ Capital P variant
+            case "PremiumFarmKey": 
                 return GetNextAvailableFarmId();
             
             case "key_farm_4":
@@ -621,7 +507,6 @@ public class InventoryLockItemApplier : MonoBehaviour
                 return "farm_008";
                 
             default:
-                Debug.LogWarning($"⚠️ Unknown key type: {keyId}");
                 return "";
         }
     }
@@ -631,79 +516,58 @@ public class InventoryLockItemApplier : MonoBehaviour
     {
         if (wallet == null)
         {
-            Debug.LogWarning("⚠️ PlayerWallet is null, defaulting to farm_004");
             return "farm_004";
         }
         
-        // ✅ Use PlayerWallet.UserFarms to determine next farm
         int currentUnlockedCount = wallet.UserFarms;
-        int nextFarmNumber = currentUnlockedCount + 1; // Next farm to unlock
+        int nextFarmNumber = currentUnlockedCount + 1; 
         
-        // ✅ Get max farms from FarmHeaderManager (default 99999 if not set)
         int maxFarms = 99999;
         if (farmHeaderManager != null)
         {
             maxFarms = farmHeaderManager.maxTotalFarms;
             
-            // ✅ CRITICAL FIX: If maxTotalFarms is unreasonably low (like 8), use 99999 instead
             if (maxFarms < 100)
             {
-                Debug.LogWarning($"⚠️ FarmHeaderManager.maxTotalFarms is too low ({maxFarms}), using 99999 instead");
                 maxFarms = 99999;
             }
-            
-            Debug.Log($"📊 Max farms from FarmHeaderManager: {maxFarms}");
         }
         else
         {
             Debug.LogWarning("⚠️ FarmHeaderManager is null, using default max: 99999");
         }
         
-        Debug.Log($"🔍 Current unlocked: {currentUnlockedCount}, Next: {nextFarmNumber}, Max: {maxFarms}");
-        
-        // Make sure we don't exceed maximum farms
         if (nextFarmNumber > maxFarms)
         {
-            Debug.LogWarning($"⚠️ All farms are already unlocked! (User has {currentUnlockedCount}/{maxFarms})");
             return "";
         }
         
-        // Return the farm ID for the next farm
         string nextFarmId = $"farm_{nextFarmNumber:D3}";
-        Debug.Log($"🔑 Next farm to unlock: {nextFarmId} (user currently has {currentUnlockedCount}/{maxFarms} farms)");
-        
         return nextFarmId;
     }
     
-    // Helper method to get farm display name
     string GetFarmNameForId(string farmId)
     {
-        // ✅ Extract farm number from ID (e.g., "farm_004" → 4)
         string numberPart = farmId.Replace("farm_", "");
         if (int.TryParse(numberPart, out int farmNumber))
         {
             return $"Farm {farmNumber}";
         }
         
-        // Fallback
         return $"Farm {farmId}";
     }
     
-    // Helper method to get farm index (based on total farm count)
     int GetFarmIndexForId(string farmId)
     {
-        // The index should be the current total number of farms
-        // Since we're adding a NEW farm, it goes at the end
         if (farmDatabase != null && farmDatabase.farms != null)
         {
-            return farmDatabase.farms.Count; // This will be the new farm's index
+            return farmDatabase.farms.Count; 
         }
         
-        // Fallback - parse from farmId (e.g., "farm_004" → index 3)
         string numberPart = farmId.Replace("farm_", "");
         if (int.TryParse(numberPart, out int farmNumber))
         {
-            return farmNumber - 1; // Convert 1-based to 0-based index
+            return farmNumber - 1;
         }
         
         return -1;

@@ -13,7 +13,6 @@ public class LocationChangeHandler : MonoBehaviour
     [Header("Optional UI Feedback")]
     public TMP_Text feedbackText;
 
-    // Country code mapping (matches LocationDropdownPopulator order)
     private static readonly string[] CountryCodes = new string[]
     {
         "", // placeholder "Select location"
@@ -71,7 +70,6 @@ public class LocationChangeHandler : MonoBehaviour
             return;
         }
 
-        // Get country code from dropdown index (same as SignUpValidator)
         string countryCode = GetCountryCode(locationDropdown.value);
         
         if (string.IsNullOrEmpty(countryCode))
@@ -80,7 +78,6 @@ public class LocationChangeHandler : MonoBehaviour
             return;
         }
 
-        // Send short country code (e.g., "KR", "US", "JP") to the API
         string jsonData = $"{{\"nation\": \"{countryCode}\"}}";
 
         ShowFeedback("Updating location...", true);
@@ -94,20 +91,18 @@ public class LocationChangeHandler : MonoBehaviour
             },
             onError: (error) =>
             {
-                Debug.LogError("❌ Failed to update location: " + error);
                 ShowFeedback("Failed to update location: " + error, false);
             }
         );
     }
 
-    // Helper method to get country code by dropdown index (same as SignUpValidator)
     private string GetCountryCode(int index)
     {
         if (index >= 0 && index < CountryCodes.Length)
         {
             return CountryCodes[index];
         }
-        return "KR"; // Default to South Korea
+        return "KR";
     }
 
     private void ShowFeedback(string message, bool isSuccess)
@@ -145,7 +140,6 @@ public class LocationChangeHandler : MonoBehaviour
             },
             onError: (err) =>
             {
-                Debug.LogError("❌ Failed to refresh player data: " + err);
                 ShowFeedback("Location updated but failed to refresh data", false);
             }
         );

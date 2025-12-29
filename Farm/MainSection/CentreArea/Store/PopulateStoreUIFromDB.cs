@@ -18,7 +18,6 @@ public class PopulateStoreUIFromDB : MonoBehaviour
         if (!store) store = StoreDB.Instance;
         if (!store || content == null || store.items.Count == 0)
         {
-            Debug.LogWarning("Store or content missing.");
             return;
         }
 
@@ -62,7 +61,5 @@ public class PopulateStoreUIFromDB : MonoBehaviour
                 if (ui) { ui.text = value; return; }
             }
         }
-
-        Debug.LogWarning($"Store field not found: {fieldName}");
     }
 }

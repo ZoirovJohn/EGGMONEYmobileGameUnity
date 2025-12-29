@@ -28,7 +28,6 @@ public class StoreCellSizer : MonoBehaviour
     {
         if (autoFind)
         {
-            // If gridLayout not assigned, get from this GameObject
             if (gridLayout == null)
             {
                 gridLayout = GetComponent<GridLayoutGroup>();
@@ -38,10 +37,8 @@ public class StoreCellSizer : MonoBehaviour
                 }
             }
             
-            // Try to find viewport
             if (viewport == null)
             {
-                // Look for parent with "Viewport" in name
                 Transform parent = transform.parent;
                 while (parent != null)
                 {
@@ -50,7 +47,6 @@ public class StoreCellSizer : MonoBehaviour
                         viewport = parent.GetComponent<RectTransform>();
                         if (viewport != null)
                         {
-                            Debug.Log($"✅ Found viewport: {parent.name}");
                             break;
                         }
                     }
@@ -61,7 +57,6 @@ public class StoreCellSizer : MonoBehaviour
         
         if (gridLayout == null)
         {
-            Debug.LogError("❌ GridLayoutGroup not found! Please assign it or ensure it exists on this GameObject.");
             return;
         }
         
@@ -70,7 +65,6 @@ public class StoreCellSizer : MonoBehaviour
 
     void Start()
     {
-        // Wait one frame for canvas to initialize
         StartCoroutine(InitializeAfterFrame());
     }
 
@@ -101,41 +95,30 @@ public class StoreCellSizer : MonoBehaviour
     {
         if (viewport == null)
         {
-            Debug.LogError("❌ Viewport not assigned!");
             return;
         }
         
         if (gridLayout == null)
         {
-            Debug.LogError("❌ GridLayoutGroup not assigned!");
             return;
         }
         
-        // Force canvas update to get correct viewport size
         Canvas.ForceUpdateCanvases();
-        
         float viewportWidth = viewport.rect.width;
         
         if (viewportWidth <= 0)
         {
-            Debug.LogWarning("⚠️ Viewport width is 0, waiting for next frame...");
             StartCoroutine(RetryUpdateCellSizes());
             return;
         }
         
-        // Calculate cell dimensions
         float cellWidth = viewportWidth;
         float cellHeight = cellWidth / heightDivider;
         
-        // Update GridLayoutGroup cell size
         Vector2 newCellSize = new Vector2(cellWidth, cellHeight);
-        
-        // Only update if there's a significant change (avoid constant updates)
         if (Vector2.Distance(gridLayout.cellSize, newCellSize) > 0.1f)
         {
             gridLayout.cellSize = newCellSize;
-            
-            // Force layout rebuild
             LayoutRebuilder.ForceRebuildLayoutImmediate(gridLayout.GetComponent<RectTransform>());
         }
     }
@@ -146,14 +129,12 @@ public class StoreCellSizer : MonoBehaviour
         UpdateCellSizes();
     }
 
-    // Public method to manually trigger update
     [ContextMenu("Update Cell Sizes")]
     public void ManualUpdate()
     {
         UpdateCellSizes();
     }
 
-    // Call this when new items are added to the store
     public void RefreshSizes()
     {
         UpdateCellSizes();
@@ -161,7 +142,6 @@ public class StoreCellSizer : MonoBehaviour
     
     void OnValidate()
     {
-        // Update in editor when values change
         if (Application.isPlaying && gridLayout != null && viewport != null)
         {
             UpdateCellSizes();

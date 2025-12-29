@@ -59,13 +59,11 @@ public class inventoryCageInfo : MonoBehaviour
     {
         if (!cellId || string.IsNullOrEmpty(cellId.productId))
         {
-            Debug.LogWarning("Cell ID or product ID is missing!");
             return;
         }
 
         if (!wallet)
         {
-            Debug.LogWarning("Wallet reference is missing!");
             return;
         }
 
@@ -97,7 +95,6 @@ public class inventoryCageInfo : MonoBehaviour
                     onError: (err) =>
                     {
                         ShowLoading(false);
-                        Debug.LogError($"Failed to sync inventory: {err}");
                         ShowNotEnoughItemsError();
                     }
                 );
@@ -203,14 +200,12 @@ public class inventoryCageInfo : MonoBehaviour
             "super_red_egg" => "Item_SuperRedEgg",
             "farmKey" => "Item_FarmKey",
 
-            // Hens
             "white_chick" => "Item_WhiteChick",
             "champ_chick" => "Item_ChampChick",
 
             _ => null
         };
 
-        // If no key found, return default text
         if (key == null)
             return LanguageManager.Instance.currentLanguage == "Korean" 
                 ? "이 아이템" 

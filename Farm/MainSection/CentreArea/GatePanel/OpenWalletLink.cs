@@ -5,8 +5,8 @@ public class OpenWalletLink : MonoBehaviour
 {
     [Header("References")]
     public PlayerWallet playerWallet;
-    public TMP_Text buttonLabel;          // Assign the button's text component
-    private LocalizedText localizedText;  // Optional: if you also put LocalizedText on the same object
+    public TMP_Text buttonLabel;         
+    private LocalizedText localizedText; 
 
     [Header("Config")]
     [SerializeField] string url = "https://fafai-wallet.com";
@@ -20,7 +20,6 @@ public class OpenWalletLink : MonoBehaviour
             buttonLabel = GetComponentInChildren<TMP_Text>();
         }
 
-        // Try to grab LocalizedText on the same object as the label
         if (buttonLabel != null)
         {
             localizedText = buttonLabel.GetComponent<LocalizedText>();
@@ -34,7 +33,6 @@ public class OpenWalletLink : MonoBehaviour
 
     private void Update()
     {
-        // Only update if location changed to avoid work every frame
         if (playerWallet == null) return;
 
         string currentLocation = playerWallet.Location;
@@ -53,7 +51,6 @@ public class OpenWalletLink : MonoBehaviour
 
             if (userLocation == "KR")
             {
-                Debug.LogWarning("❌ Wallet link blocked: User location is KR");
                 return;
             }
         }
@@ -76,7 +73,6 @@ public class OpenWalletLink : MonoBehaviour
 
         if (userLocation == "KR")
         {
-            // Blocked state
             if (localizedText != null)
             {
                 localizedText.translationKey = "WalletAccessBlocked";
@@ -91,7 +87,6 @@ public class OpenWalletLink : MonoBehaviour
         }
         else
         {
-            // Allowed state
             if (localizedText != null)
             {
                 localizedText.translationKey = "AccessWallet";
@@ -102,7 +97,6 @@ public class OpenWalletLink : MonoBehaviour
                 buttonLabel.text = LanguageManager.Instance.GetTranslation("AccessWallet");
             }
 
-            // Set color to #6689DA
             if (ColorUtility.TryParseHtmlString("#6689DA", out Color allowedColor))
             {
                 buttonLabel.color = allowedColor;

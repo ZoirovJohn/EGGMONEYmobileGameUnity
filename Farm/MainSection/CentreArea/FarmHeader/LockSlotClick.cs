@@ -59,7 +59,6 @@ public class LockSlotClick : MonoBehaviour
             inventoryBarChanger.InventoryLockBarMethod();
         else
         {
-            Debug.LogError("❌ InventoryItemsBarChanger missing!");
             return;
         }
 
@@ -67,7 +66,6 @@ public class LockSlotClick : MonoBehaviour
             infoErrorChanger.OpenInfoOpenFarm();
         else
         {
-            Debug.LogError("❌ InfoErrorChanger missing!");
             return;
         }
 
@@ -76,11 +74,9 @@ public class LockSlotClick : MonoBehaviour
 
     private System.Collections.IEnumerator SetInitialMessageAfterDelay()
     {
-        yield return null; // wait one frame
-
+        yield return null;
         FindUIElements();
 
-        // 🟦 LOCALIZED TEXT HERE
         if (messageText != null)
         {
             string text = LanguageManager.Instance.GetTranslation("SelectFarmKeyFirst");

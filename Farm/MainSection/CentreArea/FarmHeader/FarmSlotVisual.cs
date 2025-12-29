@@ -8,15 +8,15 @@ using UnityEngine.UI;
 public class FarmSlotVisual : MonoBehaviour
 {
     [Header("Visual Indicators (Optional)")]
-    [SerializeField] private GameObject premiumKeyIcon;   // Show when farm has premium key
-    [SerializeField] private GameObject robotIcon;        // Show when farm has robot
-    [SerializeField] private GameObject batteryIcon;      // Show when farm has battery
-    [SerializeField] private GameObject superBatteryIcon; // Show when farm has super battery
+    [SerializeField] private GameObject premiumKeyIcon;   
+    [SerializeField] private GameObject robotIcon;      
+    [SerializeField] private GameObject batteryIcon;      
+    [SerializeField] private GameObject superBatteryIcon;
     
     [Header("Visual Effects (Optional)")]
-    [SerializeField] private Image backgroundGlow;        // Premium farms get a gold glow
+    [SerializeField] private Image backgroundGlow;      
     [SerializeField] private Color normalColor = Color.white;
-    [SerializeField] private Color premiumColor = new Color(1f, 0.84f, 0f); // Gold
+    [SerializeField] private Color premiumColor = new Color(1f, 0.84f, 0f); 
     
     private FarmData farmData;
     
@@ -27,13 +27,11 @@ public class FarmSlotVisual : MonoBehaviour
     {
         if (farm == null)
         {
-            Debug.LogWarning("⚠️ FarmSlotVisual: FarmData is null!");
             return;
         }
         
         farmData = farm;
         
-        // Update premium key indicator
         if (premiumKeyIcon != null)
         {
             bool hasPremiumKey = farm.IsPremiumFarm();
@@ -45,7 +43,6 @@ public class FarmSlotVisual : MonoBehaviour
             }
         }
         
-        // Update robot indicator
         if (robotIcon != null)
         {
             bool hasRobot = farm.robotType == "robot";
@@ -57,7 +54,6 @@ public class FarmSlotVisual : MonoBehaviour
             }
         }
         
-        // Update battery indicators
         if (batteryIcon != null)
         {
             bool hasBattery = farm.batteryType == "battery";
@@ -70,7 +66,6 @@ public class FarmSlotVisual : MonoBehaviour
             superBatteryIcon.SetActive(hasSuperBattery);
         }
         
-        // Update background glow for premium farms
         if (backgroundGlow != null)
         {
             Color targetColor = farm.IsPremiumFarm() ? premiumColor : normalColor;

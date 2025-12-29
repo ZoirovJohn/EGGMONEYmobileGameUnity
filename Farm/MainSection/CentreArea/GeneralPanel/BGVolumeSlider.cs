@@ -22,7 +22,6 @@ public class BGVolumeSlider : MonoBehaviour
     {
         if (GameAudioManager.Instance == null)
         {
-            Debug.LogError("GameAudioManager.Instance is null!");
             return;
         }
 

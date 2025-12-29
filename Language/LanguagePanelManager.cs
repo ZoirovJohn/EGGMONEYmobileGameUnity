@@ -85,7 +85,6 @@ public class LanguageManager : MonoBehaviour
         if (currentLanguageText != null)
             currentLanguageText.text = currentLanguage == "English" ? "ENG" : "한국어";
 
-        // Update all LocalizedText components in active scene
         LocalizedText[] localizedTexts = Resources.FindObjectsOfTypeAll<LocalizedText>();
 
         foreach (LocalizedText text in localizedTexts)
@@ -113,7 +112,7 @@ public class LanguageManager : MonoBehaviour
     {
         var appliers = FindObjectsByType<InventoryFarmItemApplier>(FindObjectsSortMode.None);
         foreach (var a in appliers)
-            a.UpdateStatusImages();   // refresh text + icons
+            a.UpdateStatusImages();
     }
 
     private void UpdateAllHatchPanels()
@@ -128,7 +127,7 @@ public class LanguageManager : MonoBehaviour
         var hatchUIs = FindObjectsByType<InfoHatchManager>(FindObjectsSortMode.None);
 
         foreach (var ui in hatchUIs)
-            ui.RefreshUI();  // <-- direct refresh
+            ui.RefreshUI(); 
     }
 
     private void UpdateAllPurchasePopups()
@@ -148,8 +147,6 @@ public class LanguageManager : MonoBehaviour
         {
             return translations[key][currentLanguage];
         }
-
-        Debug.LogWarning($"Translation not found for key: {key}");
         return key;
     }
 

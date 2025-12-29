@@ -93,7 +93,6 @@ public class FarmHeaderManager : MonoBehaviour
             Debug.LogWarning("⚠️ PlayerWallet not assigned - will use default farm count");
         }
 
-        // ✅ Auto-find FooterPanelSwitcher if not assigned
         if (footerPanelSwitcher == null)
         {
             footerPanelSwitcher = FindAnyObjectByType<FooterPanelSwitcher>();
@@ -103,9 +102,7 @@ public class FarmHeaderManager : MonoBehaviour
             }
         }
 
-        // Load farm counts from PlayerWallet (or fallback to database)
         LoadFarmCountsFromBackend();
-        
         Refresh();
     }
 
@@ -123,11 +120,9 @@ public class FarmHeaderManager : MonoBehaviour
             if (backgroundImg != null)
             {
                 Color c = backgroundImg.color;
-                backgroundImg.color = new Color(c.r, c.g, c.b, 0f); // Set alpha to 0 (transparent)
+                backgroundImg.color = new Color(c.r, c.g, c.b, 0f); 
             }
         }
-        
-        Debug.Log("✅ Farm header selection cleared");
     }
 
     /// <summary>
@@ -136,33 +131,20 @@ public class FarmHeaderManager : MonoBehaviour
     /// </summary>
     void LoadFarmCountsFromBackend()
     {
-        // ✅ PRIORITY 1: Try to load from PlayerWallet (backend data)
         if (playerWallet != null)
         {
             farmCount = playerWallet.UserFarms;
-            
-            // ✅ Show a fixed number of visible lock slots (e.g., 7)
-            // This is just for UI display, doesn't limit actual max farms
             lockCount = visibleLockSlots;
-            
-            Debug.Log($"📊 Farm counts loaded: {farmCount} unlocked farms, showing {lockCount} lock slots");
             return;
         }
         
-        // ✅ FALLBACK: Load from FarmDatabase if PlayerWallet not available
         if (farmDatabase == null || farmDatabase.farms == null)
         {
-            Debug.LogWarning("⚠️ FarmDatabase not available, using default counts");
             return;
         }
         
-        // Get actual unlocked farm count from database
         farmCount = farmDatabase.farms.Count;
-        
-        // Show visible lock slots
         lockCount = visibleLockSlots;
-        
-        Debug.Log($"📊 Farm counts from database: {farmCount} unlocked farms, showing {lockCount} lock slots");
     }
 
     string BuildFarmInfoText(FarmData farm)
@@ -218,9 +200,7 @@ public class FarmHeaderManager : MonoBehaviour
 
     public void Refresh()
     {
-        // Reload counts from PlayerWallet/database before refreshing
         LoadFarmCountsFromBackend();
-        
         DetermineVisibleItems();
         BuildItems();
         ComputeStep();
@@ -247,7 +227,6 @@ public class FarmHeaderManager : MonoBehaviour
 
     void BuildItems()
     {
-        // Clear existing
         foreach (Transform t in content)
             Destroy(t.gameObject);
 
@@ -289,7 +268,6 @@ public class FarmHeaderManager : MonoBehaviour
 
         LayoutRebuilder.ForceRebuildLayoutImmediate(content);
         
-        // Set initial selection to Farm 1
         UpdateFarmSelection(0);
         
         if (farmGridManager != null)
@@ -305,7 +283,6 @@ public class FarmHeaderManager : MonoBehaviour
     {
         if (farmIndex < 0 || farmIndex >= farmSlots.Count)
         {
-            Debug.LogWarning($"⚠️ Invalid farm index: {farmIndex}");
             return;
         }
         
@@ -314,7 +291,6 @@ public class FarmHeaderManager : MonoBehaviour
         
         if (farm == null)
         {
-            Debug.LogError($"❌ Could not find farm data for index {farmIndex}");
             return;
         }
         
@@ -401,7 +377,6 @@ public class FarmHeaderManager : MonoBehaviour
             lockClick = obj.AddComponent<LockSlotClick>();
         }
         
-        // ✅ Assign FarmHeaderManager reference
         var farmHeaderField = typeof(LockSlotClick).GetField("farmHeaderManager", 
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         
@@ -515,7 +490,6 @@ public class FarmHeaderManager : MonoBehaviour
             farmPanel.SetActive(true);
         }
         
-        // ✅ Clear footer button highlights when switching to farm view
         if (footerPanelSwitcher != null)
         {
             footerPanelSwitcher.ClearFooterSelection(closePanels: false);
@@ -532,7 +506,6 @@ public class FarmHeaderManager : MonoBehaviour
 
         if (clickedFarm != null)
         {
-            // 🔹 Inventory bar (already existing)
             if (inventoryBarChanger != null)
             {
                 inventoryBarChanger.InventoryFarmBarMethod(clickedFarm.farmId);
@@ -556,7 +529,6 @@ public class FarmHeaderManager : MonoBehaviour
 
     private System.Collections.IEnumerator OpenFarmInfoNextFrame(string infoText)
     {
-        // Wait one frame so all CloseAllInfoErrorMethod() calls finish
         yield return null;
 
         if (infoErrorChanger != null)
@@ -574,14 +546,11 @@ public class FarmHeaderManager : MonoBehaviour
     {
         if (farmIndex < 0 || farmIndex >= farmSlots.Count)
         {
-            Debug.LogWarning($"⚠️ Cannot select farm index {farmIndex} - out of range (0-{farmSlots.Count - 1})");
             return;
         }
         
         selectedFarmIndex = farmIndex;
         UpdateFarmSelection(farmIndex);
-        
-        Debug.Log($"✅ Farm header selection updated to farm {farmIndex + 1}");
     }
 
     void UpdateFarmSelection(int farmIndex)
