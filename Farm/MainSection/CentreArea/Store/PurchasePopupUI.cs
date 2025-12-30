@@ -19,10 +19,10 @@ public class PurchasePopupUI : MonoBehaviour
     [SerializeField] Button btnPlus10;
     [SerializeField] Button btnBuy;
     [SerializeField] Button btnCancel;
-    [SerializeField] GameObject inventoryButton; // ⭐ Reference to inventory button
+    [SerializeField] GameObject inventoryButton;
 
     [Header("Limits")]
-    [SerializeField] int minQty = 0; // ⭐ Changed to 0 so it can be reset
+    [SerializeField] int minQty = 0;
     [SerializeField] int maxQty = 999;
 
     [Header("Wallet (required)")]
@@ -50,8 +50,6 @@ public class PurchasePopupUI : MonoBehaviour
     Vector2 inventoryOriginalPosition;
     bool originalPositionSet = false;
 
-    
-
     void Awake()
     {
         // Handle typing
@@ -64,7 +62,6 @@ public class PurchasePopupUI : MonoBehaviour
 
     void Start()
     {
-        // ⭐ Store inventory button's original position ONCE at the very start
         if (inventoryButton != null && !originalPositionSet)
         {
             RectTransform rectTransform = inventoryButton.GetComponent<RectTransform>();
@@ -81,8 +78,6 @@ public class PurchasePopupUI : MonoBehaviour
         if (!store) store = StoreDB.Instance;
         if (!wallet) wallet = FindAnyObjectByType<PlayerWallet>(FindObjectsInactive.Include);
         if (!marketManager) marketManager = FindAnyObjectByType<MarketManager>(FindObjectsInactive.Include);
-
-        // ⭐ Store original position only if not set yet (fallback)
         if (inventoryButton != null && !originalPositionSet)
         {
             RectTransform rectTransform = inventoryButton.GetComponent<RectTransform>();
@@ -110,7 +105,6 @@ public class PurchasePopupUI : MonoBehaviour
         unitPrice = Mathf.Max(0, item.priceFP);
         purchasable = item.canBuy && unitPrice > 0;
 
-        // Localized price
         if (unitPriceText)
         {
             string priceFormat = LanguageManager.Instance.GetTranslation("Store_Price");
@@ -137,7 +131,6 @@ public class PurchasePopupUI : MonoBehaviour
         {
             btnCancel.onClick.AddListener(() =>
             {
-                // ⭐ If qty is already 0, close the panel. Otherwise set to 0
                 if (qty == 0)
                 {
                     ClosePanel();
@@ -183,15 +176,12 @@ public class PurchasePopupUI : MonoBehaviour
     public void RefreshUI()
     {
         if (item == null) return;
-
-        // ⭐⭐ FIX: Update localized price text
         if (unitPriceText)
         {
             string priceFormat = LanguageManager.Instance.GetTranslation("Store_Price");
             unitPriceText.text = string.Format(priceFormat, unitPrice);
         }
 
-        // Continue existing code...
         long totalLong = (long)qty * unitPrice;
         int total = totalLong > int.MaxValue ? int.MaxValue : (int)totalLong;
 
@@ -207,11 +197,10 @@ public class PurchasePopupUI : MonoBehaviour
 
         bool canBuyNow;
 
-        // ⭐ Check if quantity is 0 first
         if (qty == 0)
         {
             canBuyNow = false;
-            LocalizeMsg("Store_SelectQuantity", false); // You can add this translation key
+            LocalizeMsg("Store_SelectQuantity", false); 
         }
         else if (!purchasable)
         {
@@ -286,12 +275,10 @@ public class PurchasePopupUI : MonoBehaviour
                 FlashMsg("Store_Purchased", new Color(0.2f, 0.6f, 1f), 3f);
                 FXManager.Instance?.PlayPurchaseFX_Center();
 
-                // ⭐ Stop any existing bounce animation before starting a new one
                 if (bounceCoroutine != null)
                 {
                     StopCoroutine(bounceCoroutine);
                     
-                    // Reset position immediately
                     if (inventoryButton != null)
                     {
                         RectTransform rectTransform = inventoryButton.GetComponent<RectTransform>();
@@ -327,7 +314,6 @@ public class PurchasePopupUI : MonoBehaviour
         RectTransform rectTransform = inventoryButton.GetComponent<RectTransform>();
         if (rectTransform == null) yield break;
 
-        // ⭐ Force position to original before starting animation
         rectTransform.anchoredPosition = inventoryOriginalPosition;
 
         for (int i = 0; i < bounceCount; i++)
@@ -336,7 +322,6 @@ public class PurchasePopupUI : MonoBehaviour
 
             while (time < Mathf.PI)
             {
-                // ⭐ Check if button was clicked (position changed externally)
                 if (rectTransform == null || inventoryButton == null)
                 {
                     bounceCoroutine = null;
@@ -344,38 +329,28 @@ public class PurchasePopupUI : MonoBehaviour
                 }
 
                 time += Time.deltaTime * bounceSpeed;
-                
-                // Calculate bounce using sine wave (0 to PI for upward motion only)
                 float bounce = Mathf.Max(0, Mathf.Sin(time)) * bounceHeight;
-                
-                // Apply curve for more natural movement
                 float curveValue = bounceCurve.Evaluate(Mathf.Sin(time));
                 bounce = bounce * curveValue;
-                
-                // ⭐ Update position using stored original position
                 rectTransform.anchoredPosition = inventoryOriginalPosition + new Vector2(0, bounce);
                 
                 yield return null;
             }
 
-            // ⭐ Return to stored original position after each bounce
             rectTransform.anchoredPosition = inventoryOriginalPosition;
             
-            // Small delay between bounces
             if (i < bounceCount - 1)
             {
                 yield return new WaitForSeconds(0.15f);
             }
         }
 
-        // ⭐ Final position reset to stored original
         rectTransform.anchoredPosition = inventoryOriginalPosition;
-        bounceCoroutine = null; // ⭐ Clear the coroutine reference
+        bounceCoroutine = null;
     }
 
     void OnDisable()
     {
-        // ⭐ Clean up animtion when popup closes
         if (bounceCoroutine != null)
         {
             StopCoroutine(bounceCoroutine);
