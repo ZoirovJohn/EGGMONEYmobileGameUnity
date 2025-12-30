@@ -754,6 +754,19 @@ public static class TranslationsData
             { "Korean", "농장 정보" }
         };
 
+        translations["NotEnoughFreeNest"] = new()
+        {
+            { "English", "Not enough free nests. Available nests: {0}" },
+            { "Korean", "빈 둥지가 부족합니다. 사용 가능한 둥지: {0}" }
+        };
+
+        translations["NotEnoughFarmNestSpace_Generic"] = new()
+        {
+            { "English", "Not enough space in this farm." },
+            { "Korean", "농장에 공간이 부족합니다." }
+        };
+
+
 
         return translations;
     }

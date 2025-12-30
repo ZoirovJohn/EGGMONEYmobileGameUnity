@@ -83,6 +83,27 @@ public class FarmData
         }
         return false;
     }
+
+    public int GetFreeNestSlotsInFarm()
+    {
+        return Mathf.Max(0, maxCapacity - nestsOccupied);
+    }
+
+    public int GetFreeNestCount()
+    {
+        int freeNests = 0;
+
+        foreach (var cage in cages)
+        {
+            if (cage == null) continue;
+
+            int freeInCage = cage.nestCapacity - cage.nestsOccupied;
+            if (freeInCage > 0)
+                freeNests += freeInCage;
+        }
+
+        return freeNests;
+    }
     
     public void ApplyItem(string productId)
     {

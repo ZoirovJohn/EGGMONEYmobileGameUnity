@@ -156,12 +156,37 @@ public class ManyToFarm : MonoBehaviour
     int GetMaxAvailableQuantity()
     {
         if (!wallet || !cellId || string.IsNullOrEmpty(cellId.productId))
-        {
             return 0;
+
+        int walletCount = wallet.GetItemCount(cellId.productId);
+
+        string productId = cellId.productId.ToLowerInvariant();
+
+        if (productId.Contains("chick") || productId.Contains("hen"))
+        {
+            FarmData farm = farmGridManager.GetFarmDataById(
+                farmDatabase.farms[farmDatabase.currentFarmIndex].farmId
+            );
+
+            if (farm == null) return 0;
+
+            return Mathf.Min(walletCount, farm.GetFreeNestCount());
         }
-        
-        return wallet.GetItemCount(cellId.productId);
+
+        if (productId.Contains("nest"))
+        {
+            FarmData farm = farmGridManager.GetFarmDataById(
+                farmDatabase.farms[farmDatabase.currentFarmIndex].farmId
+            );
+
+            if (farm == null) return 0;
+
+            return Mathf.Min(walletCount, farm.GetFreeNestSlotsInFarm());
+        }
+
+        return walletCount;
     }
+
 
     public void OnPutButtonClicked()
     {
@@ -207,6 +232,76 @@ public class ManyToFarm : MonoBehaviour
                 }
                 
                 return;
+            }
+        }
+
+        if (isTryingToPlaceHen)
+        {
+            if (farmGridManager == null || farmDatabase == null)
+            {
+                Debug.LogError("FarmGridManager or FarmDatabase missing");
+                return;
+            }
+
+            // current farm
+            FarmData farm = farmGridManager.GetFarmDataById(
+                farmDatabase.farms[farmDatabase.currentFarmIndex].farmId
+            );
+
+            if (farm == null)
+            {
+                Debug.LogError("FarmData not found");
+                return;
+            }
+
+            int freeNests = farm.GetFreeNestCount();
+
+            if (currentQuantity > freeNests)
+            {
+                Debug.Log($"❌ NotEnoughFreeNest triggered. qty={currentQuantity}, free={freeNests}");
+                if (infoErrorChanger != null)
+                {
+                    string template = LanguageManager.Instance.GetTranslation("NotEnoughFreeNest");
+                    string msg = string.Format(template, freeNests);
+                    infoErrorChanger.OpenErrorDefault(msg);
+                }
+
+                return;
+            }
+        }
+
+        if (isTryingToPlaceNest)
+        {
+            if (farmGridManager == null || farmDatabase == null)
+            {
+                Debug.LogError("FarmGridManager or FarmDatabase missing");
+                return;
+            }
+
+            FarmData farm = farmGridManager.GetFarmDataById(
+                farmDatabase.farms[farmDatabase.currentFarmIndex].farmId
+            );
+
+            if (farm == null)
+            {
+                Debug.LogError("FarmData not found");
+                return;
+            }
+
+            int freeFarmSlots = farm.GetFreeNestSlotsInFarm();
+
+            if (currentQuantity > freeFarmSlots)
+            {
+                Debug.Log($"❌ NotEnoughFarmNestSpace. qty={currentQuantity}, free={freeFarmSlots}");
+
+                if (infoErrorChanger != null)
+                {
+                    string template = LanguageManager.Instance.GetTranslation("NotEnoughFarmNestSpace");
+                    string msg = string.Format(template, freeFarmSlots);
+                    infoErrorChanger.OpenErrorDefault(msg);
+                }
+
+                return; // ⛔ STOP — NO API CALL
             }
         }
         
@@ -395,8 +490,19 @@ public class ManyToFarm : MonoBehaviour
 
     void HandlePlacementError(string error)
     {
-        Debug.LogError($"❌ Failed to place items: {error}");
+        if (!string.IsNullOrEmpty(error) && error.Contains("nest"))
+        {
+            infoErrorChanger.OpenErrorDefault(
+                LanguageManager.Instance.GetTranslation("NotEnoughFarmNestSpace_Generic")
+            );
+            return;
+        }
+
+        infoErrorChanger.OpenErrorDefault(
+            LanguageManager.Instance.GetTranslation("Store_PurchaseFailed")
+        );
     }
+
 
     void UpdateBigCageInside2Visual()
     {
