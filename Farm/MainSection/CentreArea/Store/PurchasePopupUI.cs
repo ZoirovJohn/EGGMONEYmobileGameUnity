@@ -36,6 +36,9 @@ public class PurchasePopupUI : MonoBehaviour
     [SerializeField] float bounceSpeed = 5f;
     [SerializeField] AnimationCurve bounceCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
+    [Header("Popup Root")]
+    [SerializeField] GameObject popupRoot;
+
     StoreDB.Item item;
     int unitPrice = 0;
     int qty = 1;
@@ -372,7 +375,7 @@ public class PurchasePopupUI : MonoBehaviour
 
     void OnDisable()
     {
-        // ⭐ Clean up animation when popup closes
+        // ⭐ Clean up animtion when popup closes
         if (bounceCoroutine != null)
         {
             StopCoroutine(bounceCoroutine);
@@ -431,14 +434,16 @@ public class PurchasePopupUI : MonoBehaviour
         RefreshUI();
     }
 
-    public void Close() { }
-
-    // ⭐ Close panel method
     void ClosePanel()
     {
-        gameObject.SetActive(false);
-        // Or if you have a specific close method, call it here:
-        // Close();
+        if (popupRoot != null)
+        {
+            popupRoot.SetActive(false);
+        }
+        else
+        {
+            Debug.LogError("PurchasePopupUI: popupRoot not assigned");
+        }
     }
 
     // ------------------------------
